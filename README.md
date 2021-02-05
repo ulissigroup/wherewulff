@@ -2,8 +2,7 @@
 
 ![workflow](img/mo_wulff_workflow.png)
 
-A starting point for a general Metal oxide Surfaces Workflow able to build the Wulff
-Wulff construction from DFT calculations and managed by FireWorks and Atomate.
+A starting point for a general Metal oxide Surfaces Workflow able to build the Wulff construction from DFT calculations and managed by FireWorks and Atomate.
 
 # Goals
 
