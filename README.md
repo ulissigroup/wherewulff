@@ -17,6 +17,7 @@ in our group and more.
 - [x] Surface Energy task after optimization
 - [x] Wulff shape Analysis (as separeted Task)
 - [ ] Metal oxide surfaces with dipolar moment?
+- [x] Basic rotational DoF for OH and OOH (not generalized for other molecules yet).
 - [ ] Non-stoichiometric slab models (Terminations) + gamma_hkl (with chemical potential)
 - [ ] Include GGA+U method
 - [ ] Single point calculation with hybrid DFT Functional
