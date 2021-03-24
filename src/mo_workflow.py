@@ -78,8 +78,8 @@ class MOSurfaceSet(MVLSlabSet):
         #magmom = set_magmom(self.structure)
 
         # Incar Settings for optimization
-        incar_config = {"GGA": "RP", "ENCUT": 400, "EDIFF": 1e-4, "EDIFFG": -0.05, 
-                        "ISYM": 0, "ISPIN": 2, "ISIF": 0, "NSW": 0}
+        incar_config = {"GGA": "RP", "ENCUT": 500, "EDIFF": 1e-5, "EDIFFG": -0.05, 
+                        "ISYM": 0, "ISPIN": 2, "ISIF": 0}
         #update incar
         incar.update(incar_config)
         incar.update(self.user_incar_settings)
@@ -97,13 +97,13 @@ class MOSurfaceSet(MVLSlabSet):
 
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype('int'))
-            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0,0,0))
+            return Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype('int')
             kpts[2] = 1
             kpts = tuple(kpts)
-            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0,0,0))
+            return Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
 
 
 @explicit_serialize
