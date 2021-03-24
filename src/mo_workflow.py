@@ -75,11 +75,11 @@ class MOSurfaceSet(MVLSlabSet):
         incar = super(MOSurfaceSet, self).incar
 
         #Setting Magnetic Moments  
-        magmom = set_magmom(self.structure)
+        #magmom = set_magmom(self.structure)
 
         # Incar Settings for optimization
-        incar_config = {"GGA": "RP", "ENCUT": 500, "EDIFF": 1e-5, 
-                        "EDIFFG": -0.05, "ISYM": 0, "ISPIN": 2, "ISIF": 0}
+        incar_config = {"GGA": "RP", "ENCUT": 400, "EDIFF": 1e-4, "EDIFFG": -0.05, 
+                        "ISYM": 0, "ISPIN": 2, "ISIF": 0, "NSW": 0}
         #update incar
         incar.update(incar_config)
         incar.update(self.user_incar_settings)
@@ -97,13 +97,13 @@ class MOSurfaceSet(MVLSlabSet):
 
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype('int'))
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
+            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0,0,0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype('int')
             kpts[2] = 1
             kpts = tuple(kpts)
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
+            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0,0,0))
 
 
 @explicit_serialize
@@ -117,7 +117,7 @@ class SurfaceEnergyFW(FiretaskBase):
         db_file: database file path
         to_db (default: True): Save the data on the db or in a json_file.
 
-    Return:
+    return:
         summary_dict (DB/JSON) with surface energy information.
     """
     required_params = ['slab_formula', 'miller_index', 'db_file']
@@ -267,20 +267,25 @@ class WulffShapeFW(FiretaskBase):
         # Find Surface energies for the given material + facet
         docs = collection.find({"task_label": {"$regex": "^{}".format(bulk_formula)}})
 
-        # Surface energy dictionary
+        # Surface energy and structures dictionary
         surface_energies_dict = {}
+        structures_dict = {}
         for d in docs:
+            slab_struct = d["slab_struct"] #as dict
             miller_index = tuple(map(int, d["miller_index"]))
             surface_energy = abs(round(d["surface_energy"] * Ev2Joule, 4)) #Round to 4 decimals
             surface_energies_dict.update({miller_index: surface_energy})
+            structures_dict.update({d["miller_index"]: slab_struct})
 
         # Wulff Analysis
         wulffshape_obj, wulff_info, area_frac_dict = self.get_wulff_analysis(bulk_structure, surface_energies_dict)
 
         # Store data on summary_dict
+        summary_dict['task_label'] = "{}_wulff_shape".format(bulk_formula)
         summary_dict['surface_enegies'] = json_format(surface_energies_dict)
         summary_dict['wulff_info'] = wulff_info
         summary_dict['area_fractions'] = area_frac_dict
+        summary_dict['slab_structures'] = structures_dict
 
         # Plot
         if wulff_plot:
@@ -333,4 +338,3 @@ class WulffShapeFW(FiretaskBase):
                       'effective_radius': effective_radius}
 
         return wulffshape_obj, wulff_info, area_frac_dict
-
