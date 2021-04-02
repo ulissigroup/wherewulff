@@ -282,7 +282,7 @@ class WulffShapeFW(FiretaskBase):
 
         # Store data on summary_dict
         summary_dict['task_label'] = "{}_wulff_shape".format(bulk_formula)
-        summary_dict['surface_enegies'] = json_format(surface_energies_dict)
+        summary_dict['surface_energies'] = json_format(surface_energies_dict)
         summary_dict['wulff_info'] = wulff_info
         summary_dict['area_fractions'] = area_frac_dict
         summary_dict['slab_structures'] = structures_dict
@@ -316,14 +316,19 @@ class WulffShapeFW(FiretaskBase):
         Return:
             Wulff Shape Analysis information.
         """
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
         from pymatgen.analysis.wulff import WulffShape
+
+        # Conventional standard structure
+        SGA = SpacegroupAnalyzer(bulk_structure)
+        bulk_struct = SGA.get_conventional_standard_structure()
 
         # Get key/values from energies dict J/m^2
         miller_list = surface_energies_dict.keys()
         e_surf_list = surface_energies_dict.values()
 
         # WulffShape Analysis
-        wulffshape_obj = WulffShape(bulk_structure.lattice, miller_list, e_surf_list)
+        wulffshape_obj = WulffShape(bulk_struct.lattice, miller_list, e_surf_list)
 
         # Collect wulffshape properties
         shape_factor = wulffshape_obj.shape_factor
