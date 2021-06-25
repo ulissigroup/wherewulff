@@ -199,7 +199,7 @@ def get_wfs_mo_slabs(bulk_structure, conventional_standard=True, max_index=1, va
 
     return wfs
 
-def WulffShape_WF(bulk_structure, vasp_cmd=VASP_CMD, db_file=DB_FILE):
+def WulffShape_WF(bulk_structure, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE):
     """
     Wrap-up workflow to do the Wulff Shape Analysis after MO_SLABS_WF.
 
@@ -215,10 +215,14 @@ def WulffShape_WF(bulk_structure, vasp_cmd=VASP_CMD, db_file=DB_FILE):
     bulk_formula = bulk_structure.composition.reduced_formula
 
     # WulffShape Analysis
-    wulff_fw = [Firework(WulffShapeFW(bulk_structure=bulk_structure,
-                                      db_file=db_file), name="{} wulff shape Task".format(bulk_formula))]
+    wulff_fw = Firework(WulffShapeFW(bulk_structure=bulk_structure,
+                                     db_file=db_file),
+                                     name="{} wulff shape Task".format(bulk_formula),
+                                     parents=parents)
 
-    wulff_wf = Workflow(wulff_fw, name="{} wulff shape analysis".format(bulk_formula))
+    all_fws = [wulff_fw]
+    all_fws.extend(parents)
+    wulff_wf = Workflow(all_fws, name="{} wulff shape analysis".format(bulk_formula))
 
     return wulff_wf
 
@@ -238,11 +242,17 @@ if __name__ == "__main__":
     launchpad.reset('', require_password=False)
     launchpad.bulk_add_wfs(slab_wfs)
 
+    # Get all the slab models fws and wait until they are all completed before doing the 
+    # Wulff construction
+    wf_fws = [wf.fws for wf in slab_wfs] # list of lists
+    fws = [fw for wf in wf_fws for fw in wf] # flatten the list of fws
     # Run slab workflow
     rapidfire(launchpad)
 
     # Wulff
-    wulff_wfs = WulffShape_WF(struct)
+    wulff_wfs = WulffShape_WF(struct, parents=fws)
+    # Add dependency to the wulff_wf
+    #wulff_wfs.links
     launchpad.add_wf(wulff_wfs)
 
     # Run Wulff workflow
