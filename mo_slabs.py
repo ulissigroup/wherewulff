@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from datetime import datetime
 
 import pymatgen
-from pymatgen import Structure, Lattice
+from pymatgen.core import Structure, Lattice
 from pymatgen.core.composition import Composition
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.surface import Slab, SlabGenerator, generate_all_slabs, get_symmetrically_distinct_miller_indices
