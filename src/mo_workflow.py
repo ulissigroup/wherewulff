@@ -27,24 +27,21 @@ logger = get_logger(__name__)
 
 # Setting magmom automatically
 def set_magmom(structure):
-    comp_dict = Composition(structure.formula).as_dict()
-    mag_dict = Composition(structure.formula).as_dict()
-    mag_dict['O'] = 0.6
-    if 'H' in mag_dict.keys():
-        mag_dict['H'] = 0.1
-    for n in mag_dict.keys():
-        if n != 'O' and n != 'H':
-            mag_dict[n] = 5.0
+    """Expects a pymatgen structure object
+    and returns a list of magmoms in the same order
+    as the site.specie.name traversed"""
 
-    mag = []
-    for k in comp_dict:
-        n_sites = int(comp_dict[str(k)])
-        magmom = mag_dict[str(k)]
-        mag.append(str(n_sites)+'*'+str(magmom))
+    magmoms = []
+    for site in structure:
+        element = site.specie.name
+        if element == 'O':
+            magmoms.append(0.6)
+        elif element == 'H':
+            magmoms.append(0.1)
+        else: # M Transition metal ?
+            magmoms.append(5.0)
 
-    mag_command = " ".join(mag)
-
-    return mag_command
+    return magmoms 
 
 # Help function to avovid tuples as key.
 def json_format(dt):
@@ -59,10 +56,18 @@ class MOSurfaceSet(MVLSlabSet):
     """
     Custom VASP input class for MO slab calcs
     """
-    def __init__(self, structure, bulk=False, **kwargs):
+    def __init__(self, structure, psp_version="PBE_54", bulk=False, **kwargs):
 
         super(MOSurfaceSet, self).__init__(
             structure, bulk=bulk, **kwargs)
+        
+
+        self.psp_version = psp_version
+
+        # Change the default PBE version from Pymatgen
+        psp_versions = ['PBE', 'PBE_52', 'PBE_54']
+        assert self.psp_version in psp_versions 
+        MOSurfaceSet.CONFIG['POTCAR_FUNCTIONAL'] = self.psp_version
 
         # Bulks are better with LREAL=.FALSE. ??
         if bulk:
@@ -75,7 +80,8 @@ class MOSurfaceSet(MVLSlabSet):
         incar = super(MOSurfaceSet, self).incar
 
         #Setting Magnetic Moments  
-        #magmom = set_magmom(self.structure)
+        magmoms = set_magmom(self.structure)
+        incar['MAGMOM'] = magmoms
 
         # Incar Settings for optimization
         incar_config = {"GGA": "RP", "ENCUT": 500, "EDIFF": 1e-5, "EDIFFG": -0.05, 
