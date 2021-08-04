@@ -1,23 +1,15 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-from datetime import datetime
 
-import pymatgen
-from pymatgen.core import Structure, Lattice
-from pymatgen.core.composition import Composition
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.core.surface import Slab, SlabGenerator, generate_all_slabs, get_symmetrically_distinct_miller_indices
-from pymatgen.io.vasp.sets import MVLSlabSet
+from pymatgen.core.surface import Slab
 
-from fireworks import Firework, Workflow, LaunchPad
-from fireworks.core.rocket_launcher import rapidfire
-from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW, StaticFW
-from atomate.vasp.database import VaspCalcDb
+from fireworks import Firework, Workflow
+from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
+from CatFlows.dft_settings.settings import MOSurfaceSet
+from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
+from CatFlows.fireworks.optimize import Slab_FW
 
-from atomate.utils.utils import get_meta_from_structure
-
-from fireworks.scripts import lpad_run
 
 
 
@@ -57,7 +49,7 @@ def SurfaceEnergy_WF(slab, include_bulk_opt=True, vasp_input_set=None, vasp_cmd=
     # Surface Energy Calculation
     parents = fws[1:]
     name_gamma = "{}_{} surface energy".format(slab.composition.reduced_formula, miller_index)
-    gamma_hkl = Firework(SurfaceEnergyFW(slab_formula=slab.composition.reduced_formula,
+    gamma_hkl = Firework(SurfaceEnergyFireTask(slab_formula=slab.composition.reduced_formula,
                                          miller_index=miller_index, db_file=db_file, to_db=True),
                                          name=name_gamma, parents=parents)
     fws.append(gamma_hkl)

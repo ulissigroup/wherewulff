@@ -3,7 +3,7 @@
 #atomate_run.sh for workflows in python scripts.
 
 #Variables
-workflow=mo_slabs.py
+workflow=main.py
 
 #Add structure and workflow
 mongod &>/dev/null & python $workflow

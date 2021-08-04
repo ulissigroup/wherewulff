@@ -1,33 +1,26 @@
-import os
 import json
-from datetime import datetime
-import numpy as np
 
 from pydash.objects import has, get
 
-import pymatgen
-from pymatgen.core import Structure, Lattice
+from pymatgen.core import Structure
 from pymatgen.core.composition import Composition
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.core.surface import Slab, SlabGenerator, generate_all_slabs, get_symmetrically_distinct_miller_indices
-from pymatgen.io.vasp.sets import MVLSlabSet
-from pymatgen.io.vasp.inputs import Kpoints
+from pymatgen.core.surface import Slab
 
-
-from fireworks import FiretaskBase, FWAction, Workflow, explicit_serialize
-from fireworks import FiretaskBase, FWAction, explicit_serialize
+from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
-from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
+
 
 
 logger = get_logger(__name__)
 
 
+
 @explicit_serialize
-class SurfaceEnergyFW(FiretaskBase):
+class SurfaceEnergyFireTask(FiretaskBase):
     """
     Computes the surface energy for stoichiometric slab models.
 

@@ -1,15 +1,9 @@
-import pymatgen
-from pymatgen.core import Structure, Lattice
-from pymatgen.core.composition import Composition
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.core.surface import Slab, SlabGenerator, generate_all_slabs, get_symmetrically_distinct_miller_indices
-from pymatgen.io.vasp.sets import MVLSlabSet
 
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure
 
-from dft_settings.settings import MOSurfaceSet
+from CatFlows.dft_settings.settings import MOSurfaceSet
 
 
 def Slab_FW(slab, name="", parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE, add_slab_metadata=True):
