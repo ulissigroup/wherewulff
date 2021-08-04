@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pymatgen.io.cif import CifParser
-from pymatgen.core import Structure
+from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.surface import SlabGenerator, get_symmetrically_distinct_miller_indices
 from pymatgen.analysis.local_env import VoronoiNN
