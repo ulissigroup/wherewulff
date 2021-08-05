@@ -22,10 +22,11 @@ def WulffShape_WF(bulk_structure, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FI
     bulk_formula = bulk_structure.composition.reduced_formula
 
     # WulffShape Analysis
-    wulff_fw = Firework(WulffShapeFW(bulk_structure=bulk_structure,
-                                     db_file=db_file),
-                                     name="{} wulff shape Task".format(bulk_formula),
-                                     parents=parents)
+    wulff_fw = Firework(
+        WulffShapeFW(bulk_structure=bulk_structure, db_file=db_file),
+        name="{} wulff shape Task".format(bulk_formula),
+        parents=parents,
+    )
 
     all_fws = [wulff_fw]
     if parents is not None:

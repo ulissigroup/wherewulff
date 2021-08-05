@@ -11,7 +11,7 @@ cat_flows = CatFlows(cif_file)
 # Get Launchpad
 launchpad = cat_flows.submit()
 
-#print(launchpad.get_wf_summary_dict(5))
+# print(launchpad.get_wf_summary_dict(5))
 
 # Run!
 rapidfire(launchpad)

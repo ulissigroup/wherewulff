@@ -7,4 +7,3 @@ workflow=main.py
 
 #Add structure and workflow
 mongod &>/dev/null & python $workflow
-

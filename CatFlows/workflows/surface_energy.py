@@ -11,9 +11,9 @@ from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
 from CatFlows.fireworks.optimize import Slab_FW
 
 
-
-
-def SurfaceEnergy_WF(slab, include_bulk_opt=True, vasp_input_set=None, vasp_cmd=VASP_CMD, db_file=DB_FILE):
+def SurfaceEnergy_WF(
+    slab, include_bulk_opt=True, vasp_input_set=None, vasp_cmd=VASP_CMD, db_file=DB_FILE
+):
     """
     Gets a workflow corresponding to a slab optimization calculation.
 
@@ -33,30 +33,60 @@ def SurfaceEnergy_WF(slab, include_bulk_opt=True, vasp_input_set=None, vasp_cmd=
     # Add bulk opt firework if specified
     if include_bulk_opt:
         oriented_bulk = slab.oriented_unit_cell
-        name_bulk = "{}_{} bulk optimization".format(oriented_bulk.composition.reduced_formula, miller_index)
+        name_bulk = "{}_{} bulk optimization".format(
+            oriented_bulk.composition.reduced_formula, miller_index
+        )
         vis = MOSurfaceSet(oriented_bulk, bulk=True)
-        fws.append(OptimizeFW(structure=oriented_bulk, name=name_bulk, vasp_input_set=vis, max_force_threshold=None,
-                              vasp_cmd=vasp_cmd, db_file=db_file, job_type="normal"))
+        fws.append(
+            OptimizeFW(
+                structure=oriented_bulk,
+                name=name_bulk,
+                vasp_input_set=vis,
+                max_force_threshold=None,
+                vasp_cmd=vasp_cmd,
+                db_file=db_file,
+                job_type="normal",
+            )
+        )
         parents = fws[0]
 
     # Slab model Optimization
-    name_slab = "{}_{} slab optimization".format(slab.composition.reduced_formula, miller_index)
-    slab_fw = Slab_FW(slab, name=name_slab, parents=parents, vasp_cmd=vasp_cmd, 
-                      db_file=db_file, add_slab_metadata=True)
+    name_slab = "{}_{} slab optimization".format(
+        slab.composition.reduced_formula, miller_index
+    )
+    slab_fw = Slab_FW(
+        slab,
+        name=name_slab,
+        parents=parents,
+        vasp_cmd=vasp_cmd,
+        db_file=db_file,
+        add_slab_metadata=True,
+    )
 
     fws.append(slab_fw)
 
     # Surface Energy Calculation
     parents = fws[1:]
-    name_gamma = "{}_{} surface energy".format(slab.composition.reduced_formula, miller_index)
-    gamma_hkl = Firework(SurfaceEnergyFireTask(slab_formula=slab.composition.reduced_formula,
-                                         miller_index=miller_index, db_file=db_file, to_db=True),
-                                         name=name_gamma, parents=parents)
+    name_gamma = "{}_{} surface energy".format(
+        slab.composition.reduced_formula, miller_index
+    )
+    gamma_hkl = Firework(
+        SurfaceEnergyFireTask(
+            slab_formula=slab.composition.reduced_formula,
+            miller_index=miller_index,
+            db_file=db_file,
+            to_db=True,
+        ),
+        name=name_gamma,
+        parents=parents,
+    )
     fws.append(gamma_hkl)
 
     # WF name for bulk/slab optimization
     if isinstance(slab, Slab):
-        name_wf = "{}_{} slab workflow".format(slab.composition.reduced_formula, miller_index)
+        name_wf = "{}_{} slab workflow".format(
+            slab.composition.reduced_formula, miller_index
+        )
     else:
         name_wf = "{} slab workflow".format(slab.composition.reduced_formula)
 

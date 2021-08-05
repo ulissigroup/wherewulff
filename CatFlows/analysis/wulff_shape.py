@@ -38,8 +38,9 @@ class WulffShapeFW(FiretaskBase):
     return:
         summary_dict (JSON) with Wulff-Shape information inside.
     """
-    required_params = ['bulk_structure', 'db_file']
-    optional_params = ['wulff_plot', 'to_db']
+
+    required_params = ["bulk_structure", "db_file"]
+    optional_params = ["wulff_plot", "to_db"]
 
     def run_task(self, fw_spec):
 
@@ -48,7 +49,7 @@ class WulffShapeFW(FiretaskBase):
         to_db = self.get("to_db", False)
         wulff_plot = self.get("wulff_plot", True)
         bulk_structure = self["bulk_structure"]
-        Ev2Joule = 16.0219 # eV/Angs2 to J/m2
+        Ev2Joule = 16.0219  # eV/Angs2 to J/m2
         summary_dict = {}
 
         # Bulk formula
@@ -65,21 +66,25 @@ class WulffShapeFW(FiretaskBase):
         surface_energies_dict = {}
         structures_dict = {}
         for d in docs:
-            slab_struct = d["slab_struct"] #as dict
+            slab_struct = d["slab_struct"]  # as dict
             miller_index = tuple(map(int, d["miller_index"]))
-            surface_energy = abs(round(d["surface_energy"] * Ev2Joule, 4)) #Round to 4 decimals
+            surface_energy = abs(
+                round(d["surface_energy"] * Ev2Joule, 4)
+            )  # Round to 4 decimals
             surface_energies_dict.update({miller_index: surface_energy})
             structures_dict.update({d["miller_index"]: slab_struct})
 
         # Wulff Analysis
-        wulffshape_obj, wulff_info, area_frac_dict = self.get_wulff_analysis(bulk_structure, surface_energies_dict)
+        wulffshape_obj, wulff_info, area_frac_dict = self.get_wulff_analysis(
+            bulk_structure, surface_energies_dict
+        )
 
         # Store data on summary_dict
-        summary_dict['task_label'] = "{}_wulff_shape".format(bulk_formula)
-        summary_dict['surface_energies'] = json_format(surface_energies_dict)
-        summary_dict['wulff_info'] = wulff_info
-        summary_dict['area_fractions'] = area_frac_dict
-        summary_dict['slab_structures'] = structures_dict
+        summary_dict["task_label"] = "{}_wulff_shape".format(bulk_formula)
+        summary_dict["surface_energies"] = json_format(surface_energies_dict)
+        summary_dict["wulff_info"] = wulff_info
+        summary_dict["area_fractions"] = area_frac_dict
+        summary_dict["slab_structures"] = structures_dict
 
         # Plot
         if wulff_plot:
@@ -127,13 +132,19 @@ class WulffShapeFW(FiretaskBase):
         # Collect wulffshape properties
         shape_factor = wulffshape_obj.shape_factor
         anisotropy = wulffshape_obj.anisotropy
-        weight_surf_energy = wulffshape_obj.weighted_surface_energy # J/m2
-        shape_volume =  wulffshape_obj.volume
+        weight_surf_energy = wulffshape_obj.weighted_surface_energy  # J/m2
+        shape_volume = wulffshape_obj.volume
         effective_radius = wulffshape_obj.effective_radius
-        area_frac_dict = json_format(wulffshape_obj.area_fraction_dict) # {hkl: area_hkl/total area on wulff}
+        area_frac_dict = json_format(
+            wulffshape_obj.area_fraction_dict
+        )  # {hkl: area_hkl/total area on wulff}
 
-        wulff_info = {'shape_factor': shape_factor, 'anisotropy': anisotropy,
-                      'weight_surf_energy': weight_surf_energy, 'volume': shape_volume,
-                      'effective_radius': effective_radius}
+        wulff_info = {
+            "shape_factor": shape_factor,
+            "anisotropy": anisotropy,
+            "weight_surf_energy": weight_surf_energy,
+            "volume": shape_volume,
+            "effective_radius": effective_radius,
+        }
 
         return wulffshape_obj, wulff_info, area_frac_dict

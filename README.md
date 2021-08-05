@@ -22,5 +22,3 @@ in our group and more.
 - [ ] Include GGA+U method
 - [ ] Single point calculation with hybrid DFT Functional
 - [ ] **IDEA:** Function that its able to convert vasprun.xml to ASE-Trajectories?
-
-
