@@ -33,7 +33,8 @@ in our group and more.
 
 - [ ] Generate unique hashes to identify/query jobs in database
 - [ ] Look into passing job info from parent to child fireworks
-
+- [ ] Add ContinueOptimizeFW to refactor branch
+- [ ] Add a script that runs the jobs in the launchpad across computing resources
 # Yuri/Javi ToDo List
 
 - [ ] Clean-up code for ADS_SLAB generation and add to refactor
