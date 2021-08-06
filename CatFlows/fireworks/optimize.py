@@ -9,20 +9,20 @@ def Slab_FW(
     slab,
     name="",
     parents=None,
+    add_slab_metadata=True,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
-    add_slab_metadata=True,
 ):
     """
     Function to generate a slab firework. Returns an OptimizeFW for the specified slab.
 
     Args:
-        slab (Slab Object): Slab corresponding to the slab to be calculated.
-        name (string): name of firework
-        parents (): parent FWs
-        vasp_cmd: vasp_comand
-        db_file: path to the dabase file
-        add_slab_metadata (bool): whether to add slab metada to task doc
+        slab              (Slab Object)  : Slab corresponding to the slab to be calculated.
+        name              (string)       : name of firework
+        parents           (default: None): parent FWs
+        add_slab_metadata (default: True): Whether to add slab metadata to task doc.
+        vasp_cmd                         : vasp_comand
+        db_file                          : Path to the dabase file
 
     Returns:
         Firework correspoding to slab calculation.
