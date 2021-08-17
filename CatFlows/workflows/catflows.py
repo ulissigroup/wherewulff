@@ -1,11 +1,19 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import numpy as np
+
 from pymatgen.io.cif import CifParser
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.surface import (
     SlabGenerator,
     get_symmetrically_distinct_miller_indices,
+)
+from pymatgen.util.coord import (
+    in_coord_list,
+    in_coord_list_pbc,
+    pbc_shortest_vectors,
+    all_distances,
 )
 from pymatgen.analysis.local_env import VoronoiNN
 from pymatgen.transformations.standard_transformations import (
@@ -15,7 +23,7 @@ from pymatgen.transformations.standard_transformations import (
 from fireworks import LaunchPad
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.dft_settings.settings import MOSurfaceSet
+from CatFlows.dft_settings.settings import MOSurfaceSet, set_bulk_magmoms
 from CatFlows.fireworks.optimize import Slab_FW
 from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
@@ -35,6 +43,7 @@ class CatFlows:
         max_index             (default: 1)      : Maximum number for (h,k,l) miller indexes.
         symmetrize            (default: True)   : To enforce that top/bottom layers are symmetrized while slicing the slab model.
         slab_repeat           (default: [2,2,1]): Slab model supercell in the xy plane.
+        selective_dynamics    (default: True)   : Contraint bottom-half of the slab model.
         wulff_analysis        (default: True)   : Add Wulff shape Analysis in the workflow (To prioritize surfaces).
         vasp_input_set        (default: None)   : To select DFT method for surface optimizations.
         vasp_cmd                                : VASP execution command (configured in my_fworker.py file)
@@ -49,10 +58,11 @@ class CatFlows:
         bulk_structure,
         conventional_standard=True,
         add_magmoms=True,
-        include_bulk_opt=True,
+        include_bulk_opt=False,
         max_index=1,
         symmetrize=True,
         slab_repeat=[2, 2, 1],
+        selective_dynamics=True,
         wulff_analysis=True,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -64,7 +74,7 @@ class CatFlows:
         if conventional_standard:
             self.bulk_structure = self._get_conventional_standard()
         if add_magmoms:
-            self.bulk_structure = self._get_bulk_magmoms()
+            self.bulk_structure = set_bulk_magmoms(self.bulk_structure)
 
         # Slab modeling parameters
         self.include_bulk_opt = include_bulk_opt
@@ -97,51 +107,6 @@ class CatFlows:
         bulk_structure = SGA.get_conventional_standard_structure()
         return bulk_structure
 
-    def _get_bulk_magmoms(self, tol=0.1, scale_factor=1.2):
-        """Returns decorated bulk structure with magmoms"""
-        struct = self.bulk_structure.copy()
-        # Voronoi NN
-        voronoi_nn = VoronoiNN(tol=tol)
-        # SPG Analysis
-        sga = SpacegroupAnalyzer(struct)
-        sym_struct = sga.get_symmetrized_structure()
-        # Magnetic moments
-        element_magmom = {}
-        for idx in sym_struct.equivalent_indices:
-            site = sym_struct[idx[0]]
-            if site.specie.is_transition_metal:
-                cn = voronoi_nn.get_cn(sym_struct, idx[0], use_weights=True)
-                cn = round(cn, 5)
-                # Filter between Oh or Td coordinations
-                if cn > 5.0:
-                    coordination = "oct"
-                else:
-                    coordination = "tet"
-                # Spin configuration depending on row
-                if site.specie.row >= 5.0:
-                    spin_config = "low"
-                else:
-                    spin_config = "high"  # Default
-                # Magnetic moment per metal site
-                magmom = site.specie.get_crystal_field_spin(
-                    coordination=coordination, spin_config=spin_config
-                )
-                # Add to dict
-                element_magmom.update(
-                    {str(site.specie.name): abs(scale_factor * float(magmom))}
-                )
-
-            if site.specie.is_chalcogen:
-                element_magmom.update({str(site.specie.name): 0.6})
-
-        magmoms = [element_magmom[site.specie.name] for site in struct]
-
-        # Decorate
-        for site, magmom in zip(struct.sites, magmoms):
-            site.properties["magmom"] = magmom
-
-        return struct
-
     def _get_bulk_formula(self):
         """Returns Bulk formula"""
         bulk_formula = self.bulk_structure.composition.reduced_formula
@@ -153,6 +118,11 @@ class CatFlows:
             self.bulk_structure, max_index=self.max_index
         )
         return miller_indices
+
+    def _get_miller_vector(self, slab):
+        """Returns the unit vector aligned with the miller index."""
+        mvec = np.cross(slab.lattice.matrix[0], slab.lattice.matrix[1])
+        return mvec / np.linalg.norm(mvec)
 
     def _get_slab_structures(self, ftol=0.01):
         """Returns a list of slab structures"""
@@ -187,11 +157,28 @@ class CatFlows:
 
         return slab_list
 
+    @classmethod
+    def _assign_selective_dynamics(cls, slab):
+        """Helper function to assign selective dynamics based on COM"""
+        sd_list = []
+        # Based on slab COM
+        sd_list = [
+            [False, False, False]
+            if site.frac_coords[2] < slab.center_of_mass[2]
+            else [True, True, True]
+            for site in slab.sites
+        ]
+        new_sp = slab.site_properties
+        new_sp["selective_dynamics"] = sd_list
+        return slab.copy(site_properties=new_sp)
+
     def _get_all_wfs(self):
         """Returns a the list of workflows to be launched"""
         # wfs for oriented bulk + slab model
         wfs = []
         for slab in self.slab_structures:
+            # slab = self._testing_selec_dynamics(slab)
+            slab = self._assign_selective_dynamics(slab)
             slab_wf = SurfaceEnergy_WF(
                 slab,
                 include_bulk_opt=self.include_bulk_opt,

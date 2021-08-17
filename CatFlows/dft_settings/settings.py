@@ -1,7 +1,62 @@
 import numpy as np
 
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.analysis.local_env import VoronoiNN
+
 from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen.io.vasp.inputs import Kpoints
+
+
+# Get bulk initial magnetic moments
+def set_bulk_magmoms(structure, tol=0.1, scale_factor=1.2):
+    """
+    Returns decorated bulk structure with initial magnetic moments,
+    based on crystal-field theory for TM.
+    """
+    struct = structure.copy()
+    # Voronoi NN
+    voronoi_nn = VoronoiNN(tol=tol)
+    # SPG Analysis
+    sga = SpacegroupAnalyzer(struct)
+    sym_struct = sga.get_symmetrized_structure()
+    # Magnetic moments
+    element_magmom = {}
+    for idx in sym_struct.equivalent_indices:
+        site = sym_struct[idx[0]]
+        if site.specie.is_transition_metal:
+            cn = voronoi_nn.get_cn(sym_struct, idx[0], use_weights=True)
+            cn = round(cn, 5)
+            # Filter between Oh or Td Coordinations
+            if cn > 5.0:
+                coordination = "oct"
+            else:
+                coordination = "tet"
+            # Spin configuration depending on row
+            if site.specie.row >= 5.0:
+                spin_config = "low"
+            else:
+                spin_config = "high"
+            # Magnetic moment per metal site
+            magmom = site.specie.get_crystal_field_spin(
+                coordination=coordination, spin_config=spin_config
+            )
+            # Add to dict
+            element_magmom.update(
+                {str(site.specie.name): abs(scale_factor * float(magmom))}
+            )
+
+        elif site.specie.is_chalcogen:  # O
+            element_magmom.update({str(site.specie.name): 0.6})
+
+        else:
+            element_magmom.update({str(site.specie.name): 0.0})
+
+    magmoms = [element_magmom[site.specie.name] for site in struct]
+
+    # Decorate
+    for site, magmom in zip(struct.sites, magmoms):
+        site.properties["magmom"] = magmom
+    return struct
 
 
 # Theoretical Level
@@ -26,20 +81,6 @@ class MOSurfaceSet(MVLSlabSet):
         assert self.psp_version in psp_versions
         MOSurfaceSet.CONFIG["POTCAR_FUNCTIONAL"] = self.psp_version
 
-    # Setting magmom automatically
-    def set_magmom(self):
-        """Returns a list of magnetic moments sorted as site.specie.name traversed"""
-        magmoms = []
-        for site in self.structure:
-            element = site.specie.name
-            if element == "O":
-                magmoms.append(0.6)
-            elif element == "H":
-                magmoms.append(0.1)
-            else:  # Crystal field ?
-                magmoms.append(5.0)
-        return magmoms
-
     # Dipolar moment correction
     def _get_center_of_mass(self):
         """From coordinates, weighted by specie, Return center of mass"""
@@ -57,10 +98,6 @@ class MOSurfaceSet(MVLSlabSet):
         else:
             incar["LREAL"] = False
 
-        # Setting Magnetic Moments
-        # magmoms = self.set_magmom()
-        # incar['MAGMOM'] = magmoms
-
         # Setting auto_dipole correction (for slabs only)
         if not self.bulk and self.auto_dipole:
             incar["LDIPOL"] = True
@@ -71,13 +108,13 @@ class MOSurfaceSet(MVLSlabSet):
         incar_config = {
             "GGA": "PE",
             "ENCUT": 500,
-            "EDIFF": 1e-5,
+            "EDIFF": 1e-4,
             "EDIFFG": -0.05,
             "ISYM": 0,
             "SYMPREC": 1e-10,
             "ISPIN": 2,
             "ISIF": 0,
-            "NSW": 300,
+            "NSW": 0,
             "NCORE": 4,
         }
         # Update incar
@@ -97,10 +134,10 @@ class MOSurfaceSet(MVLSlabSet):
 
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype("int"))
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=(1, 1, 1), shift=(0, 0, 0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype("int")
             kpts[2] = 1
             kpts = tuple(kpts)
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=(1, 1, 1), shift=(0, 0, 0))
