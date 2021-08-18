@@ -16,7 +16,7 @@ in our group and more.
 - [x] Optimize both oriented bulk + slab model (VASP)
 - [x] Surface Energy task after optimization
 - [x] Wulff shape Analysis (as separeted Task)
-- [ ] Decorate bulk structure with magnetic moments (MAGMOM) based on crystal field theory
+- [x] Decorate bulk structure with magnetic moments (MAGMOM) based on crystal field theory
 - [ ] Add Unittests with **fake_vasp**
 - [ ] Benchmark RuO2 and IrO2
 
