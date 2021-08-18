@@ -24,6 +24,7 @@ from fireworks import LaunchPad
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.dft_settings.settings import MOSurfaceSet, set_bulk_magmoms
+from CatFlows.adsorption.surface import SelectiveDynamics
 from CatFlows.fireworks.optimize import Slab_FW
 from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
@@ -81,6 +82,7 @@ class CatFlows:
         self.max_index = max_index
         self.symmetrize = symmetrize
         self.slab_repeat = slab_repeat
+        self.selective_dynamics = selective_dynamics
         self.wulff_analysis = wulff_analysis
 
         # DFT method and vasp_cmd and db_file
@@ -157,28 +159,13 @@ class CatFlows:
 
         return slab_list
 
-    @classmethod
-    def _assign_selective_dynamics(cls, slab):
-        """Helper function to assign selective dynamics based on COM"""
-        sd_list = []
-        # Based on slab COM
-        sd_list = [
-            [False, False, False]
-            if site.frac_coords[2] < slab.center_of_mass[2]
-            else [True, True, True]
-            for site in slab.sites
-        ]
-        new_sp = slab.site_properties
-        new_sp["selective_dynamics"] = sd_list
-        return slab.copy(site_properties=new_sp)
-
     def _get_all_wfs(self):
         """Returns a the list of workflows to be launched"""
         # wfs for oriented bulk + slab model
         wfs = []
         for slab in self.slab_structures:
-            # slab = self._testing_selec_dynamics(slab)
-            slab = self._assign_selective_dynamics(slab)
+            if self.selective_dynamics:
+                slab = SelectiveDynamics.center_of_mass(slab)
             slab_wf = SurfaceEnergy_WF(
                 slab,
                 include_bulk_opt=self.include_bulk_opt,
