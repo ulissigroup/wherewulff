@@ -23,8 +23,11 @@ from pymatgen.transformations.standard_transformations import (
 from fireworks import LaunchPad
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.dft_settings.settings import MOSurfaceSet, set_bulk_magmoms
-from CatFlows.adsorption.surface import SelectiveDynamics
+from CatFlows.dft_settings.settings import (
+    MOSurfaceSet,
+    set_bulk_magmoms,
+    SelectiveDynamics,
+)
 from CatFlows.fireworks.optimize import Slab_FW
 from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
@@ -59,11 +62,12 @@ class CatFlows:
         bulk_structure,
         conventional_standard=True,
         add_magmoms=True,
-        include_bulk_opt=False,
+        include_bulk_opt=True,
         max_index=1,
         symmetrize=True,
         slab_repeat=[2, 2, 1],
         selective_dynamics=True,
+        exclude_hkl=None,
         wulff_analysis=True,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -84,6 +88,7 @@ class CatFlows:
         self.slab_repeat = slab_repeat
         self.selective_dynamics = selective_dynamics
         self.wulff_analysis = wulff_analysis
+        self.exclude_hkl = exclude_hkl
 
         # DFT method and vasp_cmd and db_file
         self.vasp_input_set = vasp_input_set
@@ -93,6 +98,7 @@ class CatFlows:
         # General info
         self.bulk_formula = self._get_bulk_formula()
         self.miller_indices = self._get_miller_indices()
+        print(self.miller_indices)
         self.slab_structures = self._get_slab_structures()
         self.workflows_list = self._get_all_wfs()
 
@@ -119,7 +125,9 @@ class CatFlows:
         miller_indices = get_symmetrically_distinct_miller_indices(
             self.bulk_structure, max_index=self.max_index
         )
-        return miller_indices
+        if self.exclude_hkl:
+            miller_indices = set(miller_indices) - set(self.exclude_hkl)
+        return list(miller_indices)
 
     def _get_miller_vector(self, slab):
         """Returns the unit vector aligned with the miller index."""
