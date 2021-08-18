@@ -2,7 +2,7 @@ import numpy as np
 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.local_env import VoronoiNN
-
+from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen.io.vasp.inputs import Kpoints
 
@@ -59,7 +59,30 @@ def set_bulk_magmoms(structure, tol=0.1, scale_factor=1.2):
     return struct
 
 
-# Theoretical Level
+class SelectiveDynamics(AdsorbateSiteFinder):
+    """
+    Different methods for Selective Dynamics.
+    """
+
+    def __init__(self, slab):
+        self.slab = slab.copy()
+
+    @classmethod
+    def center_of_mass(cls, slab):
+        """Method based of center of mass."""
+        sd_list = []
+        sd_list = [
+            [False, False, False]
+            if site.frac_coords[2] < slab.center_of_mass[2]
+            else [True, True, True]
+            for site in slab.sites
+        ]
+        new_sp = slab.site_properties
+        new_sp["selective_dynamics"] = sd_list
+        return slab.copy(site_properties=new_sp)
+
+
+# Theoretical DFT Level
 class MOSurfaceSet(MVLSlabSet):
     """
     Custom VASP input class for MO slab calcs
