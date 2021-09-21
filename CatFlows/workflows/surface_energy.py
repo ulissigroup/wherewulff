@@ -8,7 +8,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.dft_settings.settings import MOSurfaceSet
 from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
-from CatFlows.fireworks.optimize import Slab_FW
+from CatFlows.fireworks.optimize import Bulk_FW, Slab_FW
 
 
 def SurfaceEnergy_WF(
@@ -36,17 +36,8 @@ def SurfaceEnergy_WF(
         name_bulk = "{}_{} bulk optimization".format(
             oriented_bulk.composition.reduced_formula, miller_index
         )
-        vis = MOSurfaceSet(oriented_bulk, bulk=True)
         fws.append(
-            OptimizeFW(
-                structure=oriented_bulk,
-                name=name_bulk,
-                vasp_input_set=vis,
-                max_force_threshold=None,
-                vasp_cmd=vasp_cmd,
-                db_file=db_file,
-                job_type="normal",
-            )
+            Bulk_FW(oriented_bulk, name=name_bulk, vasp_cmd=vasp_cmd, db_file=db_file)
         )
         parents = fws[0]
 

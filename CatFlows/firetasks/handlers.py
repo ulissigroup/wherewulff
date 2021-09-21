@@ -68,7 +68,7 @@ class ContinueOptimizeFW(FiretaskBase):
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
             # Retriving magnetic moments from parent
-            magmoms = structure.site_properties["magmom"]
+            # magmoms = structure.site_properties["magmom"]
             # counts
             counter += 1
             vasp_input_set = MOSurfaceSet(
