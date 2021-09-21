@@ -3,19 +3,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 
 from pymatgen.io.cif import CifParser
-from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.surface import (
     SlabGenerator,
     get_symmetrically_distinct_miller_indices,
 )
-from pymatgen.util.coord import (
-    in_coord_list,
-    in_coord_list_pbc,
-    pbc_shortest_vectors,
-    all_distances,
-)
-from pymatgen.analysis.local_env import VoronoiNN
+
 from pymatgen.transformations.standard_transformations import (
     AutoOxiStateDecorationTransformation,
 )
@@ -24,12 +17,10 @@ from fireworks import LaunchPad
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.dft_settings.settings import (
-    MOSurfaceSet,
     set_bulk_magmoms,
     SelectiveDynamics,
 )
-from CatFlows.fireworks.optimize import Slab_FW
-from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
+
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
 from CatFlows.workflows.wulff_shape import WulffShape_WF
 

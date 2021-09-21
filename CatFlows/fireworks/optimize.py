@@ -153,3 +153,88 @@ def Slab_FW(
         )
 
     return fw
+
+
+def AdsSlab_FW(
+    slab,
+    name="",
+    oriented_uuid="",
+    slab_uuid="",
+    is_adslab=True,
+    parents=None,
+    add_slab_metadata=True,
+    wall_time=172800,
+    vasp_cmd=VASP_CMD,
+    db_file=DB_FILE,
+):
+    """
+    Function to generate a ads_slab firework. Returns an OptimizeFW for the specified slab.
+
+    Args:
+        slab              (Slab Object)     : Slab corresponding to the slab to be calculated.
+        name              (string)          : name of firework
+        parents           (default: None)   : parent FWs
+        add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
+        wall_time         (default: 172800) : 2 days in seconds
+        vasp_cmd                            : vasp_comand
+        db_file                             : Path to the dabase file
+
+    Returns:
+        Firework correspoding to slab calculation.
+    """
+    import uuid
+
+    # Generate a unique ID for Slab_FW
+    fw_ads_slab_uuid = uuid.uuid4()
+
+    # DFT Method
+    vasp_input_set = MOSurfaceSet(slab, bulk=False)
+
+    # FW
+    fw = OptimizeFW(
+        name=name,
+        structure=slab,
+        max_force_threshold=None,
+        vasp_input_set=vasp_input_set,
+        vasp_cmd=vasp_cmd,
+        db_file=db_file,
+        parents=parents,
+        job_type="normal",
+        spec={
+            "counter": 0,
+            "_add_launchpad_and_fw_id": True,
+            "_pass_job_info": True,
+            "uuid": fw_ads_slab_uuid,
+            "wall_time": 172800,
+            "name": name,
+            "max_tries": 5,
+            "is_adslab": is_adslab,
+            "oriented_uuid": oriented_uuid,  # adslab FW should get terminal node ids
+            "slab_uuid": slab_uuid,
+        },
+    )
+    # Switch-off GzipDir for WAVECAR transferring
+    fw.tasks[1].update({"gzip_output": False})
+
+    # Append Continue-optimizeFW for wall-time handling
+    fw.tasks.append(ContinueOptimizeFW(is_bulk=False, counter=0, vasp_cmd=vasp_cmd))
+
+    # Add slab_uuid through VaspToDb
+    fw.tasks[3]["additional_fields"].update({"uuid": fw_ads_slab_uuid})
+
+    # Switch-on WalltimeHandler in RunVaspCustodian
+    if wall_time is not None:
+        fw.tasks[1].update({"wall_time": wall_time})
+
+    # Add slab metadata
+    #   if add_slab_metadata:
+    #       parent_structure_metadata = get_meta_from_structure(slab.oriented_unit_cell)
+    #       fw.tasks[-1]["additional_fields"].update(
+    #           {
+    #               "slab": slab,
+    #               "parent_structure": slab.oriented_unit_cell,
+    #               "parent_structure_metadata": parent_structure_metadata,
+    #           }
+    #       )
+
+    return fw
