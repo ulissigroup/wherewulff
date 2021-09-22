@@ -24,6 +24,7 @@ from CatFlows.dft_settings.settings import (
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
 from CatFlows.workflows.wulff_shape import WulffShape_WF
 from CatFlows.workflows.slab_ads import SlabAds_WF
+from CatFlows.adsorption.adsorbate_configs import OH_Ox_list
 
 
 # CatFlows Workflow method
@@ -61,6 +62,7 @@ class CatFlows:
         selective_dynamics=True,
         exclude_hkl=None,
         stop_at_wulff_analysis=False,
+        adsorbates=OH_Ox_list,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
@@ -93,6 +95,7 @@ class CatFlows:
         print(self.miller_indices)
         self.slab_structures = self._get_slab_structures()
         self.workflows_list = self._get_all_wfs()
+        self.adsorbates = adsorbates
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -189,6 +192,7 @@ class CatFlows:
         """Returns all the Ads_slabs fireworks"""
         ads_slab_wfs = SlabAds_WF(
             self.bulk_structure,
+            self.adsorbates,
             parents=parents,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,

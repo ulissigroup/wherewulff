@@ -26,18 +26,14 @@ def SlabAds_WF(
     # WulffShape Analysis
     ads_slab_fw = Firework(
         SlabAdsFireTask(
-            spec={
-                "reduced_formula": bulk_formula,
-                "db_file": db_file,
-                "adsorbates": adsorbates,
-                "slabs": None,
-                "vasp_cmd": vasp_cmd,
-                "_pass_job_info": True,
-                "_add_launchpad_and_fw_id": True,
-            },
-            name=f"{bulk_formula} Ads_slab optimization",
-            parents=parents,
-        )
+            reduced_formula=bulk_formula,
+            db_file=db_file,
+            adsorbates=adsorbates,
+            slabs=None,
+            vasp_cmd=vasp_cmd,
+        ),
+        name=f"{bulk_formula} Ads_slab optimization",
+        parents=parents,
     )
 
     all_fws = [ads_slab_fw]
