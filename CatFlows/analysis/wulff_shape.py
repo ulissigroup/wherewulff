@@ -60,8 +60,19 @@ class WulffShapeFW(FiretaskBase):
         collection = mmdb.db["surface_energies"]
 
         # Find Surface energies for the given material + facet
-        docs = collection.find({"task_label": {"$regex": "^{}".format(bulk_formula)}})
-
+        # docs = collection.find({"task_label": {"$regex": "^{}".format(bulk_formula)}})
+        reduced_formula_miller_indices = [
+            k for k in fw_spec if bulk_formula in k
+        ]  # retrieve all the keys with reduced_formula from fw_spec
+        docs = [
+            collection.find_one(
+                {
+                    "oriented_uuid": fw_spec[rfmi]["oriented_uuid"],
+                    "slab_uuid": fw_spec[rfmi]["slab_uuid"],
+                }
+            )
+            for rfmi in reduced_formula_miller_indices
+        ]
         # Surface energy and structures dictionary
         surface_energies_dict = {}
         structures_dict = {}
