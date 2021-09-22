@@ -2,12 +2,18 @@ from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core.periodic_table import Element
 import numpy as np
 import itertools, math, copy, random
-from pymatgen.util.coord import in_coord_list_pbc, pbc_shortest_vectors, \
-all_distances, lattice_points_in_supercell, coord_list_mapping_pbc
+from pymatgen.util.coord import (
+    in_coord_list_pbc,
+    pbc_shortest_vectors,
+    all_distances,
+    lattice_points_in_supercell,
+    coord_list_mapping_pbc,
+)
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.spatial import Delaunay
 from pymatgen.core.structure import Molecule
+
 # from pymatgen.util.coord import all_distances, get_angle,
 from pymatgen.core.structure import *
 from pymatgen.core.surface import *
@@ -55,11 +61,24 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
     """
 
-    def __init__(self, slab, selective_dynamics=False,
-                 height=1.5, mi_vec=None, repeat=None, min_lw=8.0, 
-                 verbose=True, max_r=6, tol=1.1, adsorb_both_sides=False,
-                 ads_dist_is_blength=True, ads_dist=False, r=None, relax_tol=1e-8, 
-                 positions=['MX_adsites', 'mvk_adsites']):
+    def __init__(
+        self,
+        slab,
+        selective_dynamics=False,
+        height=1.5,
+        mi_vec=None,
+        repeat=None,
+        min_lw=8.0,
+        verbose=True,
+        max_r=6,
+        tol=1.1,
+        adsorb_both_sides=False,
+        ads_dist_is_blength=True,
+        ads_dist=False,
+        r=None,
+        relax_tol=1e-8,
+        positions=["MX_adsites", "mvk_adsites"],
+    ):
 
         """
         slab (pmg Slab): slab object for which to find adsorbate sites
@@ -78,8 +97,11 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         self.init_slab = slab.copy()
         super().__init__(
-            self.init_slab, selective_dynamics=selective_dynamics,
-            height=height, mi_vec=mi_vec)        
+            self.init_slab,
+            selective_dynamics=selective_dynamics,
+            height=height,
+            mi_vec=mi_vec,
+        )
 
         # Create super slab cell from unit slab
         if repeat is None:
@@ -88,71 +110,97 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             xrep = np.ceil(min_lw / xlength)
             yrep = np.ceil(min_lw / ylength)
             rtslab = self.slab.copy()
-            rtslab.make_supercell([[1,1,0], [1,-1,0], [0,0,1]])
+            rtslab.make_supercell([[1, 1, 0], [1, -1, 0], [0, 0, 1]])
             rt_matrix = rtslab.lattice.matrix
             xlength_rt = np.linalg.norm(rt_matrix[0])
             ylength_rt = np.linalg.norm(rt_matrix[1])
             xrep_rt = np.ceil(min_lw / xlength_rt)
             yrep_rt = np.ceil(min_lw / ylength_rt)
-            xrep = xrep*np.array([1,0,0]) if xrep*xlength < xrep_rt*xlength_rt else xrep_rt*np.array([1,1,0]) 
-            yrep = yrep*np.array([0,1,0]) if yrep*ylength < yrep_rt*ylength_rt else yrep_rt*np.array([1,-1,0]) 
-            zrep = [0,0,1]
+            xrep = (
+                xrep * np.array([1, 0, 0])
+                if xrep * xlength < xrep_rt * xlength_rt
+                else xrep_rt * np.array([1, 1, 0])
+            )
+            yrep = (
+                yrep * np.array([0, 1, 0])
+                if yrep * ylength < yrep_rt * ylength_rt
+                else yrep_rt * np.array([1, -1, 0])
+            )
+            zrep = [0, 0, 1]
             repeat = [xrep, yrep, zrep]
         self.slab = make_superslab_with_partition(self.slab, repeat)
 
         # Works with structures containing only 1 X atom for now, i.e. oxides
         # nitrides, sulfides etc. Will generalize for all systems later.
-        self.X = [el for el in self.init_slab.composition.as_dict().keys() 
-                  if not Element(el).is_metal and not Element(el).is_metalloid and el != 'Se'][0]
+        self.X = [
+            el
+            for el in self.init_slab.composition.as_dict().keys()
+            if not Element(el).is_metal and not Element(el).is_metalloid and el != "Se"
+        ][0]
         self.verbose = verbose
 
         self.relax_tol = relax_tol
         self.bulk = slab.oriented_unit_cell.copy()
         self.bondlength = self.get_bond_length(max_r=max_r, tol=tol)
 
-        # Get surface metal sites 
-        self.surf_metal_sites = [site.coords for site in self.slab if site.surface_properties == 'surface' and 
-                                 site.species_string != self.X and site.frac_coords[2] > self.slab.center_of_mass[2]]
+        # Get surface metal sites
+        self.surf_metal_sites = [
+            site.coords
+            for site in self.slab
+            if site.surface_properties == "surface"
+            and site.species_string != self.X
+            and site.frac_coords[2] > self.slab.center_of_mass[2]
+        ]
 
         # Get bulk-like adsorption sites on top surface where adsorbate binds to M site
-        if 'MX_adsites' in positions:
+        if "MX_adsites" in positions:
             self.MX_adsites, self.MX_partitions = self.get_bulk_like_adsites()
         else:
             self.MX_adsites, self.MX_partitions = [], []
-            
+
         # Get bulk-like adsorption sites on top surface where
         # adsorbate binds to X site to form the desired molecule
-        if 'mvk_adsites' in positions:
+        if "mvk_adsites" in positions:
             self.mvk_adsites, self.mvk_partitions = self.get_surface_Xsites()
         else:
             self.mvk_adsites, self.mvk_partitions = [], []
         if self.verbose:
-            print('Total adsites: ', len(self.MX_adsites) + len(self.mvk_adsites))
+            print("Total adsites: ", len(self.MX_adsites) + len(self.mvk_adsites))
 
         # Get CN of bulk Wyckoff position for BB analysis at surface later on
         bulk_wyckoff_cn = {}
-        eq = self.bulk.site_properties['bulk_equivalent']
-        for i, w in enumerate(self.bulk.site_properties['bulk_wyckoff']):
+        eq = self.bulk.site_properties["bulk_equivalent"]
+        for i, w in enumerate(self.bulk.site_properties["bulk_wyckoff"]):
             sym = str(w) + str(eq[i])
             if sym not in bulk_wyckoff_cn.keys():
                 site = self.bulk[i]
                 if site.species_string == self.X:
-                    bulk_wyckoff_cn[sym] = len([nn for nn in self.bulk.get_neighbors(site, self.bondlength)
-                                                if nn.species_string != self.X])
+                    bulk_wyckoff_cn[sym] = len(
+                        [
+                            nn
+                            for nn in self.bulk.get_neighbors(site, self.bondlength)
+                            if nn.species_string != self.X
+                        ]
+                    )
                 else:
-                    bulk_wyckoff_cn[sym] = len([nn for nn in self.bulk.get_neighbors(site, self.bondlength)
-                                                if nn.species_string == self.X])
+                    bulk_wyckoff_cn[sym] = len(
+                        [
+                            nn
+                            for nn in self.bulk.get_neighbors(site, self.bondlength)
+                            if nn.species_string == self.X
+                        ]
+                    )
         self.bulk_wyckoff_cn = bulk_wyckoff_cn
         if ads_dist:
             self.min_adsorbate_dist = ads_dist
         elif ads_dist_is_blength:
-            self.min_adsorbate_dist = self.bondlength*1.5
+            self.min_adsorbate_dist = self.bondlength * 1.5
         else:
             self.min_adsorbate_dist = self.calculate_min_adsorbate_dist()
         self.sm = StructureMatcher()
         self.adsorb_both_sides = adsorb_both_sides
         self.random = r if r else random
-                
+
     def get_bond_length(self, max_r=6, tol=1.1):
         """
         Get the nearest neighbor bond length under a maximum radius (max_r) between metal and
@@ -162,18 +210,23 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             errors or neighboring sites slightly further away
         :return (float): M-O bond length
         """
-        
+
         min_dists = []
         for site in self.bulk:
             if site.species_string != self.X:
-                dist = min([nn.distance(site) for nn in self.bulk.get_neighbors(site, max_r)
-                            if nn.species_string == self.X])
+                dist = min(
+                    [
+                        nn.distance(site)
+                        for nn in self.bulk.get_neighbors(site, max_r)
+                        if nn.species_string == self.X
+                    ]
+                )
                 min_dists.append(dist)
 
         return min(min_dists) * tol
-    
+
     ########################## NEED A BETTER ALGO FOR ADSORBATE DISTANCES ##########################
-    
+
     def calculate_min_adsorbate_dist(self, tol=0.05):
 
         # Set minimum adsorbate distance for multiple adsorbate coverages. Lets make it so
@@ -185,20 +238,32 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         pseudo_slab = self.slab.copy()
         if self.MX_adsites:
             for coord in self.MX_adsites:
-                pseudo_slab.append(self.X, coord, coords_are_cartesian=True,
-                                   properties={"surface_properties": 'pseudo'})
+                pseudo_slab.append(
+                    self.X,
+                    coord,
+                    coords_are_cartesian=True,
+                    properties={"surface_properties": "pseudo"},
+                )
         else:
             props = []
-            for p in pseudo_slab.site_properties['surface_properties']:
-                p = 'pseudo' if p == 'surface' else p
+            for p in pseudo_slab.site_properties["surface_properties"]:
+                p = "pseudo" if p == "surface" else p
                 props.append(p)
-            pseudo_slab.add_site_property('surface_properties', props)
+            pseudo_slab.add_site_property("surface_properties", props)
 
         for site in pseudo_slab:
-            if site.surface_properties == 'pseudo' and site.species_string == self.X \
-                    and site.frac_coords[2] > self.slab.center_of_mass[2]:
-                if len([nn for nn in pseudo_slab.get_neighbors(site, self.bondlength)
-                        if nn.species_string != self.X]) == max(self.bulk_wyckoff_cn.keys()):
+            if (
+                site.surface_properties == "pseudo"
+                and site.species_string == self.X
+                and site.frac_coords[2] > self.slab.center_of_mass[2]
+            ):
+                if len(
+                    [
+                        nn
+                        for nn in pseudo_slab.get_neighbors(site, self.bondlength)
+                        if nn.species_string != self.X
+                    ]
+                ) == max(self.bulk_wyckoff_cn.keys()):
                     continue
 
                 dists = []
@@ -216,7 +281,9 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
     ########################## NEED A BETTER ALGO FOR ADSORBATE DISTANCES ##########################
 
-    def find_surface_sites_by_height(self, slab, height=1.5, xy_tol=0.05, both_surfs=False):
+    def find_surface_sites_by_height(
+        self, slab, height=1.5, xy_tol=0.05, both_surfs=False
+    ):
         """
         This method finds surface sites by determining which sites are within
         a threshold value in height from the topmost site in a list of sites
@@ -271,12 +338,16 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         if "surface_properties" in slab.site_properties.keys():
             return slab
 
-        surf_sites = self.find_surface_sites_by_height(slab, height, both_surfs=both_surfs)
-        surf_props = ["surface" if site in surf_sites else "subsurface" for site in slab.sites]
+        surf_sites = self.find_surface_sites_by_height(
+            slab, height, both_surfs=both_surfs
+        )
+        surf_props = [
+            "surface" if site in surf_sites else "subsurface" for site in slab.sites
+        ]
         slab = slab.copy(site_properties={"surface_properties": surf_props})
         one_to_one_map = one_to_one_surface_map(slab)
         slab = slab.copy(site_properties={"one_to_one_map": one_to_one_map})
-        
+
         return slab
 
     @classmethod
@@ -289,11 +360,15 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             slab (Slab): slab for which to assign selective dynamics
         """
         sd_list = []
-        sd_list = [[False, False, False] if site.properties['surface_properties'] == 'subsurface' \
-                                            or site.frac_coords[2] < slab.center_of_mass[0]
-                   else [True, True, True] for site in slab.sites]
+        sd_list = [
+            [False, False, False]
+            if site.properties["surface_properties"] == "subsurface"
+            or site.frac_coords[2] < slab.center_of_mass[0]
+            else [True, True, True]
+            for site in slab.sites
+        ]
         new_sp = slab.site_properties
-        new_sp['selective_dynamics'] = sd_list
+        new_sp["selective_dynamics"] = sd_list
         return slab.copy(site_properties=new_sp)
 
     def get_transformed_molecule_MXides(self, molecule, angles_list, axis=[0, 0, 1]):
@@ -323,7 +398,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         translated_molecules = []
         # Enumerate through all n_rotations about axis
-        if type(molecule).__name__ == 'list':
+        if type(molecule).__name__ == "list":
             ads, true_ads = molecule[1], molecule[0]
         else:
             ads = molecule
@@ -337,7 +412,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             elpt = np.array([el.X / Xel.X, el.atomic_radius / Xel.atomic_radius])
             norm_attr.append(np.linalg.norm(elpt - np.array([1, 1])))
         binding_species = ads[norm_attr.index(min(norm_attr))].species_string
-        
+
         for deg in angles_list:
 
             # Translate the molecule so that atom X is always at (0, 0, 0).
@@ -349,7 +424,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 # For adsorbates using mvk-like adsorption, assign the template molecule
                 # you wish to form on the surface with 'anchor' site_property with the atom
                 # substituting the surface atom True while all others are False
-                if 'anchor' in ads.site_properties.keys() and not site.anchor:
+                if "anchor" in ads.site_properties.keys() and not site.anchor:
                     continue
 
                 # Site of the adsorbate whose electronegativity and atomic
@@ -359,10 +434,15 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     translated_molecule.translate_sites(vector=-1 * site.coords)
 
                     # Substitute the template adsorbate's anchor into the lattice position
-                    if 'anchor' in ads.site_properties.keys():
-                        translated_molecule.remove_sites([i for i, site in enumerate(translated_molecule) \
-                                                          if site.anchor])
-                        translated_molecule.remove_site_property('anchor')
+                    if "anchor" in ads.site_properties.keys():
+                        translated_molecule.remove_sites(
+                            [
+                                i
+                                for i, site in enumerate(translated_molecule)
+                                if site.anchor
+                            ]
+                        )
+                        translated_molecule.remove_site_property("anchor")
 
                         # If the entire actual adsorbate does not make up a part of the
                         # template adsorbate, there is an additional step where we now
@@ -371,21 +451,30 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                             # Identify the site bonded to the lattice position
                             # and substitute that site with the true adsorbate
                             bonded_site = translated_molecule[0]
-                            anchor_index, anchor_site = [[i, site] for i, site in enumerate(true_ads) if \
-                                                         site.species_string == bonded_site.species_string][0]
+                            anchor_index, anchor_site = [
+                                [i, site]
+                                for i, site in enumerate(true_ads)
+                                if site.species_string == bonded_site.species_string
+                            ][0]
                             translated_molecule = true_ads.copy()
-                            translated_molecule.translate_sites(vector=bonded_site.coords - anchor_site.coords)
+                            translated_molecule.translate_sites(
+                                vector=bonded_site.coords - anchor_site.coords
+                            )
 
-                    translated_molecule = self.add_adsorbate_properties(translated_molecule)
+                    translated_molecule = self.add_adsorbate_properties(
+                        translated_molecule
+                    )
                     translated_molecule.rotate_sites(theta=deg, axis=axis)
-                    setattr(translated_molecule, 'deg', round(deg, ndigits=2))
+                    setattr(translated_molecule, "deg", round(deg, ndigits=2))
                     translated_molecules.append(translated_molecule)
 
         return translated_molecules
 
     def add_adsorbate_properties(self, ads):
         if "selective_dynamics" in self.slab.site_properties.keys():
-            ads.add_site_property("selective_dynamics", [[True, True, True]] * ads.num_sites)
+            ads.add_site_property(
+                "selective_dynamics", [[True, True, True]] * ads.num_sites
+            )
         if "surface_properties" in self.slab.site_properties.keys():
             surfprops = ["adsorbate"] * ads.num_sites
             ads.add_site_property("surface_properties", surfprops)
@@ -420,36 +509,59 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         com = self.slab.center_of_mass
         adsites, partitions = [], []
-        surfX = [site.frac_coords for site in self.slab \
-                 if site.surface_properties == 'surface' and site.species_string == self.X]
+        surfX = [
+            site.frac_coords
+            for site in self.slab
+            if site.surface_properties == "surface" and site.species_string == self.X
+        ]
         for surfsite in self.slab:
             if surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]:
                 surf_nn = self.slab.get_neighbors(surfsite, self.bondlength)
                 for bulksite in self.bulk:
-                    if bulksite.bulk_wyckoff == surfsite.bulk_wyckoff and \
-                                    bulksite.species_string == surfsite.species_string:
+                    if (
+                        bulksite.bulk_wyckoff == surfsite.bulk_wyckoff
+                        and bulksite.species_string == surfsite.species_string
+                    ):
                         cn = len(self.bulk.get_neighbors(bulksite, self.bondlength))
                         break
                 if len(surf_nn) == cn:
                     continue
                 for site in self.slab:
-                    bulk_frac_coords = [nn.frac_coords for nn in self.slab.get_neighbors(site, self.bondlength)]
+                    bulk_frac_coords = [
+                        nn.frac_coords
+                        for nn in self.slab.get_neighbors(site, self.bondlength)
+                    ]
                     if len(bulk_frac_coords) == cn:
                         translate = surfsite.frac_coords - site.frac_coords
-                        if all([in_coord_list_pbc(bulk_frac_coords,
-                                                  surfsite.frac_coords - translate, 
-                                                  atol=self.relax_tol) for surfsite in surf_nn]):
+                        if all(
+                            [
+                                in_coord_list_pbc(
+                                    bulk_frac_coords,
+                                    surfsite.frac_coords - translate,
+                                    atol=self.relax_tol,
+                                )
+                                for surfsite in surf_nn
+                            ]
+                        ):
                             for fcoords in bulk_frac_coords:
 
                                 transcoord = fcoords + translate
-                                if not in_coord_list_pbc(adsites, transcoord, atol=self.relax_tol) and \
-                                                fcoords[2] > site.frac_coords[2] and \
-                                        not in_coord_list_pbc(surfX, transcoord, atol=self.relax_tol):
+                                if (
+                                    not in_coord_list_pbc(
+                                        adsites, transcoord, atol=self.relax_tol
+                                    )
+                                    and fcoords[2] > site.frac_coords[2]
+                                    and not in_coord_list_pbc(
+                                        surfX, transcoord, atol=self.relax_tol
+                                    )
+                                ):
                                     adsites.append(transcoord)
                                     partitions.append(surfsite.supercell)
                             break
 
-        return [self.slab.lattice.get_cartesian_coords(fcoord) for fcoord in adsites], partitions
+        return [
+            self.slab.lattice.get_cartesian_coords(fcoord) for fcoord in adsites
+        ], partitions
 
     def get_surface_Xsites(self):
 
@@ -459,23 +571,26 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         adsites, partitions = [], []
         for i, site in enumerate(self.slab):
             # Find equivalent sites for top surface M-site only
-            if site.frac_coords[2] > com and \
-                            site.surface_properties == 'surface' and site.species_string == self.X:
+            if (
+                site.frac_coords[2] > com
+                and site.surface_properties == "surface"
+                and site.species_string == self.X
+            ):
                 # Get the coordinate X-sites on the top too so we
                 # can map to an equivalent environment at the bottom
                 adsites.append(site.coords)
                 partitions.append(site.supercell)
 
         return adsites, partitions
-    
+
     def unit_normal_vector(self, pt1, pt2, pt3):
         """
-        From three positions on the surface, calculate the vector normal to the plane 
-            of those positions. This will make it easier to position specific adsorbates 
-            parallel to specific subfacets of the surface like in steps and terraces, 
+        From three positions on the surface, calculate the vector normal to the plane
+            of those positions. This will make it easier to position specific adsorbates
+            parallel to specific subfacets of the surface like in steps and terraces,
             similar to the algorithm proposed in CatKit.
         """
-        
+
         # These two vectors are in the plane
         v1 = np.round(pt3 - pt1, 3)
         v2 = np.round(pt2 - pt1, 3)
@@ -485,32 +600,34 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         if np.linalg.norm(vector) == 0 or vector[2] == 0:
             # skip (anti)parallel vectors
             return np.array([False, False, False])
-        
+
         else:
-            return vector/np.linalg.norm(vector)
-    
+            return vector / np.linalg.norm(vector)
+
     def get_tri_mesh_normal_vectors(self, surface_sites):
         """
-        Create a Delaunay triangle mesh on the surface. Then obtain the unit 
-        normal vector for each triangle out of the slab. This will allow us 
-        to position an adsorbate parallel to any place on the surface. This 
-        method of adsorbate placement is inspired and adapted from the 
+        Create a Delaunay triangle mesh on the surface. Then obtain the unit
+        normal vector for each triangle out of the slab. This will allow us
+        to position an adsorbate parallel to any place on the surface. This
+        method of adsorbate placement is inspired and adapted from the
         following works::
 
-            Montoya, J. H., & Persson, K. A. (2017). "A high-throughput framework 
-            for determining adsorption energies on solid surfaces", Npj Computational 
+            Montoya, J. H., & Persson, K. A. (2017). "A high-throughput framework
+            for determining adsorption energies on solid surfaces", Npj Computational
             Materials, 3(1), 14. doi:10.1038/s41524-017-0017-z
-        
+
         as well as::
-            
-            Boes, J. R., Mamun, O., Winther, K., & Bligaard, T. (2019). "Graph Theory 
-            Approach to High-Throughput Surface Adsorption Structure Generation", Journal 
+
+            Boes, J. R., Mamun, O., Winther, K., & Bligaard, T. (2019). "Graph Theory
+            Approach to High-Throughput Surface Adsorption Structure Generation", Journal
             of Physical Chemistry A, 123(11), 2281–2285. doi:10.1021/acs.jpca.9b00311
         """
-    
+
         # really stupid fix for handling Qhull error, need a cleaner solution
-        surface_sites = [coord+np.array([self.random.sample(range(0,1000), 1)[0]])*10**(-9) \
-                         for coord in surface_sites]
+        surface_sites = [
+            coord + np.array([self.random.sample(range(0, 1000), 1)[0]]) * 10 ** (-9)
+            for coord in surface_sites
+        ]
 
         # Get a triangular mesh of all the surface sites
         dt = Delaunay(surface_sites)
@@ -524,40 +641,56 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             v = self.unit_normal_vector(pt1, pt2, pt3)
             if not any(v):
                 continue
-            unorm = v/np.linalg.norm(v)
-            unorm = -1*unorm if unorm[2] < 0 else unorm # ensure vector points out of slab
+            unorm = v / np.linalg.norm(v)
+            unorm = (
+                -1 * unorm if unorm[2] < 0 else unorm
+            )  # ensure vector points out of slab
             triangle_and_norm_dict[tuple(unorm)] = [pt1, pt2, pt3]
-    
+
         return triangle_and_norm_dict
-    
+
     def get_dimer_coupling_sites(self, molecule):
         """
-        This function locates the coordinate pairs of all dimer coupled monatomic 
+        This function locates the coordinate pairs of all dimer coupled monatomic
             adsorption by geometrically solving for the dimer positions as the two
-            points of the top base for a trapezoid using the two metal sites that 
-            the dimer binds to as the bottom base of the trapezoid. It returns A 
-            list containing all coordinate pairs. The number of dimer coupling pairs 
-            that exist are equal to the number of surface M-M pairs with the shortest distance 
+            points of the top base for a trapezoid using the two metal sites that
+            the dimer binds to as the bottom base of the trapezoid. It returns A
+            list containing all coordinate pairs. The number of dimer coupling pairs
+            that exist are equal to the number of surface M-M pairs with the shortest distance
         """
-        
+
         OO_length = molecule.get_distance(0, 1)
         slab = self.slab.copy()
-        
+
         # get metal sites w/ pbc
-        pbcs = [(1,0,0), (0,1,0), (-1,0,0), (0,-1,0), (1,1,0), (-1,1,0), (-1,-1,0), (1,-1,0)]
-        metal_pos = [slab.lattice.get_cartesian_coords(slab.lattice.get_fractional_coords(coords)+np.array(trans))
-                     for coords in self.surf_metal_sites for trans in pbcs]
+        pbcs = [
+            (1, 0, 0),
+            (0, 1, 0),
+            (-1, 0, 0),
+            (0, -1, 0),
+            (1, 1, 0),
+            (-1, 1, 0),
+            (-1, -1, 0),
+            (1, -1, 0),
+        ]
+        metal_pos = [
+            slab.lattice.get_cartesian_coords(
+                slab.lattice.get_fractional_coords(coords) + np.array(trans)
+            )
+            for coords in self.surf_metal_sites
+            for trans in pbcs
+        ]
         metal_pos.extend(self.surf_metal_sites)
 
         all_dists = all_distances(metal_pos, metal_pos)
-        min_dist = min([min([d for d in dists if d !=0]) for dists in all_dists])
-        
-        # now locate all delaunay triangles using the surface metal sites and get 
+        min_dist = min([min([d for d in dists if d != 0]) for dists in all_dists])
+
+        # now locate all delaunay triangles using the surface metal sites and get
         # the corresponding normal vector for the plane formed by each triangle
         triangle_and_norm_dict = self.get_tri_mesh_normal_vectors(metal_pos)
 
-        # Associate every distinct ray in the triangulation mesh with the  
-        # corresponding unit vector. Note that rays have more than one normal 
+        # Associate every distinct ray in the triangulation mesh with the
+        # corresponding unit vector. Note that rays have more than one normal
         # vector associated with it since more than one triangle can share the same ray
         pts_and_norm_v = []
         for unorm in triangle_and_norm_dict.keys():
@@ -565,28 +698,28 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             for v in itertools.combinations(tri, 2):
                 pts_and_norm_v.append([v, np.array(unorm)])
 
-        # Now for each ray with length equivalent to the shortest 
+        # Now for each ray with length equivalent to the shortest
         # surface M-M bond, locate the midpoint of the dimer position
-        b = OO_length/2
+        b = OO_length / 2
         dimer_pair_coords = []
         for ii, pt_and_norm in enumerate(pts_and_norm_v):
             pt1, pt2 = pt_and_norm[0]
-            if "%.2f" %(np.linalg.norm(pt1-pt2)) !="%.2f" %(min_dist):
+            if "%.2f" % (np.linalg.norm(pt1 - pt2)) != "%.2f" % (min_dist):
                 continue
-            
-            # now using the MM coord pairs as the base of our trapezoid, 
+
+            # now using the MM coord pairs as the base of our trapezoid,
             # find the height of the trapezoid represented as a vector.
-            tri_base = (min_dist - OO_length)/2 # half base of isosceles triangle
-            h = (self.bondlength**2 - tri_base**2)**(1/2) # solve for h
-            
-            # using the height, MM midpoint, the unit normal vector and 
+            tri_base = (min_dist - OO_length) / 2  # half base of isosceles triangle
+            h = (self.bondlength ** 2 - tri_base ** 2) ** (1 / 2)  # solve for h
+
+            # using the height, MM midpoint, the unit normal vector and
             # dimer length, solve for the two positions of the dimer coupling
-            midpt = (pt1+pt2)/2 
-            MM_unit_v = (pt1-pt2)/np.linalg.norm(pt1-pt2)
+            midpt = (pt1 + pt2) / 2
+            MM_unit_v = (pt1 - pt2) / np.linalg.norm(pt1 - pt2)
             unit_v = pt_and_norm[1]
-            coord1 = -1*b*MM_unit_v+midpt + h*unit_v
-            coord2 = b*MM_unit_v+midpt + h*unit_v
-            dimer_midpt = midpt+h*unit_v
+            coord1 = -1 * b * MM_unit_v + midpt + h * unit_v
+            coord2 = b * MM_unit_v + midpt + h * unit_v
+            dimer_midpt = midpt + h * unit_v
             dimer_pair_coords.append([coord1, coord2])
 
         return dimer_pair_coords
@@ -600,7 +733,12 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         fcoord1 = self.slab.lattice.get_fractional_coords(coords1)
         fcoord2 = self.slab.lattice.get_fractional_coords(coords2)
-        d = min([np.linalg.norm(v) for v in pbc_shortest_vectors(self.slab.lattice, fcoord1, fcoord2)])
+        d = min(
+            [
+                np.linalg.norm(v)
+                for v in pbc_shortest_vectors(self.slab.lattice, fcoord1, fcoord2)
+            ]
+        )
         return d < self.min_adsorbate_dist
 
     def are_any_ads_too_close(self, adslab, adsites_indices):
@@ -610,48 +748,70 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         """
 
         socially_distanced = []
-        fcoords1 = [adslab[i].frac_coords for i in adsites_indices if adslab[i].frac_coords[2] > adslab.center_of_mass[2]]
-        fcoords2 = [site.frac_coords for ii, site in enumerate(adslab) if site.surface_properties == 'adsorbate' 
-                    and ii not in adsites_indices and adslab[ii].frac_coords[2] > adslab.center_of_mass[2]]
+        fcoords1 = [
+            adslab[i].frac_coords
+            for i in adsites_indices
+            if adslab[i].frac_coords[2] > adslab.center_of_mass[2]
+        ]
+        fcoords2 = [
+            site.frac_coords
+            for ii, site in enumerate(adslab)
+            if site.surface_properties == "adsorbate"
+            and ii not in adsites_indices
+            and adslab[ii].frac_coords[2] > adslab.center_of_mass[2]
+        ]
         if not fcoords2:
             return False
         alldists = []
         for vectors in pbc_shortest_vectors(adslab.lattice, fcoords1, fcoords2):
             alldists.append(min([np.linalg.norm(v) for v in vectors]))
-            
+
         return min(alldists) < self.min_adsorbate_dist
-    
+
     def get_all_rot_and_pos_combs(self, molecule, angles_list, axis=[0, 0, 1]):
 
-        if type(molecule).__name__ != 'list':
-            if 'dimer_coupling' in molecule.site_properties.keys():
+        if type(molecule).__name__ != "list":
+            if "dimer_coupling" in molecule.site_properties.keys():
                 rot_and_pos_combs = []
                 coords = self.get_dimer_coupling_sites(molecule)
                 # Translate the molecule so that atom X is always at (0, 0, 0).
                 for coord_pair in coords:
                     transformed_molecule = Molecule(molecule.species, coord_pair)
-                    transformed_molecule = self.add_adsorbate_properties(transformed_molecule)
-                    transformed_molecule.translate_sites(vector=-1*coord_pair[0])
+                    transformed_molecule = self.add_adsorbate_properties(
+                        transformed_molecule
+                    )
+                    transformed_molecule.translate_sites(vector=-1 * coord_pair[0])
                     rot_and_pos_combs.append([transformed_molecule, coord_pair[0]])
                 return rot_and_pos_combs
 
-        if type(molecule).__name__ == 'list':
-            bulk_like_trans_molecules = self.get_transformed_molecule_MXides(molecule[0], axis=axis,
-                                                                             angles_list=angles_list)
-            mvk_like_trans_molecules = self.get_transformed_molecule_MXides(molecule, axis=axis,
-                                                                            angles_list=angles_list)
+        if type(molecule).__name__ == "list":
+            bulk_like_trans_molecules = self.get_transformed_molecule_MXides(
+                molecule[0], axis=axis, angles_list=angles_list
+            )
+            mvk_like_trans_molecules = self.get_transformed_molecule_MXides(
+                molecule, axis=axis, angles_list=angles_list
+            )
         else:
-            bulk_like_trans_molecules = self.get_transformed_molecule_MXides(molecule, axis=axis,
-                                                                             angles_list=angles_list)
+            bulk_like_trans_molecules = self.get_transformed_molecule_MXides(
+                molecule, axis=axis, angles_list=angles_list
+            )
             mvk_like_trans_molecules = []
 
         # Get all possible combinations of rotated molecules and adsites
         MX_parts = self.MX_partitions
-        rot_and_pos_combs = [[mol, site, MX_parts[i]] for i, site in enumerate(self.MX_adsites) 
-                             for mol in bulk_like_trans_molecules]
+        rot_and_pos_combs = [
+            [mol, site, MX_parts[i]]
+            for i, site in enumerate(self.MX_adsites)
+            for mol in bulk_like_trans_molecules
+        ]
         mvk_parts = self.mvk_partitions
-        rot_and_pos_combs.extend([[mol, site, mvk_parts[i]] for i, site in enumerate(self.mvk_adsites) 
-                                  for mol in mvk_like_trans_molecules])
+        rot_and_pos_combs.extend(
+            [
+                [mol, site, mvk_parts[i]]
+                for i, site in enumerate(self.mvk_adsites)
+                for mol in mvk_like_trans_molecules
+            ]
+        )
 
         rot_and_pos_combs = {}
         MX_parts = self.MX_partitions
@@ -668,7 +828,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 rot_and_pos_combs[tuple(site)].append([mol, site, mvk_parts[i]])
 
         return rot_and_pos_combs
-    
+
     def adslab_from_adsites(self, adsite_set, coverage):
 
         adslab = self.slab.copy()
@@ -686,17 +846,23 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             for site in molecule:
 
                 if self.adsorb_both_sides:
-                    adslab.symmetrically_add_atom(site.specie, site.coords, 
-                                                  coords_are_cartesian=True, 
-                                                  properties=site.properties)
+                    adslab.symmetrically_add_atom(
+                        site.specie,
+                        site.coords,
+                        coords_are_cartesian=True,
+                        properties=site.properties,
+                    )
                 else:
-                    adslab.append(site.specie, site.coords,
-                                  coords_are_cartesian=True,
-                                  properties=site.properties)
+                    adslab.append(
+                        site.specie,
+                        site.coords,
+                        coords_are_cartesian=True,
+                        properties=site.properties,
+                    )
 
-            if coverage not in [1, len(self.MX_adsites)+len(self.mvk_adsites)]:
+            if coverage not in [1, len(self.MX_adsites) + len(self.mvk_adsites)]:
                 # check once more if any atoms in adsorbed molecule is too close
-                nmol = len(molecule)*2 if self.adsorb_both_sides else len(molecule)
+                nmol = len(molecule) * 2 if self.adsorb_both_sides else len(molecule)
                 adsites_indices = [len(adslab) - i for i in range(1, nmol + 1)]
                 #################### fcoords are not matching up when using pbc_shortest_vectors ####################
                 try:
@@ -710,9 +876,10 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             return False
 
         return adslab
-        
-    def generate_random_adsorption_structure(self, molecule, n_adslabs, max_coverage=None,
-                                             axis=[0, 0, 1], n_rotations=4):
+
+    def generate_random_adsorption_structure(
+        self, molecule, n_adslabs, max_coverage=None, axis=[0, 0, 1], n_rotations=4
+    ):
         """
         Sample n_adslabs for all possible adsorbate configs on an MXide surface. Basic algorithm:
             1. Pick a random coverage
@@ -742,17 +909,21 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             n_rotations (3-tuple or list): repeat argument for supercell generation
         """
 
-        rot_and_pos_combs = self.get_all_rot_and_pos_combs(molecule, axis=axis,
-                                                           n_rotations=n_rotations)
-        
-        max_cov = len(self.MX_adsites) + len(self.mvk_adsites) \
-            if type(molecule).__name__ == 'list' else len(self.MX_adsites)
+        rot_and_pos_combs = self.get_all_rot_and_pos_combs(
+            molecule, axis=axis, n_rotations=n_rotations
+        )
+
+        max_cov = (
+            len(self.MX_adsites) + len(self.mvk_adsites)
+            if type(molecule).__name__ == "list"
+            else len(self.MX_adsites)
+        )
         max_coverage = max_cov if max_coverage == None else max_coverage
         coverage_list = range(max_coverage)
-        
+
         if len(rot_and_pos_combs) == 0:
             if self.verbose:
-                print('no viable adsorption sites')
+                print("no viable adsorption sites")
             return []
         # Im gonna assume there are so many possible configs given the parameters,
         # its highly unlikely we run into the same symmetrically equivalent config
@@ -760,60 +931,71 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         while len(random_adslabs) != n_adslabs:
             try:
                 if len(self.MX_adsites) == 0 and len(self.mvk_adsites) == 0:
-                    print('NO ADSORPTION SITES FOUND!')
+                    print("NO ADSORPTION SITES FOUND!")
                 coverage = self.random.sample(coverage_list, 1)[0] + 1
             except ValueError:
-                raise Exception('ERROR, coverage_list=%s' %(coverage_list))
-                
+                raise Exception("ERROR, coverage_list=%s" % (coverage_list))
+
             if len(rot_and_pos_combs) < coverage:
                 coverage = len(rot_and_pos_combs)
 
             comb_rot_and_pos = self.random.sample(rot_and_pos_combs, coverage)
-            
-            adslab = self.adslab_from_adsites(comb_rot_and_pos, 
-                                              coverage_list, coverage)
+
+            adslab = self.adslab_from_adsites(comb_rot_and_pos, coverage_list, coverage)
             if not adslab:
                 continue
             else:
                 random_adslabs.append(adslab)
 
         return random_adslabs
-    
+
     def get_distinct_partition_combinations(self, coverage):
 
         # first identify how many surface sites are there per partition
         distinct_partitions = []
-        for p in self.slab.site_properties['supercell']:
+        for p in self.slab.site_properties["supercell"]:
             if p not in distinct_partitions:
                 distinct_partitions.append(p)
-        adsites_per_partition = (len(self.MX_adsites)+len(self.mvk_adsites))/len(distinct_partitions)
-        
-        # now determine the number of distinct combinations of 
+        adsites_per_partition = (len(self.MX_adsites) + len(self.mvk_adsites)) / len(
+            distinct_partitions
+        )
+
+        # now determine the number of distinct combinations of
         # partitions to accomadate the number of adsorbates in this coverage
         distinct_partition_combos = []
         for i in range(0, len(distinct_partitions)):
-            if (i+1)*adsites_per_partition < coverage or i+1 > coverage:
-                continue 
-            
-            # To find out if adsorbates on a combination of partitions is 
-            # symmetrically distinct, we build a defective slabs with the 
-            # surface sites of the selected partitions of the combination removed 
+            if (i + 1) * adsites_per_partition < coverage or i + 1 > coverage:
+                continue
+
+            # To find out if adsorbates on a combination of partitions is
+            # symmetrically distinct, we build a defective slabs with the
+            # surface sites of the selected partitions of the combination removed
             partition_combos = []
-            for c in itertools.combinations(distinct_partitions, i+1):
+            for c in itertools.combinations(distinct_partitions, i + 1):
                 defect_slab = self.slab.copy()
                 to_remove = []
                 for nsite, site in enumerate(defect_slab):
-                    if 'T' in str(site.one_to_one_map) and site.supercell in c:
+                    if "T" in str(site.one_to_one_map) and site.supercell in c:
                         to_remove.append(nsite)
                 defect_slab.remove_sites(to_remove)
-                setattr(defect_slab, 'partition', c)
+                setattr(defect_slab, "partition", c)
             partition_combos.append(defect_slab)
-            distinct_partition_combos.extend([g[0].partition for g in 
-                                              self.sm.group_structures(partition_combos)])
-        return distinct_partition_combos        
+            distinct_partition_combos.extend(
+                [g[0].partition for g in self.sm.group_structures(partition_combos)]
+            )
+        return distinct_partition_combos
 
-    def generate_adsorption_structures(self, molecule, coverage_list, radius=2.4, bond={},
-                                       axis=[0, 0, 1], n_rotations=4, angles_list=[], consistent_rotation=False):
+    def generate_adsorption_structures(
+        self,
+        molecule,
+        coverage_list,
+        radius=2.4,
+        bond={},
+        axis=[0, 0, 1],
+        n_rotations=4,
+        angles_list=[],
+        consistent_rotation=False,
+    ):
         """
         Sample n_adslabs for all possible adsorbate configs on an MXide surface. Basic algorithm:
             1. Pick a random coverage
@@ -843,57 +1025,72 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             n_rotations (3-tuple or list): repeat argument for supercell generation
         """
 
-        # for the case of dimer coupling, return nothing 
+        # for the case of dimer coupling, return nothing
         # if not metal sites are available on the surface
-        if len(self.surf_metal_sites) < 2 and type(molecule).__name__ != 'list' \
-        and  'dimer_coupling' in molecule.site_properties.keys():
+        if (
+            len(self.surf_metal_sites) < 2
+            and type(molecule).__name__ != "list"
+            and "dimer_coupling" in molecule.site_properties.keys()
+        ):
             return []
 
         # set n_rotation to 1 if monatomic to save time
-        n = len(molecule[0]) if type(molecule).__name__ == 'list' else len(molecule)
+        n = len(molecule[0]) if type(molecule).__name__ == "list" else len(molecule)
         n_rotations = 1 if n == 1 else n_rotations
-        angles_list = [(2 * np.pi / n_rotations) * i for i in range(n_rotations)] if not angles_list else angles_list
-        
-        # realign the initial position of the adsorbate such that 
+        angles_list = (
+            [(2 * np.pi / n_rotations) * i for i in range(n_rotations)]
+            if not angles_list
+            else angles_list
+        )
+
+        # realign the initial position of the adsorbate such that
         # it maximizes a user selected bond if 'bond' is designated
         if bond:
             molecule = self.maximize_adsorbate_bonds(molecule, bond, axis=axis)
-        
 
-        # retrieve a dict with xyz position as key pointing to a 
+        # retrieve a dict with xyz position as key pointing to a
         # nested list of [rotated_molecule, adsite(xyz) and partition]
-        rot_and_pos_combs = self.get_all_rot_and_pos_combs(molecule, axis=axis,
-                                                           angles_list=angles_list)
+        rot_and_pos_combs = self.get_all_rot_and_pos_combs(
+            molecule, axis=axis, angles_list=angles_list
+        )
 
         # determine list of different coverages for our list of adslabs.
-        max_cov = len(self.MX_adsites) + len(self.mvk_adsites) \
-                        if type(molecule).__name__ == 'list' else len(self.MX_adsites)
-        if coverage_list == 'all':
+        max_cov = (
+            len(self.MX_adsites) + len(self.mvk_adsites)
+            if type(molecule).__name__ == "list"
+            else len(self.MX_adsites)
+        )
+        if coverage_list == "all":
             cov_list = np.array(range(1, max_cov + 1))
-        elif coverage_list == 'saturated':
+        elif coverage_list == "saturated":
             cov_list = [max_cov]
         else:
             cov_list = copy.copy(coverage_list)
         if sum([len(rotpos_combs) for rotpos_combs in rot_and_pos_combs]) == 0:
             if self.verbose:
-                print('no viable adsorption sites')
+                print("no viable adsorption sites")
             return []
 
         all_adslabs = []
         for coverage in cov_list:
             adslabs = []
-            if sum([len(rotpos_combs) for rotpos_combs in rot_and_pos_combs]) < coverage:
-                coverage = sum([len(rotpos_combs) for rotpos_combs in rot_and_pos_combs])
+            if (
+                sum([len(rotpos_combs) for rotpos_combs in rot_and_pos_combs])
+                < coverage
+            ):
+                coverage = sum(
+                    [len(rotpos_combs) for rotpos_combs in rot_and_pos_combs]
+                )
 
-            # only do combinations of rotation, position and coverage for a certain 
+            # only do combinations of rotation, position and coverage for a certain
             # combination of partitions as all other iterations are degenerate
             partition_combos = self.get_distinct_partition_combinations(coverage)
             if self.verbose:
-                print('coverage', coverage)
+                print("coverage", coverage)
 
             for part_comb in partition_combos:
 
-                # make a dictionary of adsite (xyz) keys pointing 
+                # make a dictionary of adsite (xyz) keys pointing
                 # to n pairs of rotated molecule and xyz
                 rot_and_pos_sets = {}
                 for p in part_comb:
@@ -901,13 +1098,28 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         if rot_and_pos_combs[adsite][0][-1] == p:
                             rot_and_pos_sets[adsite] = rot_and_pos_combs[adsite]
 
-                new_rot_and_pos_combs = get_reduced_combinations(rot_and_pos_sets, coverage, part_comb, consistent_rotation=consistent_rotation)
+                new_rot_and_pos_combs = get_reduced_combinations(
+                    rot_and_pos_sets,
+                    coverage,
+                    part_comb,
+                    consistent_rotation=consistent_rotation,
+                )
                 if self.verbose:
-                    print('partition_combos', part_comb, 'Total combos', len(new_rot_and_pos_combs))
+                    print(
+                        "partition_combos",
+                        part_comb,
+                        "Total combos",
+                        len(new_rot_and_pos_combs),
+                    )
 
-                sorted_rot_and_pos_combs = sort_rotposcombs_by_angles(new_rot_and_pos_combs, angles_list)
+                sorted_rot_and_pos_combs = sort_rotposcombs_by_angles(
+                    new_rot_and_pos_combs, angles_list
+                )
                 if self.verbose:
-                    print('groups %s combinations into %s groups' %(len(new_rot_and_pos_combs), len(sorted_rot_and_pos_combs)))
+                    print(
+                        "groups %s combinations into %s groups"
+                        % (len(new_rot_and_pos_combs), len(sorted_rot_and_pos_combs))
+                    )
                 for nang, angs_count in enumerate(sorted_rot_and_pos_combs.keys()):
 
                     rot_and_pos_combs_subset = sorted_rot_and_pos_combs[angs_count]
@@ -915,33 +1127,62 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     adsites_sets = []
                     for comb_rot_and_pos in rot_and_pos_combs_subset:
 
-                        if coverage not in [1, len(self.MX_adsites)+len(self.mvk_adsites)]:
+                        if coverage not in [
+                            1,
+                            len(self.MX_adsites) + len(self.mvk_adsites),
+                        ]:
                             # skip any combination where two pos are within min adsorbate distance of each other
-                            if any([self.is_pos_too_close(rot_pos_pair[0][1], rot_pos_pair[1][1]) \
-                                    for rot_pos_pair in itertools.combinations(comb_rot_and_pos, 2)]):
+                            if any(
+                                [
+                                    self.is_pos_too_close(
+                                        rot_pos_pair[0][1], rot_pos_pair[1][1]
+                                    )
+                                    for rot_pos_pair in itertools.combinations(
+                                        comb_rot_and_pos, 2
+                                    )
+                                ]
+                            ):
                                 continue
 
                         adsites = []
                         for translated_molecule, ads_coord, p in comb_rot_and_pos:
                             molecule = translated_molecule.copy()
-                            molecule.add_site_property('ads_coord', [ads_coord]*len(molecule))
+                            molecule.add_site_property(
+                                "ads_coord", [ads_coord] * len(molecule)
+                            )
                             for site in molecule:
-                                adsites.append(PeriodicSite(site.species, ads_coord + site.coords, 
-                                                            self.slab.lattice, properties=site.properties, 
-                                                            coords_are_cartesian=True))
+                                adsites.append(
+                                    PeriodicSite(
+                                        site.species,
+                                        ads_coord + site.coords,
+                                        self.slab.lattice,
+                                        properties=site.properties,
+                                        coords_are_cartesian=True,
+                                    )
+                                )
                         adsites_sets.append(adsites)
-                    
-                    sorted_adsites_by_bonds = self.sort_adsites_by_bonds(adsites_sets, radius)
+
+                    sorted_adsites_by_bonds = self.sort_adsites_by_bonds(
+                        adsites_sets, radius
+                    )
                     if self.verbose:
-                        print('grouped %s sites to %s' %(len(adsites_sets), len(sorted_adsites_by_bonds.keys())))
+                        print(
+                            "grouped %s sites to %s"
+                            % (len(adsites_sets), len(sorted_adsites_by_bonds.keys()))
+                        )
 
                     count_tot, count_reduced = 0, 0
                     reduced_adsites_sets = []
                     for bonds in sorted_adsites_by_bonds.keys():
-                        # get rid of all symmetrically equivalent adsorbate configs 
-                        reduced_adsites_sets.extend(self.symm_reduce(sorted_adsites_by_bonds[bonds]))
+                        # get rid of all symmetrically equivalent adsorbate configs
+                        reduced_adsites_sets.extend(
+                            self.symm_reduce(sorted_adsites_by_bonds[bonds])
+                        )
                     if self.verbose:
-                        print('symmetrically reduced to %s adslabs from %s' %(len(reduced_adsites_sets), len(adsites_sets)))
+                        print(
+                            "symmetrically reduced to %s adslabs from %s"
+                            % (len(reduced_adsites_sets), len(adsites_sets))
+                        )
 
                     for adsite_set in reduced_adsites_sets:
                         adslab = self.adslab_from_adsites(adsite_set, coverage)
@@ -950,32 +1191,43 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         else:
                             adslabs.append(adslab)
                     if self.verbose:
-                        print('sorting %s adslabs, completed %s/%s iterations' %(len(adslabs), nang, len(sorted_rot_and_pos_combs.keys())))
+                        print(
+                            "sorting %s adslabs, completed %s/%s iterations"
+                            % (len(adslabs), nang, len(sorted_rot_and_pos_combs.keys()))
+                        )
                 all_adslabs.extend(adslabs)
 
         return all_adslabs
-    
+
     def symm_reduce(self, adsites_set, threshold=1e-6):
         """
         Reduces the set of adsorbate sites by finding removing
         symmetrically equivalent duplicates
         Args:
-            adsites_set: List of set of adsorbate sites on the slab. Each set 
+            adsites_set: List of set of adsorbate sites on the slab. Each set
             represents the cartesian coordinates of all adsorbate atoms on the surface
             threshold: tolerance for distance equivalence, used
                 as input to in_coord_list_pbc for dupl. checking
         """
         surf_sg = SpacegroupAnalyzer(self.slab, 0.1)
-        symm_ops = surf_sg.get_symmetry_operations()    
+        symm_ops = surf_sg.get_symmetry_operations()
         # skip any symmops that operate outside the xy plane
         surf_symm_ops = []
         for op in symm_ops:
-            if all((op.rotation_matrix[2] == [0, 0, 1])) and op.translation_vector[2] == 0:
+            if (
+                all((op.rotation_matrix[2] == [0, 0, 1]))
+                and op.translation_vector[2] == 0
+            ):
                 surf_symm_ops.append(op)
-        
+
         # Convert to fractional
-        coords_set = [[self.slab.lattice.get_fractional_coords(adsite.coords) 
-                       for adsite in adsites] for adsites in adsites_set]
+        coords_set = [
+            [
+                self.slab.lattice.get_fractional_coords(adsite.coords)
+                for adsite in adsites
+            ]
+            for adsites in adsites_set
+        ]
 
         unique_coords, unique_coords_species, unique_adsites = [], [], []
         for i, coords in enumerate(coords_set):
@@ -984,23 +1236,23 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             for op in surf_symm_ops:
                 for ui, done_coords in enumerate(unique_coords):
                     one_to_one_coord_map = []
-                    
+
                     op_coords = op.operate_multi(coords)
                     for ii, coord in enumerate(op_coords):
                         adsorbate = adsites_set[i][ii].species_string
                         try:
-                            # see if theres a position in one of the 
+                            # see if theres a position in one of the
                             # unique sets that matches the current one
                             inds = coord_list_mapping_pbc(coord, done_coords)
                             if adsorbate != unique_coords_species[ui][inds[0]]:
-                                # check if the adsorbate species of this coordinate matches 
+                                # check if the adsorbate species of this coordinate matches
                                 # the species we are comparing to. If it doesn't match, then skip
                                 break
                             if inds[0] not in one_to_one_coord_map:
                                 one_to_one_coord_map.append(inds[0])
 
                         except ValueError:
-                            # if not one of the coordinates is in the set of unique sets, then we are 
+                            # if not one of the coordinates is in the set of unique sets, then we are
                             # not getting a 1-to-1 mapping. Move on to the next symmetry operation
                             break
 
@@ -1012,22 +1264,24 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 if incoord:
                     break
             if not incoord:
-                unique_coords.append(coords)           
-                unique_coords_species.append([adsite.species_string for adsite in adsites_set[i]])
+                unique_coords.append(coords)
+                unique_coords_species.append(
+                    [adsite.species_string for adsite in adsites_set[i]]
+                )
                 unique_adsites.append(adsites_set[i])
 
         return unique_adsites
-    
+
     def sort_adsites_by_bonds(self, adsites_set, radius):
         """
-        Simple code for sorting a list of adsorption sites in a slab based 
+        Simple code for sorting a list of adsorption sites in a slab based
         on their local environment defined by element and bondlength within a given radius.
 
         adslabs ([pmg Slab]): list of adsorbed slabs
-        bonds (dict): Dict indicating the type of bond to sort by. Dict 
-            has three items, the atomic species of the adsorbate, the atomic species the 
-            adsorbate will form a bond with, and the bondlength +- blenght_tol e.g. 
-            {'adsorbate': 'H', 'other': 'O', 'blength': 1.4} will sort all adslabs based 
+        bonds (dict): Dict indicating the type of bond to sort by. Dict
+            has three items, the atomic species of the adsorbate, the atomic species the
+            adsorbate will form a bond with, and the bondlength +- blenght_tol e.g.
+            {'adsorbate': 'H', 'other': 'O', 'blength': 1.4} will sort all adslabs based
             on the number of H-O bonds 1.4Å (+- the tol). Sorted from least amount of bonds to most
         blength_tol (float): tolerance +- the blength
 
@@ -1037,77 +1291,112 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         clean = self.slab.copy()
         sorted_adsites_set = {}
         for i, adsites in enumerate(adsites_set):
-        
+
             bond_count = []
             for ads in adsites:
-                neighbors = clean.get_neighbors(ads, radius)    
+                neighbors = clean.get_neighbors(ads, radius)
                 for nn in neighbors:
                     if nn.distance(ads) < radius:
-                        bond_count.append('%s-%s%.3f' %(ads.species_string,
-                                                        nn.species_string, nn.distance(ads)))
+                        bond_count.append(
+                            "%s-%s%.3f"
+                            % (ads.species_string, nn.species_string, nn.distance(ads))
+                        )
 
             bond_count = tuple(sorted(bond_count))
             if bond_count not in sorted_adsites_set.keys():
                 sorted_adsites_set[bond_count] = []
             sorted_adsites_set[bond_count].append(adsites_set[i])
 
-        return sorted_adsites_set 
-    
-    def maximize_adsorbate_bonds(self, molecule, bonds, axis=[0,0,1]):
+        return sorted_adsites_set
 
-        adslab = self.generate_adsorption_structures(molecule, 'saturated', 2.4, n_rotations=1)[0]
+    def maximize_adsorbate_bonds(self, molecule, bonds, axis=[0, 0, 1]):
+
+        adslab = self.generate_adsorption_structures(
+            molecule, "saturated", 2.4, n_rotations=1
+        )[0]
         angles, ads_dists = [], []
         for nsite, site in enumerate(adslab):
-            
-            if site.species_string == bonds['adsorbate'] and site.surface_properties == 'adsorbate':
-                dummy_adsite = PeriodicSite('N', site.properties['ads_coord'], adslab.lattice, coords_are_cartesian=True)
-                nn = [neighbor for neighbor in adslab.get_neighbors(dummy_adsite, 5) if neighbor.species_string == bonds['other'] and round(neighbor.nn_distance, ndigits=4) != 0]
+
+            if (
+                site.species_string == bonds["adsorbate"]
+                and site.surface_properties == "adsorbate"
+            ):
+                dummy_adsite = PeriodicSite(
+                    "N",
+                    site.properties["ads_coord"],
+                    adslab.lattice,
+                    coords_are_cartesian=True,
+                )
+                nn = [
+                    neighbor
+                    for neighbor in adslab.get_neighbors(dummy_adsite, 5)
+                    if neighbor.species_string == bonds["other"]
+                    and round(neighbor.nn_distance, ndigits=4) != 0
+                ]
                 dists = [n.nn_distance for n in nn]
-                closest_sites = [nn[i] for i, d in enumerate(dists) if round(d, ndigits=4) == round(min(dists), ndigits=4)]
+                closest_sites = [
+                    nn[i]
+                    for i, d in enumerate(dists)
+                    if round(d, ndigits=4) == round(min(dists), ndigits=4)
+                ]
 
                 # next calculate the angle of rotation about the give axis of rotation needed to minimize the distance between
                 # the adsorbate in question by solving the angle between the adsorbate, dummy_adsite and neighbor site in 2D
                 for ncsites, csites in enumerate(closest_sites):
                     rotated_ads_on_slab = adslab.copy()
-                    coords_in_2d = [np.array([site.coords[0], site.coords[1], 0]),
-                                    np.array([dummy_adsite.coords[0], dummy_adsite.coords[1], 0]), 
-                                    np.array([csites.coords[0], csites.coords[1], 0])]
+                    coords_in_2d = [
+                        np.array([site.coords[0], site.coords[1], 0]),
+                        np.array([dummy_adsite.coords[0], dummy_adsite.coords[1], 0]),
+                        np.array([csites.coords[0], csites.coords[1], 0]),
+                    ]
 
-                    ba, bc = coords_in_2d[0]-coords_in_2d[1], coords_in_2d[2]-coords_in_2d[1]
+                    ba, bc = (
+                        coords_in_2d[0] - coords_in_2d[1],
+                        coords_in_2d[2] - coords_in_2d[1],
+                    )
                     cosa = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
                     angle = np.arccos(round(cosa, ndigits=3))
-                    rotated_ads_on_slab.rotate_sites([nsite], angle, adslab.lattice.matrix[2], dummy_adsite.coords)
+                    rotated_ads_on_slab.rotate_sites(
+                        [nsite], angle, adslab.lattice.matrix[2], dummy_adsite.coords
+                    )
                     nn = rotated_ads_on_slab.get_neighbors(site, 5)
                     ads_dists.append(min([n.nn_distance for n in nn]))
                     angles.append(angle)
-                    
+
         molecule_rot = molecule.copy()
-        molecule_rot.rotate_sites(theta=angles[ads_dists.index(min(ads_dists))], axis=axis)
-        
+        molecule_rot.rotate_sites(
+            theta=angles[ads_dists.index(min(ads_dists))], axis=axis
+        )
+
         return molecule_rot
-        
-def get_reduced_combinations(rot_and_pos_sets, coverage, partition_combo, consistent_rotation=False):
-    '''
-    Helper function to get a set of rotated molecules and positions 
-    of a certain coverage with the input set being limited to the  
-    distinct combinations of partitions in a super slab cell. Uses  
-    product enumeration to avoid iterating through combinations  
+
+
+def get_reduced_combinations(
+    rot_and_pos_sets, coverage, partition_combo, consistent_rotation=False
+):
+    """
+    Helper function to get a set of rotated molecules and positions
+    of a certain coverage with the input set being limited to the
+    distinct combinations of partitions in a super slab cell. Uses
+    product enumeration to avoid iterating through combinations
     containing duplicate adsites
-    
-    rot_and_pos_sets: dictionary with key being xyz, value is 
-    list of rotated molecules. This dictionary is generated 
-    from which ever partition combination 
-    '''
-    
+
+    rot_and_pos_sets: dictionary with key being xyz, value is
+    list of rotated molecules. This dictionary is generated
+    from which ever partition combination
+    """
+
     all_rot_and_pos_combs = []
     # enumerate all combinations of xyz
-#     print('Number of xyz and coverage: %s %s' %(len(rot_and_pos_sets.keys()), coverage))
-    
+    #     print('Number of xyz and coverage: %s %s' %(len(rot_and_pos_sets.keys()), coverage))
+
     for c in itertools.combinations(rot_and_pos_sets.keys(), coverage):
         # skip any combinations of xyz where all partitions we are considering are not present
-        if not all([p in [rot_and_pos_sets[xyz][0][2] for xyz in c] for p in partition_combo]):
+        if not all(
+            [p in [rot_and_pos_sets[xyz][0][2] for xyz in c] for p in partition_combo]
+        ):
             continue
-            
+
         if consistent_rotation:
             # faster algo that only considers combos where adsorbates rotated consistently
             for i, d in enumerate(rot_and_pos_sets[c[0]]):
@@ -1115,29 +1404,31 @@ def get_reduced_combinations(rot_and_pos_sets, coverage, partition_combo, consis
                 for xyz in c:
                     rot_and_pos_combs.append(rot_and_pos_sets[xyz][i])
                 all_rot_and_pos_combs.append(rot_and_pos_combs)
-            
+
         else:
-            # enumerate all combinations of n rotations where n is number of xyz 
-            # positions (coverage), each of which can be rotated several times. 
-            # The first entry in the product function should be range from 0 to 
+            # enumerate all combinations of n rotations where n is number of xyz
+            # positions (coverage), each of which can be rotated several times.
+            # The first entry in the product function should be range from 0 to
             # n where n is the number of rotations. Second number for repeat is the coverage.
-            for sites_indices in itertools.product(range(0, len(rot_and_pos_sets[c[0]])),
-                                                   repeat=coverage):
+            for sites_indices in itertools.product(
+                range(0, len(rot_and_pos_sets[c[0]])), repeat=coverage
+            ):
                 rot_and_pos_combs = []
                 for i, xyz in enumerate(c):
                     rot_and_pos_combs.append(rot_and_pos_sets[xyz][sites_indices[i]])
                 all_rot_and_pos_combs.append(rot_and_pos_combs)
-            
-#         print([rot_and_pos_sets[xyz][0][2] for xyz in c], len(all_rot_and_pos_combs))
-#     print('Products to iterate: %sc%s combinations of xyz * %s^%s combinations of rotations.' \
-#           %(len(rot_and_pos_sets.keys()), coverage, len(rot_and_pos_sets[c[0]]), coverage), 
-#           'Found: %s' %(len(all_rot_and_pos_combs)))
-    
+
+    #         print([rot_and_pos_sets[xyz][0][2] for xyz in c], len(all_rot_and_pos_combs))
+    #     print('Products to iterate: %sc%s combinations of xyz * %s^%s combinations of rotations.' \
+    #           %(len(rot_and_pos_sets.keys()), coverage, len(rot_and_pos_sets[c[0]]), coverage),
+    #           'Found: %s' %(len(all_rot_and_pos_combs)))
+
     return all_rot_and_pos_combs
 
 
 from pymatgen.core.structure import Lattice
-    
+
+
 def one_to_one_surface_map(slab):
 
     slab_label = slab.copy()
@@ -1147,7 +1438,7 @@ def one_to_one_surface_map(slab):
     ccom = slab_label.center_of_mass[2]
     bottom, top = [], []
     for eq_indices in symslab.equivalent_indices:
-        if slab_label[eq_indices[0]].surface_properties != 'surface':
+        if slab_label[eq_indices[0]].surface_properties != "surface":
             continue
         for i in eq_indices:
             if symslab[i].frac_coords[2] > ccom:
@@ -1155,21 +1446,22 @@ def one_to_one_surface_map(slab):
             else:
                 bottom.append(i)
 
-    # make 1-to-1 mapping, a list of list, where the first entry of the 
+    # make 1-to-1 mapping, a list of list, where the first entry of the
     # nested list corresponds to top while the second corresponds to bottom
     one_to_one_map = {i: m for i, m in enumerate(np.array([top, bottom]).T)}
     pre_partition = []
     for i, site in enumerate(slab_label):
-        p = float('nan')
+        p = float("nan")
         for ii in one_to_one_map.keys():
             if i in one_to_one_map[ii]:
                 if list(one_to_one_map[ii]).index(i) == 0:
-                    p = 'T%s' %(ii)
+                    p = "T%s" % (ii)
                 else:
-                    p = 'B%s' %(ii)
+                    p = "B%s" % (ii)
         pre_partition.append(p)
 
-    return pre_partition 
+    return pre_partition
+
 
 def make_superslab_with_partition(slab, scaling_matrix):
     """
@@ -1207,8 +1499,8 @@ def make_superslab_with_partition(slab, scaling_matrix):
     for site in slab:
         for i, v in enumerate(c_lat):
             new_prop = site.properties.copy()
-            new_prop['supercell'] = i
-            new_prop['prim_coord'] = site.coords
+            new_prop["supercell"] = i
+            new_prop["prim_coord"] = site.coords
             s = PeriodicSite(
                 site.species,
                 site.coords + v,
@@ -1222,49 +1514,61 @@ def make_superslab_with_partition(slab, scaling_matrix):
 
     new_slab = Structure.from_sites(new_sites)
 
-    return Slab(new_slab.lattice, new_slab.species, new_slab.frac_coords, 
-                slab.miller_index, slab.oriented_unit_cell, slab.shift, 
-                slab.scale_factor, site_properties=new_slab.site_properties)
+    return Slab(
+        new_slab.lattice,
+        new_slab.species,
+        new_slab.frac_coords,
+        slab.miller_index,
+        slab.oriented_unit_cell,
+        slab.shift,
+        slab.scale_factor,
+        site_properties=new_slab.site_properties,
+    )
+
 
 def sort_by_bonds(adslabs, bond):
     """
-    Simple code for sorting a list of adsorbed slabs from MXideAdsorbateGenerator 
+    Simple code for sorting a list of adsorbed slabs from MXideAdsorbateGenerator
     based on the number of designated bond types in the bonds list
-    
+
     adslabs ([pmg Slab]): list of adsorbed slabs
-    bonds (dict): Dict indicating the type of bond to sort by. Dict 
-        has three items, the atomic species of the adsorbate, the atomic species the 
-        adsorbate will form a bond with, and the bondlength +- blenght_tol e.g. 
-        {'adsorbate': 'H', 'other': 'O', 'blength': 1.4} will sort all adslabs based 
+    bonds (dict): Dict indicating the type of bond to sort by. Dict
+        has three items, the atomic species of the adsorbate, the atomic species the
+        adsorbate will form a bond with, and the bondlength +- blenght_tol e.g.
+        {'adsorbate': 'H', 'other': 'O', 'blength': 1.4} will sort all adslabs based
         on the number of H-O bonds 1.4Å (+- the tol). Sorted from least amount of bonds to most
     blength_tol (float): tolerance +- the blength
-    
+
     return dict of adslabs but sorted by number of bonds as keys
     """
-    
+
     sorted_adslabs = {}
     for adslab in adslabs:
         # find all designated adsorbates
-        adsites = [site for site in 
-                   adslab if site.surface_properties == 'adsorbate' \
-                   and site.species_string == bond['adsorbate']]
+        adsites = [
+            site
+            for site in adslab
+            if site.surface_properties == "adsorbate"
+            and site.species_string == bond["adsorbate"]
+        ]
         bond_count = []
         for ads in adsites:
-            neighbors = adslab.get_neighbors(ads, bond['blength'])
+            neighbors = adslab.get_neighbors(ads, bond["blength"])
             for nn in neighbors:
-                if nn.species_string == bond['other']:
-                    if nn.distance(ads) < bond['blength']:
+                if nn.species_string == bond["other"]:
+                    if nn.distance(ads) < bond["blength"]:
                         bond_count.append(nn.distance(ads))
-           
+
         bond_count = tuple(sorted(bond_count))
         if bond_count not in sorted_adslabs.keys():
             sorted_adslabs[bond_count] = []
         sorted_adslabs[bond_count].append(adslab)
-        
-    return sorted_adslabs    
+
+    return sorted_adslabs
+
 
 def sort_rotposcombs_by_angles(rot_and_pos_combs, angles_list):
-    
+
     rotation_set = [round(a, ndigits=2) for a in angles_list]
     sorted_rot_and_pos_combs_by_angles = {}
     for rot_and_pos_comb in rot_and_pos_combs:
@@ -1275,5 +1579,5 @@ def sort_rotposcombs_by_angles(rot_and_pos_combs, angles_list):
         if rotation_count not in sorted_rot_and_pos_combs_by_angles.keys():
             sorted_rot_and_pos_combs_by_angles[rotation_count] = []
         sorted_rot_and_pos_combs_by_angles[rotation_count].append(rot_and_pos_comb)
-        
+
     return sorted_rot_and_pos_combs_by_angles

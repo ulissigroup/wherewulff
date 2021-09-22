@@ -6,7 +6,7 @@ from pymatgen.core import Structure
 from pymatgen.core.composition import Composition
 from pymatgen.core.surface import Slab
 
-from fireworks import FiretaskBase, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.utils.utils import env_chk
@@ -41,11 +41,15 @@ class SurfaceEnergyFireTask(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         slab_formula = self["slab_formula"]
         miller_index = self["miller_index"]
+        oriented_uuid = fw_spec.get("oriented_uuid")
+        slab_uuid = fw_spec.get("slab_uuid")
         to_db = self.get("to_db", True)
         summary_dict = {
             "task_label": "{}_{}_surface_energy".format(slab_formula, miller_index),
             "slab_formula": slab_formula,
             "miller_index": miller_index,
+            "oriented_uuid": oriented_uuid,
+            "slab_uuid": slab_uuid,
         }
 
         # Collect and store tasks_ids
@@ -53,15 +57,11 @@ class SurfaceEnergyFireTask(FiretaskBase):
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        oriented = mmdb.collection.find_one(
-            {"task_label": "{}_{} bulk optimization".format(slab_formula, miller_index)}
-        )
-        slab = mmdb.collection.find_one(
-            {"task_label": "{}_{} slab optimization".format(slab_formula, miller_index)}
-        )
+        oriented = mmdb.collection.find_one({"uuid": oriented_uuid})
+        slab = mmdb.collection.find_one({"uuid": slab_uuid})
 
-        all_task_ids.append(oriented["task_id"])
-        all_task_ids.append(slab["task_id"])
+        all_task_ids.append(oriented["uuid"])
+        all_task_ids.append(slab["uuid"])
 
         # Get Structures from DB
         oriented_struct = Structure.from_dict(
@@ -155,6 +155,17 @@ class SurfaceEnergyFireTask(FiretaskBase):
             "{}_{} Surface Energy: {} [eV/A**2]".format(
                 slab_formula, miller_index, surface_energy
             )
+        )
+
+        # Send the summary_dict to the child FW
+        return FWAction(
+            update_spec={
+                f"{slab_formula}_{miller_index}": {
+                    "oriented_uuid": oriented_uuid,
+                    "slab_uuid": slab_uuid,
+                }
+            },
+            propagate=True,
         )
 
     def get_surface_energy(self, slab_E, oriented_E, slab_bulk_ratio, slab_Area):
