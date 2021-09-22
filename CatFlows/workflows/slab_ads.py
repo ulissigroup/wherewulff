@@ -3,10 +3,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from fireworks import Firework, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.firetask.slab_ads import SlabAdsFireTask
+from CatFlows.firetasks.slab_ads import SlabAdsFireTask
 
 
-def SlabAds_WF(bulk_structure, adsorbates, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE):
+def SlabAds_WF(
+    bulk_structure, adsorbates, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE
+):
     """
     Wrap-up workflow to do the Wulff Shape Analysis after MO_SLABS_WF.
 
@@ -23,15 +25,20 @@ def SlabAds_WF(bulk_structure, adsorbates, parents=None, vasp_cmd=VASP_CMD, db_f
 
     # WulffShape Analysis
     ads_slab_fw = Firework(
-        SlabAdsFireTask(spec={"reduced_formula": bulk_formula,
-                          "db_file": db_file,
-                          "adsorbates": adsorbates,
-                          "slabs": None,
-                          "vasp_cmd": vasp_cmd,
-                          "_pass_job_info": True,
-                          "_add_launchpad_and_fw_id": True},
-                    name=f"{bulk_formula} Ads_slab optimization",
-                    parents=parents))
+        SlabAdsFireTask(
+            spec={
+                "reduced_formula": bulk_formula,
+                "db_file": db_file,
+                "adsorbates": adsorbates,
+                "slabs": None,
+                "vasp_cmd": vasp_cmd,
+                "_pass_job_info": True,
+                "_add_launchpad_and_fw_id": True,
+            },
+            name=f"{bulk_formula} Ads_slab optimization",
+            parents=parents,
+        )
+    )
 
     all_fws = [ads_slab_fw]
     if parents is not None:

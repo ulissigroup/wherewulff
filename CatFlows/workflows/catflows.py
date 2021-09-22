@@ -215,8 +215,7 @@ class CatFlows:
             launchpad.add_wf(wulff_wf)
 
         else:
-            wulff_wf = self._get_wulff_analysis(parents_list=parents_list)
-            parents_list.extend(wulff_wf.fws)
+            wulff_wf = self._get_wulff_analysis(parents=parents_list)
             # Ads slab into the launchpad
             ads_slab_wfs = self._get_ads_slab_wfs(parents=parents_list)
             launchpad.add_wf(ads_slab_wfs)
