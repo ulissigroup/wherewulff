@@ -23,6 +23,7 @@ from CatFlows.dft_settings.settings import (
 
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
 from CatFlows.workflows.wulff_shape import WulffShape_WF
+from CatFlows.workflows.slab_ads import SlabAds_WF
 
 
 # CatFlows Workflow method
@@ -59,7 +60,7 @@ class CatFlows:
         slab_repeat=[2, 2, 1],
         selective_dynamics=True,
         exclude_hkl=None,
-        wulff_analysis=True,
+        stop_at_wulff_analysis=False,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
@@ -78,7 +79,7 @@ class CatFlows:
         self.symmetrize = symmetrize
         self.slab_repeat = slab_repeat
         self.selective_dynamics = selective_dynamics
-        self.wulff_analysis = wulff_analysis
+        self.stop_at_wulff_analysis = stop_at_wulff_analysis
         self.exclude_hkl = exclude_hkl
 
         # DFT method and vasp_cmd and db_file
@@ -184,6 +185,16 @@ class CatFlows:
         )
         return wulff_wf
 
+    def _get_ads_slab_wfs(self, parents=None):
+        """Returns all the Ads_slabs fireworks"""
+        ads_slab_wfs = SlabAds_WF(
+            self.bulk_structure,
+            parents=parents,
+            vasp_cmd=self.vasp_cmd,
+            db_file=self.db_file,
+        )
+        return ads_slab_wfs
+
     def _get_parents(self, workflow_list):
         """Returns an unpacked list of parents from a set of wfs"""
         wf_fws = [wf.fws for wf in workflow_list]
@@ -199,8 +210,15 @@ class CatFlows:
         parents_list = self._get_parents(self.workflows_list)
 
         # Wulff shape analysis
-        if self.wulff_analysis:
+        if self.stop_at_wulff_analysis:
             wulff_wf = self._get_wulff_analysis(parents=parents_list)
             launchpad.add_wf(wulff_wf)
+
+        else:
+            wulff_wf = self._get_wulff_analysis(parents_list=parents_list)
+            parents_list.extend(wulff_wf.fws)
+            # Ads slab into the launchpad
+            ads_slab_wfs = self._get_ads_slab_wfs(parents=parents_list)
+            launchpad.add_wf(ads_slab_wfs)
 
         return launchpad
