@@ -205,9 +205,13 @@ class CatFlows:
         fws = [fw for wf in wf_fws for fw in wf]
         return fws
 
-    def submit(self, reset=True):
+    def submit(self, hostname, db_name, port, username, password, reset=False):
         """Submit Full Workflow to Launchpad !"""
-        launchpad = LaunchPad()
+        launchpad = LaunchPad(host=hostname, 
+                              name=db_name, 
+                              port=port, 
+                              username=username, 
+                              password=password) if hostname else LaunchPad()
         if reset:
             launchpad.reset("", require_password=False)
 
