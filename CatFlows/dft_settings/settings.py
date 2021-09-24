@@ -102,7 +102,7 @@ class MOSurfaceSet(MVLSlabSet):
         # Change the default PBE version from Pymatgen
         psp_versions = ["PBE", "PBE_52", "PBE_54"]
         assert self.psp_version in psp_versions
-        #MOSurfaceSet.CONFIG["POTCAR_FUNCTIONAL"] = self.psp_version
+        # MOSurfaceSet.CONFIG["POTCAR_FUNCTIONAL"] = self.psp_version
         self.potcar_functional = self.psp_version
 
     # Dipolar moment correction
@@ -123,7 +123,7 @@ class MOSurfaceSet(MVLSlabSet):
             incar["LREAL"] = False
 
         # Setting auto_dipole correction (for slabs only)
-        #if not self.bulk and self.auto_dipole:
+        # if not self.bulk and self.auto_dipole:
         #    incar["LDIPOL"] = True
         #    incar["IDIPOL"] = 3
         #    incar["DIPOL"] = self._get_center_of_mass()
@@ -142,7 +142,7 @@ class MOSurfaceSet(MVLSlabSet):
             "NCORE": 4,
             "LWAVE": True,
             "ISTART": 1,
-            "NELM": 60
+            "NELM": 60,
         }
         # Update incar
         incar.update(incar_config)

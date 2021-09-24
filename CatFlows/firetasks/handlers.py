@@ -3,6 +3,7 @@ import uuid
 from pydash.objects import has, get
 
 from pymatgen.core import Structure
+from pymatgen.core.surface import Slab
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
@@ -67,6 +68,12 @@ class ContinueOptimizeFW(FiretaskBase):
             structure = Structure.from_dict(
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
+
+            # Slab object of parent
+            slab = Slab.from_dict(
+                db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
+            )
+
             # Retriving magnetic moments from parent
             # magmoms = structure.site_properties["magmom"]
             # counts
@@ -116,7 +123,17 @@ class ContinueOptimizeFW(FiretaskBase):
             fw_new.tasks.insert(
                 2, DeleteFilesPrevFolder(files=["WAVECAR"], calc_dir=parent_dir_name)
             )
+
+            # Gunzip again!
+            #           fw_new.tasks.insert(
+            #               2, GzipDir() # only implemented in current directory
+            #           )
+
             fw_new.tasks.append(ContinueOptimizeFW())
+
+            # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
+            if counter > 0:
+                fw_new.tasks[5]["additional_fields"].update({"slab": slab})
 
             # Bulk Continuation
             if is_bulk:
