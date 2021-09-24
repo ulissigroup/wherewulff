@@ -12,6 +12,7 @@ from atomate.vasp.database import VaspCalcDb
 from atomate.common.firetasks.glue_tasks import CopyFiles, DeleteFilesPrevFolder
 
 from CatFlows.dft_settings.settings import MOSurfaceSet
+from CatFlows.common.glue_tasks import GzipPrevDir
 
 
 @explicit_serialize
@@ -25,8 +26,8 @@ class ContinueOptimizeFW(FiretaskBase):
 
     """
 
-    required_params = ["is_bulk", "counter", "vasp_cmd"]
-    optional_params = ["db_file"]
+    required_params = ["is_bulk", "counter", "db_file", "vasp_cmd"]
+    optional_params = []
 
     def run_task(self, fw_spec):
 
@@ -110,10 +111,11 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Appending extra tasks
             fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
-            fw_new.tasks[3]["additional_fields"].update({"uuid": fw_new_uuid})
-            # Disable gunzip in RunVaspCustodian
+            fw_new.tasks[4]["additional_fields"].update({"uuid": fw_new_uuid})
 
+            # Disable gunzip in RunVaspCustodian
             fw_new.tasks[1].update({"gzip_output": False})
+
             # Insert a CopyFilesFromCalcLoc Task into the childFW to inherit
             fw_new.tasks.insert(
                 1, CopyFiles(from_dir=parent_dir_name, files_to_copy=["WAVECAR"])
@@ -125,9 +127,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Gunzip again!
-            #           fw_new.tasks.insert(
-            #               2, GzipDir() # only implemented in current directory
-            #           )
+            fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
 
             fw_new.tasks.append(ContinueOptimizeFW())
 

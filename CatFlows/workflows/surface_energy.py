@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from pymatgen.core.surface import Slab
 
 from fireworks import Firework, Workflow
-from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.dft_settings.settings import MOSurfaceSet

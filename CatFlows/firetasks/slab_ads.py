@@ -7,7 +7,6 @@ from pymatgen.core.surface import Slab
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
-from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.database import VaspCalcDb
 
 from CatFlows.fireworks.optimize import AdsSlab_FW
@@ -87,8 +86,8 @@ class SlabAdsFireTask(FiretaskBase):
 
     """
 
-    required_params = ["reduced_formula", "slabs", "adsorbates", "vasp_cmd"]
-    optional_params = ["db_file", "_pass_job_info", "_add_launchpad_and_fw_id"]
+    required_params = ["reduced_formula", "slabs", "adsorbates", "db_file", "vasp_cmd"]
+    optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
 

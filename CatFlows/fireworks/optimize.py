@@ -63,7 +63,9 @@ def Bulk_FW(
     fw.tasks[1].update({"gzip_output": False})
 
     # Append Continue-optimizeFW for wall-time handling
-    fw.tasks.append(ContinueOptimizeFW(is_bulk=True, counter=0, vasp_cmd=vasp_cmd))
+    fw.tasks.append(
+        ContinueOptimizeFW(is_bulk=True, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
+    )
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_bulk_uuid})
@@ -132,7 +134,9 @@ def Slab_FW(
     fw.tasks[1].update({"gzip_output": False})
 
     # Append Continue-optimizeFW for wall-time handling
-    fw.tasks.append(ContinueOptimizeFW(is_bulk=False, counter=0, vasp_cmd=vasp_cmd))
+    fw.tasks.append(
+        ContinueOptimizeFW(is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
+    )
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
@@ -217,7 +221,9 @@ def AdsSlab_FW(
     fw.tasks[1].update({"gzip_output": False})
 
     # Append Continue-optimizeFW for wall-time handling
-    fw.tasks.append(ContinueOptimizeFW(is_bulk=False, counter=0, vasp_cmd=vasp_cmd))
+    fw.tasks.append(
+        ContinueOptimizeFW(is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
+    )
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_ads_slab_uuid})
