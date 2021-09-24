@@ -89,7 +89,13 @@ class MOSurfaceSet(MVLSlabSet):
     """
 
     def __init__(
-        self, structure, psp_version="PBE_54", bulk=False, auto_dipole=True, **kwargs
+        self,
+        structure,
+        psp_version="PBE_54",
+        bulk=False,
+        auto_dipole=True,
+        initial_magmoms=None,
+        **kwargs
     ):
 
         super(MOSurfaceSet, self).__init__(structure, bulk=bulk, **kwargs)
@@ -98,6 +104,7 @@ class MOSurfaceSet(MVLSlabSet):
         self.psp_version = psp_version
         self.bulk = bulk
         self.auto_dipole = auto_dipole
+        self.initial_magmoms = initial_magmoms
 
         # Change the default PBE version from Pymatgen
         psp_versions = ["PBE", "PBE_52", "PBE_54"]
@@ -127,6 +134,10 @@ class MOSurfaceSet(MVLSlabSet):
         #    incar["LDIPOL"] = True
         #    incar["IDIPOL"] = 3
         #    incar["DIPOL"] = self._get_center_of_mass()
+
+        # Setting magnetic moments for children
+        if self.initial_magmoms:
+            incar["MAGMOM"] = self.initial_magmoms
 
         # Incar Settings for optimization
         incar_config = {

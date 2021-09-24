@@ -9,7 +9,11 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.database import VaspCalcDb
-from atomate.common.firetasks.glue_tasks import CopyFiles, DeleteFilesPrevFolder
+from atomate.common.firetasks.glue_tasks import (
+    CopyFiles,
+    DeleteFilesPrevFolder,
+    GzipDir,
+)
 
 from CatFlows.dft_settings.settings import MOSurfaceSet
 from CatFlows.common.glue_tasks import GzipPrevDir
@@ -76,13 +80,16 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Retriving magnetic moments from parent
-            # magmoms = structure.site_properties["magmom"]
+            magmoms = structure.site_properties["magmom"]
+
             # counts
             counter += 1
             vasp_input_set = MOSurfaceSet(
-                structure, psp_version="PBE_54", bulk=True if is_bulk else False
+                structure,
+                psp_version="PBE_54",
+                bulk=True if is_bulk else False,
+                initial_magmoms=magmoms,
             )
-            # initial_magmoms=magmoms) # FIXME
 
             # Create a unique uuid for child
             fw_new_uuid = uuid.uuid4()
@@ -152,6 +159,7 @@ class ContinueOptimizeFW(FiretaskBase):
         # Terminal node
         else:
             if is_bulk:
+                fw_spec.tasks.append(GzipDir())
                 return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
