@@ -160,7 +160,7 @@ class ContinueOptimizeFW(FiretaskBase):
         # Terminal node
         else:
             if is_bulk:
-                fw_spec.tasks.append(GzipDir())
+                #fw_spec.tasks.append(GzipDir())
                 return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
