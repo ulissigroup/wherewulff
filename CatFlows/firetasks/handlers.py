@@ -42,7 +42,8 @@ class ContinueOptimizeFW(FiretaskBase):
         vasp_cmd = self["vasp_cmd"]
 
         # Connect to DB
-        db = VaspCalcDb.from_db_file(db_file, admin=True)
+        client = VaspCalcDb.from_db_file(db_file, admin=True)
+        db = client.db
 
         # Get the launch_id for the parent_FW
         launch_id = self.launchpad.fireworks.find_one({"fw_id": self.fw_id})[
