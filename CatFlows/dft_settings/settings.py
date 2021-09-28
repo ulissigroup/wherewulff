@@ -174,10 +174,10 @@ class MOSurfaceSet(MVLSlabSet):
 
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype("int"))
-            return Kpoints.gamma_automatic(kpts=(1, 1, 1), shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0, 0, 0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype("int")
             kpts[2] = 1
             kpts = tuple(kpts)
-            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))

@@ -82,7 +82,7 @@ def Slab_FW(
     name="",
     parents=None,
     add_slab_metadata=True,
-    wall_time=86400,
+    wall_time=7200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
 ):
@@ -167,7 +167,7 @@ def AdsSlab_FW(
     is_adslab=True,
     parents=None,
     add_slab_metadata=True,
-    wall_time=86400,
+    wall_time=7200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
 ):
@@ -209,7 +209,7 @@ def AdsSlab_FW(
             "_add_launchpad_and_fw_id": True,
             "_pass_job_info": True,
             "uuid": fw_ads_slab_uuid,
-            "wall_time": 172800,
+            "wall_time": wall_time,
             "name": name,
             "max_tries": 5,
             "is_adslab": is_adslab,
