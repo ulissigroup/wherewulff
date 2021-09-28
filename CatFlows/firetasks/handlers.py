@@ -119,7 +119,7 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Appending extra tasks
             fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
-            fw_new.tasks[4]["additional_fields"].update({"uuid": fw_new_uuid})
+            fw_new.tasks[3]["additional_fields"].update({"uuid": fw_new_uuid})
 
             # Disable gunzip in RunVaspCustodian
             fw_new.tasks[1].update({"gzip_output": False})
@@ -135,7 +135,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Gunzip again!
-            fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
+            #fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
 
             fw_new.tasks.append(ContinueOptimizeFW())
 
@@ -160,7 +160,7 @@ class ContinueOptimizeFW(FiretaskBase):
         # Terminal node
         else:
             if is_bulk:
-                #fw_spec.tasks.append(GzipDir())
+                fw_spec["_tasks"].append(GzipDir())
                 return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
