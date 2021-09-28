@@ -134,9 +134,6 @@ class ContinueOptimizeFW(FiretaskBase):
                 2, DeleteFilesPrevFolder(files=["WAVECAR"], calc_dir=parent_dir_name)
             )
 
-            # Gunzip again!
-            #fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
-
             fw_new.tasks.append(ContinueOptimizeFW())
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
@@ -160,8 +157,7 @@ class ContinueOptimizeFW(FiretaskBase):
         # Terminal node
         else:
             if is_bulk:
-                #fw_spec["_tasks"].append(GzipDir())
-                #self.launchpad.fireworks.find_one_and_update({'fw_id': self.fw_id}, {'$set':{'spec._tasks': fw_spec["_tasks"]}})
+                fw_spec["_tasks"].append(GzipDir().to_dict())
                 return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
