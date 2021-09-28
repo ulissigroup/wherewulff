@@ -124,10 +124,10 @@ class MOSurfaceSet(MVLSlabSet):
         incar = super(MOSurfaceSet, self).incar
 
         # Direct of reciprocal (depending if its bulk or slab)
-        if self.bulk:
-            incar["LREAL"] = True
-        else:
-            incar["LREAL"] = False
+        #if self.bulk:
+        #    incar["LREAL"] = True
+        #else:
+        #    incar["LREAL"] = False
 
         # Setting auto_dipole correction (for slabs only)
         # if not self.bulk and self.auto_dipole:
@@ -155,7 +155,7 @@ class MOSurfaceSet(MVLSlabSet):
             "ISTART": 1,
             "NELM": 60,
             "NCORE": 4,
-            "KPAR": 4,
+            "LREAL": "Auto",
         }
         # Update incar
         incar.update(incar_config)
@@ -180,4 +180,4 @@ class MOSurfaceSet(MVLSlabSet):
             kpts = np.ceil(30.0 / abc).astype("int")
             kpts[2] = 1
             kpts = tuple(kpts)
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=(1,1,1), shift=(0, 0, 0))

@@ -11,7 +11,7 @@ def Bulk_FW(
     bulk,
     name="",
     parents=None,
-    wall_time=172800,
+    wall_time=86400,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
 ):
@@ -82,7 +82,7 @@ def Slab_FW(
     name="",
     parents=None,
     add_slab_metadata=True,
-    wall_time=172800,
+    wall_time=86400,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
 ):
@@ -167,7 +167,7 @@ def AdsSlab_FW(
     is_adslab=True,
     parents=None,
     add_slab_metadata=True,
-    wall_time=172800,
+    wall_time=86400,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
 ):
