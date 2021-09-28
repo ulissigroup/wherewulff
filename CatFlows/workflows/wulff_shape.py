@@ -32,4 +32,4 @@ def WulffShape_WF(bulk_structure, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FI
     if parents is not None:
         all_fws.extend(parents)
     wulff_wf = Workflow(all_fws, name="{} wulff shape analysis".format(bulk_formula))
-    return wulff_wf
+    return wulff_wf, all_fws

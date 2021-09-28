@@ -180,13 +180,13 @@ class CatFlows:
 
     def _get_wulff_analysis(self, parents=None):
         """Returns Wulff Shape analysis"""
-        wulff_wf = WulffShape_WF(
+        wulff_wf, parents_fws = WulffShape_WF(
             self.bulk_structure,
             parents=parents,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,
         )
-        return wulff_wf
+        return wulff_wf, parents_fws
 
     def _get_ads_slab_wfs(self, parents=None):
         """Returns all the Ads_slabs fireworks"""
@@ -229,9 +229,10 @@ class CatFlows:
             launchpad.add_wf(wulff_wf)
 
         else:
-            wulff_wf = self._get_wulff_analysis(parents=parents_list)
+            wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
+
             # Ads slab into the launchpad
-            ads_slab_wfs = self._get_ads_slab_wfs(parents=parents_list)
+            ads_slab_wfs = self._get_ads_slab_wfs(parents=wulff_parents)
             launchpad.add_wf(ads_slab_wfs)
 
         return launchpad
