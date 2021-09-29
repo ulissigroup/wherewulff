@@ -1,8 +1,9 @@
 import json
+import uuid
 
 from pydash.objects import has, get
 
-from fireworks import FiretaskBase, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.utils.utils import env_chk
@@ -52,6 +53,10 @@ class WulffShapeFW(FiretaskBase):
         Ev2Joule = 16.0219  # eV/Angs2 to J/m2
         summary_dict = {}
 
+        # new uuid for the wulff-shape
+        wulff_shape_uuid = uuid.uuid4()
+        summary_dict["wulff_uuid"] = wulff_shape_uuid
+
         # Bulk formula
         bulk_formula = bulk_structure.composition.reduced_formula
 
@@ -73,6 +78,7 @@ class WulffShapeFW(FiretaskBase):
             )
             for rfmi in reduced_formula_miller_indices
         ]
+
         # Surface energy and structures dictionary
         surface_energies_dict = {}
         structures_dict = {}
@@ -91,7 +97,9 @@ class WulffShapeFW(FiretaskBase):
         )
 
         # Store data on summary_dict
-        summary_dict["task_label"] = "{}_wulff_shape".format(bulk_formula)
+        summary_dict["task_label"] = "{}_wulff_shape_{}".format(
+            bulk_formula, wulff_shape_uuid
+        )
         summary_dict["surface_energies"] = json_format(surface_energies_dict)
         summary_dict["wulff_info"] = wulff_info
         summary_dict["area_fractions"] = area_frac_dict
@@ -113,6 +121,12 @@ class WulffShapeFW(FiretaskBase):
 
         # Logger
         logger.info("Wulff-Shape Analysis, Done!")
+
+        # Send the uuid as unique wulff-shape
+        return FWAction(
+            update_spec={"wulff_uuid": wulff_shape_uuid},
+            propagate=True,
+        )
 
     def get_wulff_analysis(self, bulk_structure, surface_energies_dict):
         """

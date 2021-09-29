@@ -97,6 +97,7 @@ class SlabAdsFireTask(FiretaskBase):
         adsorbates = self["adsorbates"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
+        wulff_uuid = fw_spec.get("wulff_uuid")
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -106,7 +107,7 @@ class SlabAdsFireTask(FiretaskBase):
             # Get wulff-shape collection from DB
             collection = mmdb.db[f"{reduced_formula}_wulff_shape_analysis"]
             wulff_metadata = collection.find_one(
-                {"task_label": f"{reduced_formula}_wulff_shape"}
+                {"task_label": f"{reduced_formula}_wulff_shape_{wulff_uuid}"}
             )
 
             # Filter by surface contribution
