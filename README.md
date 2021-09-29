@@ -17,8 +17,11 @@ in our group and more.
 - [x] Surface Energy task after optimization
 - [x] Wulff shape Analysis (as separeted Task)
 - [x] Decorate bulk structure with magnetic moments (MAGMOM) based on crystal field theory
-- [ ] Add Unittests with **fake_vasp**
-- [ ] Benchmark RuO2 and IrO2
+- [ ] Single point calculation with hybrid DFT Functional
+- [ ] FrequenciesFW and ThermoCorrections
+- [ ] Pourbaix Diagram Analysis
+- [ ] Reactivity OER (WNA - Single site)
+
 
 # Richard ToDo List
 
@@ -26,16 +29,22 @@ in our group and more.
 - [ ] Metal oxide surfaces with dipolar moment (oc21-dataset)
 - [ ] Non-stoichiometric slab models (Terminations) + gamma_hkl (with chemical potential)
 - [ ] Include GGA+U method
-- [ ] Single point calculation with hybrid DFT Functional
 - [ ] **IDEA** Include defects in slabs
 
 # Yuri ToDo List
 
-- [ ] Generate unique hashes to identify/query jobs in database
-- [ ] Look into passing job info from parent to child fireworks
-- [ ] Add ContinueOptimizeFW to refactor branch
-- [ ] Add a script that runs the jobs in the launchpad across computing resources
+- [x] Generate unique hashes to identify/query jobs in database
+- [x] Look into passing job info from parent to child fireworks
+- [x] Add ContinueOptimizeFW to refactor branch
+- [x] Transfer of magnetic moments across parents to childs
+- [ ] WAVECAR (copy, delete, gzip) across parents to childs
+- [ ] WAVECAR Transfer across different filesystems
+- [ ] Add compatibility with 2 nodes
 
 # Yuri/Javi ToDo List
 
-- [ ] Clean-up code for ADS_SLAB generation and add to refactor
+- [x] Clean-up code for ADS_SLAB generation and add to refactor
+- [x] Refactor branch merging with kubernetes_test
+- [ ] Benchmark RuO2 and IrO2
+- [ ] PARSING ERROR!!!!!
+- [ ] Get vasp ouputs for fake_vasp
