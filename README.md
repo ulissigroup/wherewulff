@@ -1,6 +1,6 @@
 # MO Wulff Workflow
 
-![workflow](img/mo_wulff_workflow.png)
+![workflow](img/MO_Workflow.png)
 
 A starting point for a general Metal oxide Surfaces Workflow able to build the Wulff construction from DFT calculations automatized by Pymatgen, FireWorks and Atomate.
 
