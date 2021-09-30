@@ -134,7 +134,10 @@ class ContinueOptimizeFW(FiretaskBase):
                 2, DeleteFilesPrevFolder(files=["WAVECAR"], calc_dir=parent_dir_name)
             )
 
-            fw_new.tasks.append(ContinueOptimizeFW())
+            fw_new.tasks.append(ContinueOptimizeFW(is_bulk=is_bulk, 
+                                                   counter=counter, 
+                                                   db_file=db_file, 
+                                                   vasp_cmd=vasp_cmd))
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
             if counter > 0:
