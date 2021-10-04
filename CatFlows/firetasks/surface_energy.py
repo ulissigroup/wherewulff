@@ -121,6 +121,8 @@ class SurfaceEnergyFireTask(FiretaskBase):
         else:
             surface_energy = None
 
+        logger.info(f"{slab_comp}-{miller_index}\t is_polar: {slab_obj.is_polar()}\t is_symmetric: {slab_obj.is_symmetric}\t surface_energy: {surface_energy} [eV/Angs**2]")
+
         # TODO: Surface energy for non-stochiometric
 
         # Summary dict
