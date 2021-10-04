@@ -108,22 +108,21 @@ class SurfaceEnergyFireTask(FiretaskBase):
         slab_unit_form = sum(slab_unit_form_dict.values())
         slab_bulk_ratio = slab_unit_form / bulk_unit_form
 
+        # Calc. surface energy - Assumes symmetric
+        surface_energy = self.get_surface_energy(slab_E, oriented_E, slab_bulk_ratio, slab_Area)
+
         # Surface energy for non-dipolar, symmetric and stoichiometric
-        if (
-            not slab_obj.is_polar()
-            and slab_obj.is_symmetric()
-            and slab_formula == oriented_formula
-        ):
-            surface_energy = self.get_surface_energy(
-                slab_E, oriented_E, slab_bulk_ratio, slab_Area
-            )
+#       if (
+#           not slab_obj.is_polar()
+#           and slab_obj.is_symmetric()
+#           and slab_formula == oriented_formula
+#       ):
+#           surface_energy = self.get_surface_energy(
+#               slab_E, oriented_E, slab_bulk_ratio, slab_Area
+#           )
 
-        else:
-            surface_energy = None
-
-        logger.info(f"{slab_comp}-{miller_index}\t is_polar: {slab_obj.is_polar()}\t is_symmetric: {slab_obj.is_symmetric}\t surface_energy: {surface_energy} [eV/Angs**2]")
-
-        # TODO: Surface energy for non-stochiometric
+#       else:
+#           surface_energy = None
 
         # Summary dict
         summary_dict["oriented_struct"] = oriented_struct.as_dict()
