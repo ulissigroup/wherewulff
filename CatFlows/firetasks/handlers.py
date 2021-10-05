@@ -25,8 +25,14 @@ class ContinueOptimizeFW(FiretaskBase):
     Custom OptimizeFW Firetask that handles wall-time issues
 
     Args:
+        is_bulk (bool): Determines DFT settings depending if its bulk or slab model.
+        counter (int) : Counter wheter is a parent (counter = 0) or child job (counter > 0).
+        db_file       : Environment variable check to be able to connect to the database.
+        vasp_cmd      : Environment variable to execute vasp.
 
     Returns:
+        Return a continuous Firetask that handles wall_times and files transfering
+        between parent -> child -> terminal node.
 
     """
 
@@ -134,6 +140,11 @@ class ContinueOptimizeFW(FiretaskBase):
                 2, DeleteFilesPrevFolder(files=["WAVECAR"], calc_dir=parent_dir_name)
             )
 
+            # GzipPrevFolder
+            fw_new.tasks.insert(
+                3, GzipPrevDir(calc_dir=parent_dir_name)
+            )
+
             fw_new.tasks.append(
                 ContinueOptimizeFW(
                     is_bulk=is_bulk, counter=counter, db_file=db_file, vasp_cmd=vasp_cmd
@@ -142,7 +153,7 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
             if counter > 0:
-                fw_new.tasks[5]["additional_fields"].update({"slab": slab})
+                fw_new.tasks[6]["additional_fields"].update({"slab": slab})
 
             # Bulk Continuation
             if is_bulk:
@@ -161,10 +172,11 @@ class ContinueOptimizeFW(FiretaskBase):
         # Terminal node
         else:
             if is_bulk:
-                fw_spec["_tasks"].append(GzipDir().to_dict())
-                self.launchpad.fireworks.find_one_and_update(
-                    {"fw_id": self.fw_id}, {"$set": {"spec._tasks": fw_spec["_tasks"]}}
-                )
+#               TODO: Possible by detours
+#               fw_spec["_tasks"].append(GzipDir().to_dict())
+#               self.launchpad.fireworks.find_one_and_update(
+#                   {"fw_id": self.fw_id}, {"$set": {"spec._tasks": fw_spec["_tasks"]}}
+#               )
                 return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
