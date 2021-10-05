@@ -54,7 +54,9 @@ class BulkFlows:
         self.magmoms_dict = self._get_metals_magmoms()
         # Get magnetic orderings
         self.magnetic_orderings_dict = self._get_magnetic_orderings()
-        print(self.magnetic_orderings_dict)
+        # Get bulk structures dict for NM, AFM, FM
+        self.bulk_structures_dict = self._get_all_bulk_magnetic_configurations()
+        print(self.bulk_structures_dict.keys())
 
 
     def _read_cif_file(self, bulk_structure, primitive=False):
@@ -114,6 +116,27 @@ class BulkFlows:
                     fm_magmom =  [x["species"][0]["properties"]["spin"] for x in struct_dict["sites"]]
                     magnetic_orderings_dict.update({"FM": fm_magmom})
         return magnetic_orderings_dict
+
+    def _get_all_bulk_magnetic_configurations(self):
+        """Decorates the original bulk structure with NM, AFM and FM"""
+        bulk_structure = self.original_bulk_structure.copy()
+        magnetic_orderings = self.magnetic_orderings_dict
+        # Add AFM and FM
+        bulk_structures_dict = {}
+        for k, v in magnetic_orderings.items():
+            bulk_new = bulk_structure.copy()
+            bulk_new.add_site_property("magmom", v)
+            bulk_structures_dict.update({k: bulk_new.as_dict()})
+        # Add NM
+        bulk_structures_dict.update({"NM": bulk_structure.as_dict()})
+        return bulk_structures_dict
+
+    def _get_all_wfs(self):
+        """Returns the list of workflows to be launched"""
+        # wfs for NM + AFM + FM
+        wfs = []
+        #for bulk in
+        return
 
                     
 
