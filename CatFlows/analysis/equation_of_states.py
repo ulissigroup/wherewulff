@@ -22,10 +22,10 @@ class FitEquationOfStateFW(FiretaskBase):
     Automated analysis task to fit an EOS after transmutter workflow.
 
     Args:
-        db_file ()              :
-        eos     (default: vinet):
-        plot    (default: True) :
-        to_db   (default: True) :
+        eos     (default: vinet): Selecting the EOS used for fitting E vs Vol.
+        plot    (default: True) : Exporting automatically EOS plot.
+        to_db   (default: True) : Adding new data to EOS collection.
+        db_file                 : Environment variable to connect to the DB.
 
     Return:
         Equilibrium structure for a given Bulk using 
