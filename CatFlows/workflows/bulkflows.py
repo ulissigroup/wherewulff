@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+from pymatgen.analysis.magnetism.analyzer import CollinearMagneticStructureAnalyzer, MagneticStructureEnumerator, Ordering
 
 from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -51,7 +52,10 @@ class BulkFlows:
         self.bulk_structure = self._get_wyckoffs_positions()
         # Get magmoms for metals 
         self.magmoms_dict = self._get_metals_magmoms()
-        print(self.magmoms_dict)
+        # Get magnetic orderings
+        self.magnetic_orderings_dict = self._get_magnetic_orderings()
+        print(self.magnetic_orderings_dict)
+
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -59,7 +63,7 @@ class BulkFlows:
         return struct
 
     def _get_oxidation_states(self):
-        """Parse CIF file with PMG"""
+        """Decorates bulk with oxidation states"""
         oxid_transformer = AutoOxiStateDecorationTransformation()
         struct_new = oxid_transformer.apply_transformation(self.bulk_structure)
         return struct_new
@@ -87,3 +91,29 @@ class BulkFlows:
         for metal, magmom in zip(metals_symb, magmoms_list):
             magmoms_dict.update({str(metal): magmom})
         return magmoms_dict
+
+    def _get_magnetic_orderings(self):
+        """Returns a dict with AFM and FM magnetic structures orderings"""
+        enumerator = MagneticStructureEnumerator(self.bulk_structure,
+                                                 default_magmoms=self.magmoms_dict,
+                                                 automatic=True,
+                                                 truncate_by_symmetry=True)
+        ordered_structures = enumerator.ordered_structures
+
+        magnetic_orderings_dict = {}
+        for ord_struct in ordered_structures:
+            analyzer = CollinearMagneticStructureAnalyzer(ord_struct)
+            struct_with_spin = analyzer.get_structure_with_spin()
+            struct_dict = struct_with_spin.as_dict()
+            if analyzer.ordering == Ordering.AFM:
+                if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
+                    afm_magmom = [x["species"][0]["properties"]["spin"] for x in struct_dict["sites"]]
+                    magnetic_orderings_dict.update({"AFM": afm_magmom})
+            elif analyzer.ordering == Ordering.FM:
+                if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
+                    fm_magmom =  [x["species"][0]["properties"]["spin"] for x in struct_dict["sites"]]
+                    magnetic_orderings_dict.update({"FM": fm_magmom})
+        return magnetic_orderings_dict
+
+                    
+
