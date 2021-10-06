@@ -37,6 +37,10 @@ def EOS_WF(
     """
     fws, parents = [], []
 
+    # Bulk-optimization
+    vasp_opt = MOSurfaceSet(bulk_structure, bulk=True)
+    vasp_opt.incar.update({"ISIF": 3})
+
     # linspace deformations
     if not deformations:
         deformations = [
@@ -46,7 +50,13 @@ def EOS_WF(
     # Bulk structure optimization
     name_bulk = f"{bulk_structure.composition.reduced_formula}_{magnetic_ordering}_bulk_optimization"
     fws.append(
-        Bulk_FW(bulk_structure, name=name_bulk, vasp_cmd=vasp_cmd, db_file=db_file)
+        Bulk_FW(
+            bulk_structure,
+            name=name_bulk,
+            vasp_input_set=vasp_opt,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
     )
     parents = fws[0]
 

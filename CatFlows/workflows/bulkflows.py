@@ -1,5 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 import numpy as np
 from pymatgen.analysis.magnetism.analyzer import (
     CollinearMagneticStructureAnalyzer,
@@ -10,6 +14,7 @@ from pymatgen.analysis.magnetism.analyzer import (
 from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
+from pymatgen.core.structure import Structure
 from pymatgen.core.periodic_table import Element
 
 from pymatgen.transformations.standard_transformations import (
@@ -23,11 +28,7 @@ from CatFlows.dft_settings.settings import (
     set_bulk_magmoms,
 )
 from CatFlows.workflows.eos import EOS_WF
-
-# from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
-# from CatFlows.workflows.wulff_shape import WulffShape_WF
-# from CatFlows.workflows.slab_ads import SlabAds_WF
-# from CatFlows.adsorption.adsorbate_configs import OH_Ox_list
+from CatFlows.workflows.static_bulk import StaticBulk_WF
 
 
 # Bulk structure workflow method
@@ -137,38 +138,41 @@ class BulkFlows:
             if analyzer.ordering == Ordering.AFM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     afm_magmom = [
-                        x["species"][0]["properties"]["spin"]
+                        float(x["species"][0]["properties"]["spin"])
                         for x in struct_dict["sites"]
                     ]
                     magnetic_orderings_dict.update({"AFM": afm_magmom})
             elif analyzer.ordering == Ordering.FM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     fm_magmom = [
-                        x["species"][0]["properties"]["spin"]
+                        float(x["species"][0]["properties"]["spin"])
                         for x in struct_dict["sites"]
                     ]
                     magnetic_orderings_dict.update({"FM": fm_magmom})
+
+        # Adding non-magnetic
+        nm_magmom = list(np.zeros(self.bulk_structure.num_sites, dtype=float))
+        magnetic_orderings_dict.update({"NM": nm_magmom})
         return magnetic_orderings_dict
 
     def _get_all_bulk_magnetic_configurations(self):
         """Decorates the original bulk structure with NM, AFM and FM"""
-        bulk_structure = self.original_bulk_structure.copy()
+        bulk_structure = self.bulk_structure.copy()
         magnetic_orderings = self.magnetic_orderings_dict
-        # Add AFM and FM
+        # Add AFM, FM and NM
         bulk_structures_dict = {}
         for k, v in magnetic_orderings.items():
             bulk_new = bulk_structure.copy()
             bulk_new.add_site_property("magmom", v)
             bulk_structures_dict.update({k: bulk_new.as_dict()})
-        # Add NM
-        bulk_structures_dict.update({"NM": bulk_structure.as_dict()})
         return bulk_structures_dict
 
     def _get_all_wfs(self):
         """Returns the list of workflows to be launched"""
         # wfs for NM + AFM + FM
         wfs = []
-        for mag_ord, bulk_struct in self.bulk_structures_dict:
+        for mag_ord, bulk_struct in self.bulk_structures_dict.items():
+            bulk_struct = Structure.from_dict(bulk_struct)
             eos_wf = EOS_WF(
                 bulk_struct,
                 magnetic_ordering=mag_ord,
@@ -177,6 +181,16 @@ class BulkFlows:
             )
             wfs.append(eos_wf)
         return wfs
+
+    def _get_bulk_static_wfs(self, parents=None):
+        """Returns all the BulkStatic FW"""
+        bulk_static_wfs = StaticBulk_WF(
+            self.bulk_structure,
+            parents=parents,
+            vasp_cmd=self.vasp_cmd,
+            db_file=self.db_file,
+        )
+        return bulk_static_wfs
 
     def _get_parents(self, workflow_list):
         """Returns an unpacked list of parents from a set of wfs"""
@@ -200,6 +214,11 @@ class BulkFlows:
         if reset:
             launchpad.reset("", require_password=False)
 
+        # Optimization + Deformation + EOS_FIT
         parents_list = self._get_parents(self.workflows_list)
+
+        # Static_FW + StabilityAnalysis
+        bulk_static = self._get_bulk_static_wfs(parents=parents_list)
+        launchpad.add_wf(bulk_static)
 
         return launchpad

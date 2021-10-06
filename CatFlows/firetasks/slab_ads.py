@@ -5,10 +5,6 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
 
 
-from fireworks import FiretaskBase, FWAction, explicit_serialize
-from atomate.utils.utils import env_chk
-from atomate.vasp.database import VaspCalcDb
-
 from CatFlows.fireworks.optimize import AdsSlab_FW
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 
@@ -78,11 +74,17 @@ def get_clockwise_rotations(slab, molecule):
 @explicit_serialize
 class SlabAdsFireTask(FiretaskBase):
     """
-    Slab_Ads OptimizeFW
+    Slab_Ads OptimizeFW.
 
     Args:
+        reduced_formula:
+        slabs          :
+        adsorbates     :
+        db_file        :
+        vasp_cmd       :
 
     Returns:
+        SLAB_ADS Firetasks.
 
     """
 

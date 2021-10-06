@@ -10,6 +10,7 @@ from CatFlows.firetasks.handlers import ContinueOptimizeFW
 def Bulk_FW(
     bulk,
     name="",
+    vasp_input_set=None,
     parents=None,
     wall_time=172800,
     vasp_cmd=VASP_CMD,
@@ -36,7 +37,8 @@ def Bulk_FW(
     fw_bulk_uuid = uuid.uuid4()
 
     # DFT Method
-    vasp_input_set = MOSurfaceSet(bulk, bulk=True)
+    if not vasp_input_set:
+        vasp_input_set = MOSurfaceSet(bulk, bulk=True)
 
     # FW
     fw = OptimizeFW(
@@ -81,6 +83,7 @@ def Slab_FW(
     slab,
     name="",
     parents=None,
+    vasp_input_set=None,
     add_slab_metadata=True,
     wall_time=172800,
     vasp_cmd=VASP_CMD,
@@ -107,7 +110,8 @@ def Slab_FW(
     fw_slab_uuid = uuid.uuid4()
 
     # DFT Method
-    vasp_input_set = MOSurfaceSet(slab, bulk=False)
+    if not vasp_input_set:
+        vasp_input_set = MOSurfaceSet(slab, bulk=False)
 
     # FW
     fw = OptimizeFW(
@@ -166,6 +170,7 @@ def AdsSlab_FW(
     slab_uuid="",
     is_adslab=True,
     parents=None,
+    vasp_input_set=None,
     add_slab_metadata=True,
     wall_time=172800,
     vasp_cmd=VASP_CMD,
@@ -192,7 +197,8 @@ def AdsSlab_FW(
     fw_ads_slab_uuid = uuid.uuid4()
 
     # DFT Method
-    vasp_input_set = MOSurfaceSet(slab, bulk=False)
+    if not vasp_input_set:
+        vasp_input_set = MOSurfaceSet(slab, bulk=False)
 
     # FW
     fw = OptimizeFW(

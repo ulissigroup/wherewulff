@@ -66,7 +66,13 @@ class FitEquationOfStateFW(FiretaskBase):
         all_task_ids.append(d["task_id"])
 
         # Retriving bulk deformations
-        docs = mmdb.collection.find({"task_label": {"$regex:" f"{pretty_formula}_{magnetic_ordering}_deformation*"}})
+        docs = mmdb.collection.find(
+            {
+                "task_label": {
+                    "$regex:" f"{pretty_formula}_{magnetic_ordering}_deformation*"
+                }
+            }
+        )
 
         # Store optimized Bulk and pretty-formula
         summary_dict["structure_orig"] = structure.as_dict()
@@ -96,20 +102,26 @@ class FitEquationOfStateFW(FiretaskBase):
         summary_dict["structure_eq"] = structure.as_dict()
 
         # Store data on summary_dict
-        summary_dict["task_label"] = f"{pretty_formula}_{magnetic_ordering}_eos_{eos_uuid}"
+        summary_dict[
+            "task_label"
+        ] = f"{pretty_formula}_{magnetic_ordering}_eos_{eos_uuid}"
 
         # Add results to db or json file
         if to_db:
             mmdb.collection = mmdb.db["f{pretty_formula}_eos"]
             mmdb.collection.insert_one(summary_dict)
         else:
-            with open(f"{pretty_formula}_{magnetic_ordering}_eos_analysis.json", "w") as f:
+            with open(
+                f"{pretty_formula}_{magnetic_ordering}_eos_analysis.json", "w"
+            ) as f:
                 f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # Export plot
         if plot:
             eos_plot = eos_fit.plot()
-            eos_plot.savefig(f"{pretty_formula}_{magnetic_ordering}_eos_plot.png", dpi=300)
+            eos_plot.savefig(
+                f"{pretty_formula}_{magnetic_ordering}_eos_plot.png", dpi=300
+            )
 
         # logger
         logger.info("EOS Fitting Completed!")
