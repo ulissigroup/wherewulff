@@ -67,7 +67,7 @@ def Bulk_FW(
         ContinueOptimizeFW(is_bulk=True, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
     )
 
-    # Add slab_uuid through VaspToDb
+    # Add bulk_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_bulk_uuid})
 
     # Switch-on WalltimeHandler in RunVaspCustodian

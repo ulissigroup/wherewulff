@@ -16,6 +16,7 @@ from atomate.vasp.database import VaspCalcDb
 
 logger = get_logger(__name__)
 
+
 @explicit_serialize
 class FitEquationOfStateFW(FiretaskBase):
     """
@@ -28,21 +29,23 @@ class FitEquationOfStateFW(FiretaskBase):
         db_file                 : Environment variable to connect to the DB.
 
     Return:
-        Equilibrium structure for a given Bulk using 
+        Equilibrium structure for a given Bulk using
         (Energy vs Volume) deformations.
 
     """
-    required_params = ["db_file"]
+
+    required_params = ["magnetic_ordering", "db_file"]
     optional_params = ["eos", "plot", "to_db"]
 
     def run_task(self, fw_spec):
 
         # Variables
+        magnetic_ordering = self["magnetic_ordering"]
         eos = self.get("eos", "vinet")
         db_file = env_chk(self.get("db_file"), fw_spec)
         to_db = self.get("to_db", True)
         plot = self.get("plot", True)
-        summary_dict = {"eos": eos}
+        summary_dict = {"eos": eos, "magnetic_ordering": magnetic_ordering}
 
         # new uuid for the eos-analysis
         eos_uuid = uuid.uuid4()
@@ -53,7 +56,7 @@ class FitEquationOfStateFW(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Find optimization + transmutter results
-        d = mmdb.collection.find_one({"task_label": "{} bulk structure optimization"})
+        d = mmdb.collection.find_one({"task_label": "{} bulk_optimization"})
         docs = mmdb.collection.find({"task_label": {"$regex:" "{} eos_fitting*"}})
 
         all_task_ids.append(d["task_id"])
@@ -105,13 +108,3 @@ class FitEquationOfStateFW(FiretaskBase):
 
         # logger
         logger.info("EOS Fitting Completed!")
-
-
-
-
-
-
-
-
-
-

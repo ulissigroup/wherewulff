@@ -141,9 +141,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # GzipPrevFolder
-            fw_new.tasks.insert(
-                3, GzipPrevDir(calc_dir=parent_dir_name)
-            )
+            fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
 
             fw_new.tasks.append(
                 ContinueOptimizeFW(
@@ -172,11 +170,11 @@ class ContinueOptimizeFW(FiretaskBase):
         # Terminal node
         else:
             if is_bulk:
-#               TODO: Possible by detours
-#               fw_spec["_tasks"].append(GzipDir().to_dict())
-#               self.launchpad.fireworks.find_one_and_update(
-#                   {"fw_id": self.fw_id}, {"$set": {"spec._tasks": fw_spec["_tasks"]}}
-#               )
+                #               TODO: Possible by detours
+                #               fw_spec["_tasks"].append(GzipDir().to_dict())
+                #               self.launchpad.fireworks.find_one_and_update(
+                #                   {"fw_id": self.fw_id}, {"$set": {"spec._tasks": fw_spec["_tasks"]}}
+                #               )
                 return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
 
             elif not is_bulk and not fw_spec.get("is_adslab"):

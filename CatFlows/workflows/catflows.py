@@ -163,7 +163,7 @@ class CatFlows:
         return slab_list
 
     def _get_all_wfs(self):
-        """Returns a the list of workflows to be launched"""
+        """Returns the list of workflows to be launched"""
         # wfs for oriented bulk + slab model
         wfs = []
         for slab in self.slab_structures:
