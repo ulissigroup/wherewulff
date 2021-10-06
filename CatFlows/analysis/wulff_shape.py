@@ -47,7 +47,7 @@ class WulffShapeFW(FiretaskBase):
 
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
-        to_db = self.get("to_db", False)
+        to_db = self.get("to_db", True)
         wulff_plot = self.get("wulff_plot", True)
         bulk_structure = self["bulk_structure"]
         Ev2Joule = 16.0219  # eV/Angs2 to J/m2
