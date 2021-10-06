@@ -155,7 +155,6 @@ class MOSurfaceSet(MVLSlabSet):
             "ISTART": 1,
             "NELM": 60,
             "NCORE": 4,
-            "LREAL": "Auto",
         }
         # Update incar
         incar.update(incar_config)
@@ -174,10 +173,12 @@ class MOSurfaceSet(MVLSlabSet):
 
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype("int"))
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
+            #Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
+            return Kpoints.monkhorst_automatic(kpts=kpts, shift=(0, 0, 0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype("int")
             kpts[2] = 1
             kpts = tuple(kpts)
-            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
+            # Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
+            return Kpoints.monkhorst_automatic(kpts=kpts, shift=(0, 0, 0))
