@@ -40,6 +40,7 @@ class FitEquationOfStateFW(FiretaskBase):
     def run_task(self, fw_spec):
 
         # Variables
+        bulk_uuid = fw_spec.get("oriented_uuid")
         magnetic_ordering = self["magnetic_ordering"]
         eos = self.get("eos", "vinet")
         db_file = env_chk(self.get("db_file"), fw_spec)
@@ -55,18 +56,19 @@ class FitEquationOfStateFW(FiretaskBase):
         all_task_ids = []
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        # Find optimization + transmutter results
-        d = mmdb.collection.find_one({"task_label": "{} bulk_optimization"})
-        docs = mmdb.collection.find({"task_label": {"$regex:" "{} eos_fitting*"}})
+        # Find optimization through bulk_uuid
+        d = mmdb.collection.find_one({"uuid": bulk_uuid})
 
-        all_task_ids.append(d["task_id"])
-
-        # Structure from optimization
+        # Get geometry from optimization
         structure_dict = d["calcs_reversed"][-1]["output"]["structure"]
         structure = Structure.from_dict(structure_dict)
+        pretty_formula = structure.composition.reduced_formula
+        all_task_ids.append(d["task_id"])
 
-        # Bulk pretty-formula
-        pretty_formula = structure.compostion.reduced_formula
+        # Retriving bulk deformations
+        docs = mmdb.collection.find({"task_label": {"$regex:" f"{pretty_formula}_{magnetic_ordering}_deformation*"}})
+
+        # Store optimized Bulk and pretty-formula
         summary_dict["structure_orig"] = structure.as_dict()
         summary_dict["formula_pretty"] = pretty_formula
 

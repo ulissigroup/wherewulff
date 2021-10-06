@@ -55,7 +55,7 @@ def EOS_WF(
     vasp_static.incar.update({"NSW": 0})
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     for n, deformation in enumerate(deformations):
-        name_deformation = f"{bulk_structure.composition.reduced_formula}_{magnetic_ordering}_{n}_deformation"
+        name_deformation = f"{bulk_structure.composition.reduced_formula}_{magnetic_ordering}_deformation_{n}"
         fw = TransmuterFW(
             name=name_deformation,
             structure=bulk_structure,

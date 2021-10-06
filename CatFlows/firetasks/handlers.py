@@ -175,7 +175,7 @@ class ContinueOptimizeFW(FiretaskBase):
                 #               self.launchpad.fireworks.find_one_and_update(
                 #                   {"fw_id": self.fw_id}, {"$set": {"spec._tasks": fw_spec["_tasks"]}}
                 #               )
-                return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]})
+                return FWAction(update_spec={"oriented_uuid": fw_spec["uuid"]}, propagate=True)
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
                 return FWAction(
