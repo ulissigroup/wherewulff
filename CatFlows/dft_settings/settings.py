@@ -124,10 +124,10 @@ class MOSurfaceSet(MVLSlabSet):
         incar = super(MOSurfaceSet, self).incar
 
         # Direct of reciprocal (depending if its bulk or slab)
-        # if self.bulk:
-        #    incar["LREAL"] = True
-        # else:
-        #    incar["LREAL"] = False
+        if self.bulk:
+            incar["LREAL"] = False
+        else:
+            incar["LREAL"] = True
 
         # Setting auto_dipole correction (for slabs only)
         # if not self.bulk and self.auto_dipole:
