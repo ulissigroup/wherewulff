@@ -92,7 +92,7 @@ class SlabAdsFireTask(FiretaskBase):
     def run_task(self, fw_spec):
 
         # Variables
-        reduced_formula = fw_spec.get("reduced_formula")
+        reduced_formula = self["reduced_formula"]
         slabs = self["slabs"]
         adsorbates = self["adsorbates"]
         vasp_cmd = self["vasp_cmd"]
