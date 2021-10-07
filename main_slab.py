@@ -1,4 +1,4 @@
-from CatFlows.workflows.catflows import CatFlows
+from CatFlows.launchers.catflows import CatFlows
 
 from fireworks.core.rocket_launcher import rapidfire
 
@@ -17,7 +17,3 @@ launchpad = cat_flows.submit(
     password="ww1www3w3ree22s223eew",
 )
 
-# print(launchpad.get_wf_summary_dict(5))
-
-# Run
-# rapidfire(launchpad)
