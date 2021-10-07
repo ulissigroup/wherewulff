@@ -17,9 +17,13 @@ in our group and more.
 - [x] Surface Energy task after optimization
 - [x] Wulff shape Analysis (as separeted Task)
 - [x] Decorate bulk structure with magnetic moments (MAGMOM) based on crystal field theory
+- [x] Bulk magnetic orders (NM, AFM, FM)
+	- [x] Enumerate and decorate bulk structure with magmom and orderings
+	- [x] General implementation of Optimization + Deformation + EOS_fitting for each magnetic order
+	- [] Bulk Stability Analysis (after single-point)
 - [ ] Single point calculation with hybrid DFT Functional
 - [ ] FrequenciesFW and ThermoCorrections
-- [ ] Pourbaix Diagram Analysis
+- [ ] Surface Pourbaix Diagram Analysis
 - [ ] Reactivity OER (WNA - Single site)
 
 
