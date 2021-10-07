@@ -4,6 +4,7 @@ from pydash.objects import has, get
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
 
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 
 from CatFlows.fireworks.optimize import AdsSlab_FW
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
