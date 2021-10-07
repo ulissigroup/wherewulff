@@ -236,3 +236,26 @@ class CatFlows:
             launchpad.add_wf(ads_slab_wfs)
 
         return launchpad
+
+    def submit_local(self, reset=True):
+        """Submit Full Workflow to Launchpad !"""
+        launchpad = LaunchPad()
+
+        if reset:
+            launchpad.reset("", require_password=False)
+
+        parents_list = self._get_parents(self.workflows_list)
+
+        # Wulff shape analysis
+        if self.stop_at_wulff_analysis:
+            wulff_wf = self._get_wulff_analysis(parents=parents_list)
+            launchpad.add_wf(wulff_wf)
+
+        else:
+            wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
+
+            # Ads slab into the launchpad
+            ads_slab_wfs = self._get_ads_slab_wfs(parents=wulff_parents)
+            launchpad.add_wf(ads_slab_wfs)
+
+        return launchpad

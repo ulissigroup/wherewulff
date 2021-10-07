@@ -20,10 +20,9 @@ def StaticBulk_WF(bulk_structure, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FI
 
     # StaticBulk for NM, FM and AFM fittings
     bulk_static_fw = Firework(
-        StaticBulkFireTask(reduced_formula=bulk_formula,
-                           bulks=None,
-                           vasp_cmd=vasp_cmd,
-                           db_file=db_file),
+        StaticBulkFireTask(
+            reduced_formula=bulk_formula, bulks=None, vasp_cmd=vasp_cmd, db_file=db_file
+        ),
         name=f"{bulk_formula} Static_Bulk DFT Energy",
         parents=parents,
     )

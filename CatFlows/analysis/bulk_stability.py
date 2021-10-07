@@ -28,6 +28,7 @@ class BulkStabilityAnalysis(FiretaskBase):
     Returns:
         Stability Analysis to DB
     """
+
     required_params = ["bulk_formula", "magnetic_ordering", "db_file"]
     optional_params = ["pbx_plot", "ehull_plot"]
 
@@ -45,4 +46,3 @@ class BulkStabilityAnalysis(FiretaskBase):
 
         # Retrieve from DB
         docs = mmdb.collection.find_one({"task_label": "structure stactic"})
-        

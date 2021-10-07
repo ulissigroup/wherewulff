@@ -60,7 +60,9 @@ def EOS_WF(
     parents = fws[0]
 
     # Deformations
-    vasp_static = MOSurfaceSet(bulk_structure, user_incar_settings={"NSW": 0}, bulk=True)
+    vasp_static = MOSurfaceSet(
+        bulk_structure, user_incar_settings={"NSW": 0}, bulk=True
+    )
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     for n, deformation in enumerate(deformations):
         name_deformation = f"{bulk_structure.composition.reduced_formula}_{magnetic_ordering}_deformation_{n}"

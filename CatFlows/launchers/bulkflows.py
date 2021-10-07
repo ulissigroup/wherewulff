@@ -222,3 +222,19 @@ class BulkFlows:
         launchpad.add_wf(bulk_static)
 
         return launchpad
+
+    def submit_local(self, reset=True):
+        """Submit Full Workflow to Launchpad!"""
+        launchpad = LaunchPad()
+
+        if reset:
+            launchpad.reset("", require_password=False)
+
+        # Optimization + Deformation + EOS_FIT
+        parents_list = self._get_parents(self.workflows_list)
+
+        # Static_FW + StabilityAnalysis
+        bulk_static = self._get_bulk_static_wfs(parents=parents_list)
+        launchpad.add_wf(bulk_static)
+
+        return launchpad

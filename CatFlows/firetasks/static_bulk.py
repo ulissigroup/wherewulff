@@ -22,6 +22,7 @@ class StaticBulkFireTask(FiretaskBase):
     Returns:
 
     """
+
     required_params = ["reduced_formula", "bulks", "vasp_cmd", "db_file"]
     optional_params = []
 
@@ -36,11 +37,13 @@ class StaticBulkFireTask(FiretaskBase):
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        #StaticBulk
+        # StaticBulk
         if bulks is None:
             # Get equilibrium bulk from DB
             collection = mmdb.db[f"{reduced_formula}_eos"]
-            bulk_metadata_docs = collection.find({"task_label": {"$regex": f"{reduced_formula}_*_eos_*"}})
+            bulk_metadata_docs = collection.find(
+                {"task_label": {"$regex": f"{reduced_formula}_*_eos_*"}}
+            )
 
             bulk_candidates = {"magnetic_order": [], "structure": [], "energy": []}
             for d in bulk_metadata_docs:
@@ -53,22 +56,19 @@ class StaticBulkFireTask(FiretaskBase):
 
             # Generate a set of StaticFW additions that will calc. DFT energy
             bulk_static_fws = []
-            for magnetic_order, struct in zip(bulk_candidates["magnetic_ordering"], bulk_candidates["structure"]):
+            for magnetic_order, struct in zip(
+                bulk_candidates["magnetic_ordering"], bulk_candidates["structure"]
+            ):
                 struct = Structure.from_dict(struct)
-                vasp_input_set = MOSurfaceSet(struct, bulk=True)
-                vasp_input_set.incar.update({"NSW": 0})
+                vasp_input_set = MOSurfaceSet(struct, user_incar_settings={"NSW": 0}, bulk=True)
                 name = f"{struct.composition.reduced_formula}_{magnetic_order}_static_energy"
-                bulk_static_fw = StaticFW(struct,
-                                          name=name,
-                                          vasp_input_set=None,
-                                          vasp_cmd=vasp_cmd,
-                                          db_file=db_file)
+                bulk_static_fw = StaticFW(
+                    struct,
+                    name=name,
+                    vasp_input_set=vasp_input_set,
+                    vasp_cmd=vasp_cmd,
+                    db_file=db_file,
+                )
                 bulk_static_fws.append(bulk_static_fw)
-                
+
         return FWAction(detours=bulk_static_fws)
-
-    
-
-
-
-
