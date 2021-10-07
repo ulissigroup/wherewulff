@@ -1,4 +1,4 @@
 .bash_history
 .ssh
 **/__pycache__
-atomate_run.sh
+./atomate_run.sh
