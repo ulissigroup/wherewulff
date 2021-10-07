@@ -44,7 +44,7 @@ def EOS_WF(
     # linspace deformations
     if not deformations:
         deformations = [
-            (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.157, 0.157, 11)
+            (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.157, 0.157, 6)
         ]
 
     # Bulk structure optimization
