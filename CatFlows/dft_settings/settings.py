@@ -1,3 +1,4 @@
+from os import sched_get_priority_max
 import numpy as np
 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -93,18 +94,20 @@ class MOSurfaceSet(MVLSlabSet):
         structure,
         psp_version="PBE_54",
         bulk=False,
+        set_mix=False,
         auto_dipole=True,
         initial_magmoms=None,
         **kwargs
     ):
 
-        super(MOSurfaceSet, self).__init__(structure, bulk=bulk, **kwargs)
+        super(MOSurfaceSet, self).__init__(structure, bulk=bulk, set_mix=False, **kwargs)
 
         # self.structure = structure
         self.psp_version = psp_version
         self.bulk = bulk
         self.auto_dipole = auto_dipole
         self.initial_magmoms = initial_magmoms
+        self.set_mix = set_mix
 
         # Change the default PBE version from Pymatgen
         psp_versions = ["PBE", "PBE_52", "PBE_54"]
@@ -155,6 +158,9 @@ class MOSurfaceSet(MVLSlabSet):
             "ISTART": 1,
             "NELM": 60,
             "NCORE": 4,
+            "LASPH": False,
+            "ISMEAR": 0,
+            "SIGMA": 0.2,
         }
         # Update incar
         incar.update(incar_config)
