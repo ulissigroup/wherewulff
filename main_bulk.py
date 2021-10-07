@@ -1,6 +1,6 @@
-from CatFlows.workflows.bulkflows import BulkFlows
+from CatFlows.launchers.bulkflows import BulkFlows
 
-# from fireworks.core.rocket_launcher import rapidfire
+from fireworks.core.rocket_launcher import rapidfire
 
 # Import CIF file
 cif_file = "./RuO2_136.cif"
@@ -17,7 +17,3 @@ launchpad = bulk_flow.submit(
     password="ww1www3w3ree22s223eew",
 )
 
-# print(launchpad.get_wf_summary_dict(5))
-
-# Run
-# rapidfire(launchpad)
