@@ -20,7 +20,7 @@ in our group and more.
 - [x] Bulk magnetic orders (NM, AFM, FM)
 	- [x] Enumerate and decorate bulk structure with magmom and orderings
 	- [x] General implementation of Optimization + Deformation + EOS_fitting for each magnetic order
-	- [] Bulk Stability Analysis (after single-point)
+	- [ ] Bulk Stability Analysis (after single-point)
 - [ ] Single point calculation with hybrid DFT Functional
 - [ ] FrequenciesFW and ThermoCorrections
 - [ ] Surface Pourbaix Diagram Analysis
