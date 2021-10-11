@@ -75,6 +75,7 @@ class StaticBulkFireTask(FiretaskBase):
                     vasp_cmd=vasp_cmd,
                     db_file=db_file,
                 )
+                bulk_static_fw.tasks[3]["additional_fields"].update({"magnetic_ordering": magnetic_order})
                 bulk_static_fws.append(bulk_static_fw)
 
         return FWAction(detours=bulk_static_fws)
