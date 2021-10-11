@@ -64,7 +64,7 @@ class BulkStabilityAnalysis(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Retrieve from DB
-        d = mmdb.collection.find_one({"task_label": "structure stactic"})
+        d = mmdb.collection.find_one({"task_label": f"{bulk_formula}_{magnetic_ordering}_statict_energy"})
 
         # Collect data
         structure_dict = d["calcs_reversed"]["output"]["structure"]
