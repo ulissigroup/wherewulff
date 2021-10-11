@@ -29,6 +29,7 @@ from CatFlows.dft_settings.settings import (
 )
 from CatFlows.workflows.eos import EOS_WF
 from CatFlows.workflows.static_bulk import StaticBulk_WF
+from CatFlows.workflows.bulk_stability import StabilityBulk_WF
 
 
 # Bulk structure workflow method
@@ -184,13 +185,22 @@ class BulkFlows:
 
     def _get_bulk_static_wfs(self, parents=None):
         """Returns all the BulkStatic FW"""
-        bulk_static_wfs = StaticBulk_WF(
+        bulk_static_wfs, parents_fws = StaticBulk_WF(
             self.bulk_structure,
             parents=parents,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,
         )
-        return bulk_static_wfs
+        return bulk_static_wfs, parents_fws
+
+    def _get_stability_wfs(self, parents=None):
+        """Returns all the BulkStability FW"""
+        bulk_stability = StabilityBulk_WF(
+            self.bulk_structure,
+            parents=parents,
+            db_file=self.db_file
+            )
+        return bulk_stability
 
     def _get_parents(self, workflow_list):
         """Returns an unpacked list of parents from a set of wfs"""
@@ -218,8 +228,11 @@ class BulkFlows:
         parents_list = self._get_parents(self.workflows_list)
 
         # Static_FW + StabilityAnalysis
-        bulk_static = self._get_bulk_static_wfs(parents=parents_list)
-        launchpad.add_wf(bulk_static)
+        _, static_list = self._get_bulk_static_wfs(parents=parents_list)
+
+        # StabilityAnalis
+        bulk_stability = self._get_stability_wfs(parents_list=static_list)
+        launchpad.add_wf(bulk_stability)
 
         return launchpad
 
