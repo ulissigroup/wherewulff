@@ -54,6 +54,11 @@ class BulkStabilityAnalysis(FiretaskBase):
     Thermodynamic and electrochemical stability of a given material.
 
     Args:
+        bulk_formula (e.g RuO2)   : structure composition as reduced formula
+        magnetic_ordering (e.g NM): NM (non-magnetic), AFM (antiferromagnetic) or (FM) ferromagnetic
+        db_file                   : To connect to the DB
+        pbx_plot (default: True)  : Save .png in launcher folder for PbxDiagram
+        ehull_plot                : Save .png in launcher folder for PhaseDiagram
 
 
     Returns:
@@ -61,7 +66,7 @@ class BulkStabilityAnalysis(FiretaskBase):
     """
 
     required_params = ["bulk_formula", "magnetic_ordering", "db_file"]
-    optional_params = ["pbx_plot", "ehull_plot"]
+    optional_params = ["pbx_plot"]
 
     def run_task(self, fw_spec):
 

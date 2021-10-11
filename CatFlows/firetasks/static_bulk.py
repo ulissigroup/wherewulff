@@ -17,10 +17,14 @@ class StaticBulkFireTask(FiretaskBase):
     Equilibrium Bulk structure StaticFW-
 
     Args:
+        reduced_formula (e.g RuO2) : structure composition as reduced formula.
+        bulks                      : Equilibrium bulks from EOS_fitting.
+        vasp_cmd                   : Environment variable for VASP.
+        db_file                    : To connect to the DB.
 
 
     Returns:
-
+        Static (Single-point) calculation of each equilibrium structure.
     """
 
     required_params = ["reduced_formula", "bulks", "vasp_cmd", "db_file"]
