@@ -69,7 +69,7 @@ class FitEquationOfStateFW(FiretaskBase):
         docs = mmdb.collection.find(
             {
                 "task_label": {
-                    "$regex:" f"{pretty_formula}_{magnetic_ordering}_deformation*"
+                    "$regex:" f"{pretty_formula}_{magnetic_ordering}_deformation_*"
                 }
             }
         )
