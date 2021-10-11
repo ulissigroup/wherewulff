@@ -6,6 +6,9 @@ from pymatgen.core.surface import Slab
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 
+from atomate.utils.utils import env_chk
+from atomate.vasp.database import VaspCalcDb
+
 from CatFlows.fireworks.optimize import AdsSlab_FW
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 
