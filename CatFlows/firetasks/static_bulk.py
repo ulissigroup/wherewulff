@@ -60,7 +60,9 @@ class StaticBulkFireTask(FiretaskBase):
                 bulk_candidates["magnetic_ordering"], bulk_candidates["structure"]
             ):
                 struct = Structure.from_dict(struct)
-                vasp_input_set = MOSurfaceSet(struct, user_incar_settings={"NSW": 0}, bulk=True)
+                vasp_input_set = MOSurfaceSet(
+                    struct, user_incar_settings={"NSW": 0}, bulk=True
+                )
                 name = f"{struct.composition.reduced_formula}_{magnetic_order}_static_energy"
                 bulk_static_fw = StaticFW(
                     struct,
