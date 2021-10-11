@@ -55,7 +55,6 @@ class BulkStabilityAnalysis(FiretaskBase):
 
     Args:
         bulk_formula (e.g RuO2)   : structure composition as reduced formula
-        magnetic_ordering (e.g NM): NM (non-magnetic), AFM (antiferromagnetic) or (FM) ferromagnetic
         db_file                   : To connect to the DB
         pbx_plot (default: True)  : Save .png in launcher folder for PbxDiagram
         ehull_plot                : Save .png in launcher folder for PhaseDiagram
@@ -65,14 +64,13 @@ class BulkStabilityAnalysis(FiretaskBase):
         Stability Analysis to DB
     """
 
-    required_params = ["bulk_formula", "magnetic_ordering", "db_file"]
+    required_params = ["bulk_formula", "db_file"]
     optional_params = ["pbx_plot"]
 
     def run_task(self, fw_spec):
 
         # Variables
         bulk_formula = self["bulk_formula"]
-        magnetic_ordering = self["magnetic_ordering"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         pbx_plot = self.get("pbx_plot", True)
         to_db = self.get("to_db", True)
@@ -83,9 +81,28 @@ class BulkStabilityAnalysis(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Retrieve from DB
-        d = mmdb.collection.find_one(
-            {"task_label": f"{bulk_formula}_{magnetic_ordering}_static_energy"}
+        docs = mmdb.collection.find(
+            {"task_label": f"{bulk_formula}_*_static_energy"}
         )
+
+        # Selecting the minimum energy magnetic configuration
+        bulk_candidates = {}
+        for doc in docs:
+            dft_energy = doc["calcs_reversed"][-1]["output"]["energy"]
+            magnetic_order = doc["magnetic_ordering"]
+            bulk_candidates.update({str(magnetic_order): dft_energy})
+
+        filter_magnetic_order = [key for key, value in bulk_candidates.items() if value == min(bulk_candidates.values())]
+
+        # Point to the most stable
+        if len(filter_magnetic_order) == 1:
+            mag_label = filter_magnetic_order[0]
+            d = mmdb.collection.find_one({"task_label": f"{bulk_formula}_{mag_label}_static_energy"})
+            logger.info(f"Selecting {mag_label} as the most stable!")
+        else:
+            d = mmdb.collection.find_one({"task_label": f"{bulk_formula}_NM_static_energy"})
+            logger.info(f"Selecting NM, because all are the same...")
+
 
         # Collect data
         structure_dict = d["calcs_reversed"]["output"]["structure"]
