@@ -27,7 +27,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 from CatFlows.dft_settings.settings import (
     set_bulk_magmoms,
 )
-from CatFlows.workflows.eos import EOS_WF
+from CatFlows.workflows.eos import BulkOptimize_WF, EOS_WF
 from CatFlows.workflows.static_bulk import StaticBulk_WF
 from CatFlows.workflows.bulk_stability import StabilityBulk_WF
 
@@ -76,7 +76,8 @@ class BulkFlows:
         self.db_file = db_file
 
         # Workflow
-        self.workflows_list = self._get_all_wfs()
+        # self.workflows_list = self._get_all_wfs()
+        self.workflows_list = self._get_opt_wf()
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -168,7 +169,15 @@ class BulkFlows:
             bulk_structures_dict.update({k: bulk_new.as_dict()})
         return bulk_structures_dict
 
-    def _get_all_wfs(self):
+    def _get_opt_wf(self):
+        """Returns bulk optimization workflow to be launched"""
+        bulk_structure = Structure.from_dict(self.bulk_structures_dict["NM"])
+        opt_wf, parents_fws = BulkOptimize_WF(
+            bulk_structure, vasp_cmd=self.vasp_cmd, db_file=self.db_file
+        )
+        return opt_wf, parents_fws
+
+    def _get_eos_wfs(self, parents=None):
         """Returns the list of workflows to be launched"""
         # wfs for NM + AFM + FM
         wfs = []
@@ -177,6 +186,7 @@ class BulkFlows:
             eos_wf = EOS_WF(
                 bulk_struct,
                 magnetic_ordering=mag_ord,
+                parents=parents,
                 vasp_cmd=self.vasp_cmd,
                 db_file=self.db_file,
             )
@@ -196,10 +206,8 @@ class BulkFlows:
     def _get_stability_wfs(self, parents=None):
         """Returns all the BulkStability FW"""
         bulk_stability = StabilityBulk_WF(
-            self.bulk_structure,
-            parents=parents,
-            db_file=self.db_file
-            )
+            self.bulk_structure, parents=parents, db_file=self.db_file
+        )
         return bulk_stability
 
     def _get_parents(self, workflow_list):
@@ -224,11 +232,15 @@ class BulkFlows:
         if reset:
             launchpad.reset("", require_password=False)
 
-        # Optimization + Deformation + EOS_FIT
-        parents_list = self._get_parents(self.workflows_list)
+        # Optimization
+        parents_opt = self._get_parents(self.workflows_list)
+
+        # Deformations + EOS_FIT
+        eos_wf = self._get_eos_wfs(parents=parents_opt)
+        parents_eos = self._get_parents(eos_wf)
 
         # Static_FW + StabilityAnalysis
-        _, static_list = self._get_bulk_static_wfs(parents=parents_list)
+        _, static_list = self._get_bulk_static_wfs(parents=parents_eos)
 
         # StabilityAnalis
         bulk_stability = self._get_stability_wfs(parents_list=static_list)

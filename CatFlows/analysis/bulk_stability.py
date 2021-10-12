@@ -81,9 +81,7 @@ class BulkStabilityAnalysis(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Retrieve from DB
-        docs = mmdb.collection.find(
-            {"task_label": f"{bulk_formula}_*_static_energy"}
-        )
+        docs = mmdb.collection.find({"task_label": f"{bulk_formula}_*_static_energy"})
 
         # Selecting the minimum energy magnetic configuration
         bulk_candidates = {}
@@ -92,17 +90,24 @@ class BulkStabilityAnalysis(FiretaskBase):
             magnetic_order = doc["magnetic_ordering"]
             bulk_candidates.update({str(magnetic_order): dft_energy})
 
-        filter_magnetic_order = [key for key, value in bulk_candidates.items() if value == min(bulk_candidates.values())]
+        filter_magnetic_order = [
+            key
+            for key, value in bulk_candidates.items()
+            if value == min(bulk_candidates.values())
+        ]
 
         # Point to the most stable
         if len(filter_magnetic_order) == 1:
             mag_label = filter_magnetic_order[0]
-            d = mmdb.collection.find_one({"task_label": f"{bulk_formula}_{mag_label}_static_energy"})
+            d = mmdb.collection.find_one(
+                {"task_label": f"{bulk_formula}_{mag_label}_static_energy"}
+            )
             logger.info(f"Selecting {mag_label} as the most stable!")
         else:
-            d = mmdb.collection.find_one({"task_label": f"{bulk_formula}_NM_static_energy"})
+            d = mmdb.collection.find_one(
+                {"task_label": f"{bulk_formula}_NM_static_energy"}
+            )
             logger.info(f"Selecting NM, because all are the same...")
-
 
         # Collect data
         structure_dict = d["calcs_reversed"]["output"]["structure"]

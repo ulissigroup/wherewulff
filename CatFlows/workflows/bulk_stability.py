@@ -20,9 +20,7 @@ def StabilityBulk_WF(bulk_structure, parents=None, db_file=DB_FILE):
 
     # BulkStabilityAnalsysis for NM, FM and AFM Single-points
     bulk_stability_fw = Firework(
-        BulkStabilityAnalysis(
-            reduced_formula=bulk_formula, db_file=db_file
-        ),
+        BulkStabilityAnalysis(reduced_formula=bulk_formula, db_file=db_file),
         name=f"{bulk_formula} Bulk Stability Analysis",
         parents=parents,
     )
