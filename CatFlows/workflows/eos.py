@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
+from pymatgen.core.structure import Structure
 from pymatgen.analysis.elasticity.strain import Deformation
 
 from fireworks import Firework, Workflow
@@ -11,6 +12,89 @@ from atomate.vasp.fireworks.core import TransmuterFW
 from CatFlows.dft_settings.settings import MOSurfaceSet
 from CatFlows.fireworks.optimize import Bulk_FW
 from CatFlows.analysis.equation_of_states import FitEquationOfStateFW
+
+
+def EOS_WF(
+    bulk_structures_dict,
+    deformations=None,
+    vasp_input_set=None,
+    vasp_cmd=VASP_CMD,
+    db_file=DB_FILE,
+):
+    """
+    Equation of state workflow that handles optimization + Deformation + EOS_FIT
+
+    Args:
+
+
+    Return:
+        Workflow, which consist in opt + deformations + EOS_FIT
+    """
+    fws, parents, fws_all = [], [], []
+
+    # Bulk-optimization settings
+    bulk_structure = Structure.from_dict(bulk_structures_dict["NM"])
+    vasp_opt = MOSurfaceSet(bulk_structure, user_incar_settings={"ISIF": 3}, bulk=True)
+
+    # Bulk structure optimization
+    opt_name = f"{bulk_structure.composition.reduced_formula}_bulk_optimization"
+    fws.append(
+        Bulk_FW(
+            bulk_structure,
+            name=opt_name,
+            vasp_input_set=vasp_opt,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
+    )
+    opt_parent = fws[0]
+    fws_all.append(fws[0])
+
+    # Deformations
+    if not deformations:
+        deformations = [
+            (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.157, 0.157, 6)
+        ]
+    deformations = [Deformation(defo_mat) for defo_mat in deformations]
+    # breakpoint()
+    for counter, (mag_ordering, bulk_struct) in enumerate(bulk_structures_dict.items()):
+        bulk_struct = Structure.from_dict(bulk_struct)
+        vasp_static = MOSurfaceSet(
+            bulk_struct, user_incar_settings={"NSW": 0}, bulk=True
+        )
+        if counter != 0:
+            fws = [opt_parent]
+        for n, deformation in enumerate(deformations):
+            name_deformation = f"{bulk_structure.composition.reduced_formula}_{mag_ordering}_deformation_{n}"
+            fw = TransmuterFW(
+                name=name_deformation,
+                structure=bulk_struct,
+                transformations=["DeformStructureTransformation"],
+                transformation_params=[{"deformation": deformation.tolist()}],
+                vasp_input_set=vasp_static,
+                parents=opt_parent,
+                vasp_cmd=vasp_cmd,
+                db_file=db_file,
+            )
+            fws.append(fw)
+            fws_all.append(fw)
+
+        # Fit EOS task
+        fit_parents = fws[1:]
+        name_fit_eos = f"{bulk_structure.composition.reduced_formula}_{mag_ordering}_eos_fitting_analysis"
+        fw_analysis = Firework(
+            FitEquationOfStateFW(magnetic_ordering=mag_ordering, db_file=db_file),
+            name=name_fit_eos,
+            parents=fit_parents,
+        )
+        # fws.append(fw_analysis)
+        fws_all.append(fw_analysis)
+
+    # breakpoint()
+    # Create Workflow
+    wf_eos = Workflow(fws_all)
+    wf_eos.name = f"{bulk_structure.composition.reduced_formula}_eos_fitting_analysis"
+    return wf_eos, fws_all
 
 
 def BulkOptimize_WF(
@@ -47,7 +131,7 @@ def BulkOptimize_WF(
     return wf_opt, fws
 
 
-def EOS_WF(
+def EOS_WF_2(
     bulk_structure,
     deformations=None,
     magnetic_ordering="NM",
@@ -64,6 +148,7 @@ def EOS_WF(
     Return:
         Workflow, which consist in Deformation + EOS Fitting
     """
+    # fws = [parents[0]]
     fws = []
 
     # Linspace deformations
@@ -85,14 +170,14 @@ def EOS_WF(
             transformations=["DeformStructureTransformation"],
             transformation_params=[{"deformation": deformation.tolist()}],
             vasp_input_set=vasp_static,
-            parents=parents,
+            parents=parents[0],
             vasp_cmd=vasp_cmd,
             db_file=db_file,
         )
         fws.append(fw)
 
     # Fit EOS task
-    parents = fws[1:]
+    # parents = fws[1:]
     name_fit_eos = f"{bulk_structure.composition.reduced_formula}_{magnetic_ordering}_eos_fitting_analysis"
     fw_analysis = Firework(
         FitEquationOfStateFW(magnetic_ordering=magnetic_ordering, db_file=db_file),
@@ -100,6 +185,12 @@ def EOS_WF(
         parents=parents,
     )
     fws.append(fw_analysis)
+
+    # Include parents
+    # if parents is not None:
+    #    fws.extend(parents)
+
+    # breakpoint()
 
     # Create workflow
     wf_eos = Workflow(fws)

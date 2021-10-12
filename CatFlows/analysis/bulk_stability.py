@@ -64,13 +64,13 @@ class BulkStabilityAnalysis(FiretaskBase):
         Stability Analysis to DB
     """
 
-    required_params = ["bulk_formula", "db_file"]
+    required_params = ["reduced_formula", "db_file"]
     optional_params = ["pbx_plot"]
 
     def run_task(self, fw_spec):
 
         # Variables
-        bulk_formula = self["bulk_formula"]
+        bulk_formula = self["reduced_formula"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         pbx_plot = self.get("pbx_plot", True)
         to_db = self.get("to_db", True)

@@ -77,7 +77,7 @@ class BulkFlows:
 
         # Workflow
         # self.workflows_list = self._get_all_wfs()
-        self.workflows_list = self._get_opt_wf()
+        # self.workflows_list = self._get_opt_wf()
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -193,6 +193,38 @@ class BulkFlows:
             wfs.append(eos_wf)
         return wfs
 
+    def _get_all_wfs(self):
+        """Once again"""
+        eos_wf, fws_all = EOS_WF(
+            self.bulk_structures_dict,
+            vasp_cmd=self.vasp_cmd,
+            db_file=self.db_file,
+        )
+        return eos_wf, fws_all
+
+    def _get_all_wfs_old(self):
+        """Lets see"""
+        wfs = []
+        # Optimize
+        bulk_structure = Structure.from_dict(self.bulk_structures_dict["NM"])
+        opt_wf, opt_parents = BulkOptimize_WF(
+            bulk_structure, vasp_cmd=self.vasp_cmd, db_file=self.db_file
+        )
+        # breakpoint()
+        wfs.append(opt_wf)
+        # OES + Fitting
+        for mag_ord, bulk_struct in self.bulk_structures_dict.items():
+            bulk_struct = Structure.from_dict(bulk_struct)
+            eos_wf = EOS_WF(
+                bulk_struct,
+                magnetic_ordering=mag_ord,
+                parents=opt_parents,
+                vasp_cmd=self.vasp_cmd,
+                db_file=self.db_file,
+            )
+            wfs.append(eos_wf)
+        return wfs
+
     def _get_bulk_static_wfs(self, parents=None):
         """Returns all the BulkStatic FW"""
         bulk_static_wfs, parents_fws = StaticBulk_WF(
@@ -232,18 +264,15 @@ class BulkFlows:
         if reset:
             launchpad.reset("", require_password=False)
 
-        # Optimization
-        parents_opt = self._get_parents(self.workflows_list)
-
-        # Deformations + EOS_FIT
-        eos_wf = self._get_eos_wfs(parents=parents_opt)
-        parents_eos = self._get_parents(eos_wf)
+        # Optimization + Deformations + EOS_FIT
+        _, eos_parents = self._get_all_wfs()
+        # parents_list = self._get_parents(self.workflows_list)
 
         # Static_FW + StabilityAnalysis
-        _, static_list = self._get_bulk_static_wfs(parents=parents_eos)
+        _, static_list = self._get_bulk_static_wfs(parents=eos_parents)
 
         # StabilityAnalis
-        bulk_stability = self._get_stability_wfs(parents_list=static_list)
+        bulk_stability = self._get_stability_wfs(parents=static_list)
         launchpad.add_wf(bulk_stability)
 
         return launchpad
