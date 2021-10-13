@@ -241,7 +241,7 @@ def AdsSlab_FW(
     # Add slab metadata
     if add_slab_metadata:
         parent_structure_metadata = get_meta_from_structure(slab.oriented_unit_cell)       
-        fw.tasks[-1]["additional_fields"].update(
+        fw.tasks[3]["additional_fields"].update(
             {
                     "slab": slab,
                     "parent_structure": slab.oriented_unit_cell,
