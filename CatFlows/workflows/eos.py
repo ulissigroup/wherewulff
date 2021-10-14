@@ -67,6 +67,7 @@ def EOS_WF(
         for n, deformation in enumerate(deformations):
             name_deformation = f"{bulk_structure.composition.reduced_formula}_{mag_ordering}_deformation_{n}"
             fw = TransmuterFW(
+                copy_vasp_outputs=False, # default is True
                 name=name_deformation,
                 structure=bulk_struct,
                 transformations=["DeformStructureTransformation"],
