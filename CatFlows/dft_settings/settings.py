@@ -158,7 +158,7 @@ class MOSurfaceSet(MVLSlabSet):
             "NCORE": 4,
             "LWAVE": True,
             "ISTART": 1,
-            "NELM": 60,
+            "NELM": 80,
             "NCORE": 4,
             "LASPH": False,
             "ISMEAR": 0,
@@ -182,11 +182,11 @@ class MOSurfaceSet(MVLSlabSet):
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype("int"))
             # Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
-            return Kpoints.monkhorst_automatic(kpts=kpts, shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype("int")
             kpts[2] = 1
             kpts = tuple(kpts)
             # Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
-            return Kpoints.monkhorst_automatic(kpts=kpts, shift=(0, 0, 0))
+            return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
