@@ -199,10 +199,11 @@ class SlabAdsFireTask(FiretaskBase):
             # Generate a set of OptimizeFW additions that will relax all the adslab in parallel
             ads_slab_fws = []
             for slab, oriented_uuid, slab_uuid in slab_candidates:
+                slab_miller_index = "".join(list(map(int, slab.miller_index)))
                 for adsorbate in adsorbates:
                     adslabs = get_clockwise_rotations(slab, adsorbate)
                     for adslab_label, adslab in adslabs.items():
-                        name = f"{slab.composition.reduced_formula}-{slab.miller_index}-{adslab_label}"
+                        name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
                         ads_slab_fw = AdsSlab_FW(
                             adslab,
                             name=name,
