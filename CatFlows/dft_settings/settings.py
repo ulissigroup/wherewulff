@@ -101,7 +101,7 @@ class MOSurfaceSet(MVLSlabSet):
     ):
 
         super(MOSurfaceSet, self).__init__(
-            structure, bulk=bulk, set_mix=False, **kwargs
+            structure, bulk=bulk, set_mix=True, **kwargs
         )
 
         # self.structure = structure
@@ -135,10 +135,10 @@ class MOSurfaceSet(MVLSlabSet):
             incar["LREAL"] = True
 
         # Setting auto_dipole correction (for slabs only)
-        # if not self.bulk and self.auto_dipole:
-        #    incar["LDIPOL"] = True
-        #    incar["IDIPOL"] = 3
-        #    incar["DIPOL"] = self._get_center_of_mass()
+        if not self.bulk and self.auto_dipole:
+            incar["LDIPOL"] = True
+            incar["IDIPOL"] = 3
+            incar["DIPOL"] = self._get_center_of_mass()
 
         # Setting magnetic moments for children
         if self.initial_magmoms:
@@ -160,7 +160,6 @@ class MOSurfaceSet(MVLSlabSet):
             "ISTART": 1,
             "NELM": 80,
             "NCORE": 4,
-            "LASPH": False,
             "ISMEAR": 0,
             "SIGMA": 0.2,
         }
@@ -181,12 +180,10 @@ class MOSurfaceSet(MVLSlabSet):
 
         if self.bulk:
             kpts = tuple(np.ceil(50.0 / abc).astype("int"))
-            # Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
             return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
 
         else:
             kpts = np.ceil(30.0 / abc).astype("int")
             kpts[2] = 1
             kpts = tuple(kpts)
-            # Kpoints.gamma_automatic(kpts=kpts, shift=(0,0,0))
             return Kpoints.gamma_automatic(kpts=kpts, shift=(0, 0, 0))
