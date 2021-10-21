@@ -46,22 +46,23 @@ class StaticBulkFireTask(FiretaskBase):
             # Get equilibrium bulk from DB
             collection = mmdb.db[f"{reduced_formula}_eos"]
             bulk_metadata_docs = collection.find(
-                {"task_label": {"$regex": f"{reduced_formula}_*_eos_*"}}
+                {"task_label": {"$regex": f"{reduced_formula}.*eos.*"}}
             )
 
+            breakpoint()
             bulk_candidates = {"magnetic_order": [], "structure": [], "energy": []}
             for d in bulk_metadata_docs:
                 magnetic_ordering = d["magnetic_ordering"]
                 structure_eq = Structure.from_dict(d["structure_eq"])
                 energy_eq = d["energy_eq"]
-                bulk_candidates["magnetic_ordering"].append(magnetic_ordering)
+                bulk_candidates["magnetic_order"].append(magnetic_ordering)
                 bulk_candidates["structure"].append(structure_eq.as_dict())
                 bulk_candidates["energy"].append(energy_eq)
 
             # Generate a set of StaticFW additions that will calc. DFT energy
             bulk_static_fws = []
             for magnetic_order, struct in zip(
-                bulk_candidates["magnetic_ordering"], bulk_candidates["structure"]
+                bulk_candidates["magnetic_order"], bulk_candidates["structure"]
             ):
                 struct = Structure.from_dict(struct)
                 vasp_input_set = MOSurfaceSet(
