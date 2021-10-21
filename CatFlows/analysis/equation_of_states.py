@@ -108,7 +108,7 @@ class FitEquationOfStateFW(FiretaskBase):
 
         # Add results to db or json file
         if to_db:
-            mmdb.collection = mmdb.db["f{pretty_formula}_eos"]
+            mmdb.collection = mmdb.db[f"{pretty_formula}_eos"]
             mmdb.collection.insert_one(summary_dict)
         else:
             with open(
