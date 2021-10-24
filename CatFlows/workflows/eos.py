@@ -30,7 +30,7 @@ def EOS_WF(
     Return:
         Workflow, which consist in opt + deformations + EOS_FIT
     """
-    fws, parents, fws_all = [], [], []
+    fws, fws_all = [], []
 
     # Bulk-optimization settings
     bulk_structure = Structure.from_dict(bulk_structures_dict["NM"])
@@ -67,7 +67,7 @@ def EOS_WF(
         for n, deformation in enumerate(deformations):
             name_deformation = f"{bulk_structure.composition.reduced_formula}_{mag_ordering}_deformation_{n}"
             fw = TransmuterFW(
-                copy_vasp_outputs=False, # default is True
+                copy_vasp_outputs=False,  # default is True
                 name=name_deformation,
                 structure=bulk_struct,
                 transformations=["DeformStructureTransformation"],

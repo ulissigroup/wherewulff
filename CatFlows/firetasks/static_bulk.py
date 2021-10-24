@@ -49,7 +49,6 @@ class StaticBulkFireTask(FiretaskBase):
                 {"task_label": {"$regex": f"{reduced_formula}.*eos.*"}}
             )
 
-            breakpoint()
             bulk_candidates = {"magnetic_order": [], "structure": [], "energy": []}
             for d in bulk_metadata_docs:
                 magnetic_ordering = d["magnetic_ordering"]

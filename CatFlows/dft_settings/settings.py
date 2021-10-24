@@ -100,9 +100,7 @@ class MOSurfaceSet(MVLSlabSet):
         **kwargs
     ):
 
-        super(MOSurfaceSet, self).__init__(
-            structure, bulk=bulk, set_mix=True, **kwargs
-        )
+        super(MOSurfaceSet, self).__init__(structure, bulk=bulk, set_mix=True, **kwargs)
 
         # self.structure = structure
         self.psp_version = psp_version
