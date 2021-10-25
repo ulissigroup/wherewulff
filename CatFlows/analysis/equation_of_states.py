@@ -64,7 +64,6 @@ class FitEquationOfStateFW(FiretaskBase):
         structure = Structure.from_dict(structure_dict)
         pretty_formula = structure.composition.reduced_formula
         all_task_ids.append(d["task_id"])
-
         # Retriving bulk deformations
         docs = mmdb.collection.find(
             {
@@ -80,7 +79,13 @@ class FitEquationOfStateFW(FiretaskBase):
 
         # Get (energy, volume) from the deformations
         energies, volumes = [], []
-        for d in docs:
+        for i, d in enumerate(docs):
+            if i == 0:
+                magmoms_list = d["orig_inputs"]["incar"][
+                    "MAGMOM"
+                ]  # Store the magmoms from the first deformation
+            # Assert that the deformations are all consistent in their orderings
+            assert magmoms_list == d["orig_inputs"]["incar"]["MAGMOM"]
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]["structure"])
             energies.append(d["calcs_reversed"][-1]["output"]["energy"])
             volumes.append(s.volume)
@@ -99,6 +104,9 @@ class FitEquationOfStateFW(FiretaskBase):
 
         # Scale optimized structure to the equilibrium volume
         structure.scale_lattice(eos_fit.v0)
+        breakpoint()
+        # Decorate the optimized structure with the relevant magmoms as a property
+        structure.add_site_property("magmom", magmoms_list)
         summary_dict["structure_eq"] = structure.as_dict()
 
         # Store data on summary_dict
