@@ -104,7 +104,6 @@ class FitEquationOfStateFW(FiretaskBase):
 
         # Scale optimized structure to the equilibrium volume
         structure.scale_lattice(eos_fit.v0)
-        breakpoint()
         # Decorate the optimized structure with the relevant magmoms as a property
         structure.add_site_property("magmom", magmoms_list)
         summary_dict["structure_eq"] = structure.as_dict()
