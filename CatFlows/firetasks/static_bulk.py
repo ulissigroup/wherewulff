@@ -44,10 +44,12 @@ class StaticBulkFireTask(FiretaskBase):
         # StaticBulk
         if bulks is None:
             # Get equilibrium bulk from DB
+            # Retrieve the uuids for the EOS FireTasks from the spec
+            eos_uuids = [fw_spec[k] for k in fw_spec if "eos_uuid" in k]
             collection = mmdb.db[f"{reduced_formula}_eos"]
-            bulk_metadata_docs = collection.find(
-                {"task_label": {"$regex": f"{reduced_formula}.*eos.*"}}
-            )
+            bulk_metadata_docs = [
+                collection.find_one({"task_label": eos_uuid}) for eos_uuid in eos_uuids
+            ]
 
             bulk_candidates = {"magnetic_order": [], "structure": [], "energy": []}
             for d in bulk_metadata_docs:
@@ -57,7 +59,6 @@ class StaticBulkFireTask(FiretaskBase):
                 bulk_candidates["magnetic_order"].append(magnetic_ordering)
                 bulk_candidates["structure"].append(structure_eq.as_dict())
                 bulk_candidates["energy"].append(energy_eq)
-
             # Generate a set of StaticFW additions that will calc. DFT energy
             bulk_static_fws = []
             for magnetic_order, struct in zip(
