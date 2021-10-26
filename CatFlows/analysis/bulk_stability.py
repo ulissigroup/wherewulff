@@ -80,9 +80,16 @@ class BulkStabilityAnalysis(FiretaskBase):
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        # Retrieve from DB
-        docs = mmdb.collection.find({"task_label": f"{bulk_formula}_*_static_energy"})
+        # Get the static_bulk uuids from the static energy FWs
+        bulk_static_uuids = [
+            fw_spec["bulk_static_dict"][k] for k in fw_spec["bulk_static_dict"]
+        ]
 
+        # Retrieve from DB
+        docs = [
+            mmdb.collection.find_one({"static_bulk_uuid": sb_uuid})
+            for sb_uuid in bulk_static_uuids
+        ]
         # Selecting the minimum energy magnetic configuration
         bulk_candidates = {}
         for doc in docs:
@@ -107,20 +114,18 @@ class BulkStabilityAnalysis(FiretaskBase):
             d = mmdb.collection.find_one(
                 {"task_label": f"{bulk_formula}_NM_static_energy"}
             )
-            logger.info(f"Selecting NM, because all are the same...")
+            logger.info("Selecting NM, because all are the same...")
 
         # Collect data
-        structure_dict = d["calcs_reversed"]["output"]["structure"]
-        dft_energy = d["calcs_reversed"]["output"]["energy"]
+        structure_dict = d["calcs_reversed"][0]["output"]["structure"]
+        dft_energy = d["calcs_reversed"][0]["output"]["energy"]
 
-        structure = Structure.from_file(structure_dict)
+        structure = Structure.from_dict(structure_dict)
         oxide_type = OxideType(structure).parse_oxide()[0]
-
         summary_dict["structure"] = structure.as_dict()
         summary_dict["formula_pretty"] = structure.composition.reduced_formula
         summary_dict["oxide_type"] = oxide_type
         summary_dict["uncorrected_energy"] = dft_energy
-
         # Get Correction
         bulk_composition = structure.composition
         comp_dict = {str(key): value for key, value in bulk_composition.items()}
@@ -156,7 +161,7 @@ class BulkStabilityAnalysis(FiretaskBase):
             correction=correction,
             parameters=parameters,
             data=data,
-            entry_id=f"{bulk_formula}_{magnetic_ordering}_{bulk_stability_uuid}",
+            entry_id=f"{bulk_formula}_{magnetic_order}_{bulk_stability_uuid}",
         )
 
         # PhaseDiagram Analysis
@@ -215,12 +220,10 @@ class BulkStabilityAnalysis(FiretaskBase):
             plt = PourbaixPlotter(pbx).plot_entry_stability(
                 pbx_entry, label_domains=True
             )
-            plt.savefig(f"{bulk_formula}_{magnetic_ordering}_pbx.png", dpi=300)
+            plt.savefig(f"{bulk_formula}_{magnetic_order}_pbx.png", dpi=300)
 
         # Export json file
-        with open(
-            f"{bulk_formula}_{magnetic_ordering}_stability_analys.json", "w"
-        ) as f:
+        with open(f"{bulk_formula}_{magnetic_order}_stability_analys.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # To_DB
@@ -246,7 +249,6 @@ class BulkStabilityAnalysis(FiretaskBase):
         from pymatgen.core.ion import Ion
         from pymatgen.entries.compatibility import (
             Compatibility,
-            MaterialsProjectAqueousCompatibility,
             MaterialsProject2020Compatibility,
             MaterialsProjectCompatibility,
         )
