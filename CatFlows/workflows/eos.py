@@ -12,6 +12,7 @@ from atomate.vasp.fireworks.core import TransmuterFW
 from CatFlows.dft_settings.settings import MOSurfaceSet
 from CatFlows.fireworks.optimize import Bulk_FW
 from CatFlows.analysis.equation_of_states import FitEquationOfStateFW
+import uuid
 
 
 def EOS_WF(
@@ -65,6 +66,8 @@ def EOS_WF(
         if counter != 0:
             fws = [opt_parent]
         for n, deformation in enumerate(deformations):
+            # Create unique uuid for each deformation
+            deform_uuid = uuid.uuid4()
             name_deformation = f"{bulk_structure.composition.reduced_formula}_{mag_ordering}_deformation_{n}"
             fw = TransmuterFW(
                 copy_vasp_outputs=False,  # default is True
@@ -76,6 +79,12 @@ def EOS_WF(
                 parents=opt_parent,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
+            )
+            # Add deform_uuid to the task doc in the tasks collection
+            fw.tasks[3]["additional_fields"].update({"deform_uuid": deform_uuid})
+            # Send the deform_uuid to the corresponding EOS FW
+            fw.tasks[3].update(
+                {"task_fields_to_push": {f"deformation_uuid_{n}": "deform_uuid"}}
             )
             fws.append(fw)
             fws_all.append(fw)
