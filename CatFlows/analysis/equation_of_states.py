@@ -65,14 +65,12 @@ class FitEquationOfStateFW(FiretaskBase):
         pretty_formula = structure.composition.reduced_formula
         all_task_ids.append(d["task_id"])
         # Retriving bulk deformations
-        docs = mmdb.collection.find(
-            {
-                "task_label": {
-                    "$regex": f"{pretty_formula}_{magnetic_ordering}_deformation_*"
-                }
-            }
-        )
-
+        # Get all the UUIDs that were sent from the deformation FWs
+        deformation_uuids = [fw_spec[k] for k in fw_spec if "deformation" in k]
+        docs = [
+            mmdb.collection.find_one({"deform_uuid": deform_uuid})
+            for deform_uuid in deformation_uuids
+        ]
         # Store optimized Bulk and pretty-formula
         summary_dict["structure_orig"] = structure.as_dict()
         summary_dict["formula_pretty"] = pretty_formula
