@@ -62,6 +62,7 @@ class StaticBulkFireTask(FiretaskBase):
                 bulk_candidates["energy"].append(energy_eq)
             # Generate a set of StaticFW additions that will calc. DFT energy
             bulk_static_fws = []
+            bulk_static_uuids = {}
             for magnetic_order, struct in zip(
                 bulk_candidates["magnetic_order"], bulk_candidates["structure"]
             ):
@@ -86,13 +87,21 @@ class StaticBulkFireTask(FiretaskBase):
                     }
                 )
                 # Pass the static_bulk_uuid to the bulk_stability FW
-                bulk_static_fw.tasks[3].update(
-                    {
-                        "task_fields_to_push": {
-                            f"static_bulk_uuid_{magnetic_order}": static_bulk_uuid
-                        }
-                    }
-                )
+                bulk_static_uuids[
+                    f"static_bulk_uuid_{magnetic_order}"
+                ] = static_bulk_uuid
+                #                bulk_static_fw.tasks[3].update(
+                #                    {
+                #                        "task_fields_to_push": {
+                #                            f"static_bulk_uuid_{magnetic_order}": static_bulk_uuid
+                #                        }
+                #                    }
+                #                )
                 bulk_static_fws.append(bulk_static_fw)
+            breakpoint()
 
-        return FWAction(detours=bulk_static_fws)
+        return FWAction(
+            detours=bulk_static_fws,
+            update_spec={"bulk_static_dict": bulk_static_uuids},
+            propagate=True,
+        )
