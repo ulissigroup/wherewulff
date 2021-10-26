@@ -130,3 +130,7 @@ class FitEquationOfStateFW(FiretaskBase):
 
         # logger
         logger.info("EOS Fitting Completed!")
+        # Exit function by sending the eos_uuid to the static_bulk FireTask
+        return FWAction(
+            update_spec={f"eos_uuid_{magnetic_ordering}": summary_dict["task_label"]}
+        )
