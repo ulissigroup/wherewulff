@@ -133,10 +133,10 @@ class MOSurfaceSet(MVLSlabSet):
             incar["LREAL"] = True
 
         # Setting auto_dipole correction (for slabs only)
-        if not self.bulk and self.auto_dipole:
-            incar["LDIPOL"] = True
-            incar["IDIPOL"] = 3
-            incar["DIPOL"] = self._get_center_of_mass()
+#       if not self.bulk and self.auto_dipole:
+#           incar["LDIPOL"] = True
+#           incar["IDIPOL"] = 3
+#           incar["DIPOL"] = self._get_center_of_mass()
 
         # Setting magnetic moments for children
         if self.initial_magmoms:
