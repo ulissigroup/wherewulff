@@ -1,5 +1,6 @@
 import numpy as np
 from pydash.objects import has, get
+import uuid
 
 from pymatgen.core.structure import Structure
 
@@ -64,6 +65,8 @@ class StaticBulkFireTask(FiretaskBase):
             for magnetic_order, struct in zip(
                 bulk_candidates["magnetic_order"], bulk_candidates["structure"]
             ):
+                # Create unique uuid for each StaticFW
+                static_bulk_uuid = uuid.uuid4()
                 struct = Structure.from_dict(struct)
                 vasp_input_set = MOSurfaceSet(
                     struct, user_incar_settings={"NSW": 0}, bulk=True
@@ -77,7 +80,18 @@ class StaticBulkFireTask(FiretaskBase):
                     db_file=db_file,
                 )
                 bulk_static_fw.tasks[3]["additional_fields"].update(
-                    {"magnetic_ordering": magnetic_order}
+                    {
+                        "magnetic_ordering": magnetic_order,
+                        "static_bulk_uuid": static_bulk_uuid,
+                    }
+                )
+                # Pass the static_bulk_uuid to the bulk_stability FW
+                bulk_static_fw.tasks[3].update(
+                    {
+                        "task_fields_to_push": {
+                            f"static_bulk_uuid_{magnetic_order}": static_bulk_uuid
+                        }
+                    }
                 )
                 bulk_static_fws.append(bulk_static_fw)
 
