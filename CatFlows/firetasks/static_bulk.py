@@ -98,7 +98,6 @@ class StaticBulkFireTask(FiretaskBase):
                 #                    }
                 #                )
                 bulk_static_fws.append(bulk_static_fw)
-            breakpoint()
 
         return FWAction(
             detours=bulk_static_fws,
