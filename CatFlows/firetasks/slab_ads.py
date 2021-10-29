@@ -228,7 +228,7 @@ class SlabAdsFireTask(FiretaskBase):
                         hkl_uuids.append(ads_slab_uuid)
 
                 # Surface PBX Diagram for each surface orientation "independent"
-                pbx_name = f"{slab.composition.reduced_formula}-{miller_index}"
+                pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
                 pbx_fw = SurfacePBX_FW(
                     reduced_formula=reduced_formula,
                     name=pbx_name,
