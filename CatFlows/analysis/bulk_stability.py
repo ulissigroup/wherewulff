@@ -119,7 +119,6 @@ class BulkStabilityAnalysis(FiretaskBase):
         # Collect data
         structure_dict = d["calcs_reversed"][0]["output"]["structure"]
         dft_energy = d["calcs_reversed"][0]["output"]["energy"]
-
         structure = Structure.from_dict(structure_dict)
         oxide_type = OxideType(structure).parse_oxide()[0]
         summary_dict["structure"] = structure.as_dict()
@@ -131,10 +130,10 @@ class BulkStabilityAnalysis(FiretaskBase):
         comp_dict = {str(key): value for key, value in bulk_composition.items()}
         comp_dict_pbx = {
             str(key): value
-            for key, value in bulk_composition.items
+            for key, value in bulk_composition.items()
             if key not in ELEMENTS_HO
         }
-
+        breakpoint()
         correction = 0
         for i in list(comp_dict.keys()):
             if i in composition_correction:
@@ -190,6 +189,7 @@ class BulkStabilityAnalysis(FiretaskBase):
         summary_dict["eform_phd"] = eform_phd
         summary_dict["eform_atom_phd"] = eform_atom_phd
         summary_dict["e_hull_phd"] = e_hull_phd
+        breakpoint()
 
         # Pourbaix Diagram Analysis
         with MPRester() as mpr:
