@@ -181,8 +181,8 @@ class BulkStabilityAnalysis(FiretaskBase):
             phd = PhaseDiagram(processed_entries)
 
             # Get PhD info
-            eform_phd = phd.get_from_energy(phd_entry)
-            eform_atom_phd = phd.get_from_energy_per_atom(phd_entry)
+            eform_phd = phd.get_form_energy(phd_entry)
+            eform_atom_phd = phd.get_form_energy_per_atom(phd_entry)
             e_hull_phd = phd.get_e_above_hull(phd_entry)
 
         # Store PhD data
