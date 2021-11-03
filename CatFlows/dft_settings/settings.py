@@ -9,7 +9,7 @@ from pymatgen.io.vasp.inputs import Kpoints
 
 
 # Get bulk initial magnetic moments
-def set_bulk_magmoms(structure, tol=0.1, scale_factor=1.2):
+def set_bulk_magmoms(structure, nm_magmom_buffer=0.6, tol=0.1, scale_factor=1.2):
     """
     Returns decorated bulk structure with initial magnetic moments,
     based on crystal-field theory for TM.
@@ -43,14 +43,18 @@ def set_bulk_magmoms(structure, tol=0.1, scale_factor=1.2):
             )
             # Add to dict
             element_magmom.update(
-                {str(site.specie.name): abs(scale_factor * float(magmom))}
+                {
+                    str(site.specie.name): abs(scale_factor * float(magmom))
+                    if magmom > 0.01
+                    else nm_magmom_buffer
+                }
             )
 
         elif site.specie.is_chalcogen:  # O
             element_magmom.update({str(site.specie.name): 0.6})
 
         else:
-            element_magmom.update({str(site.specie.name): 0.0})
+            element_magmom.update({str(site.specie.name): nm_magmom_buffer})
 
     magmoms = [element_magmom[site.specie.name] for site in struct]
 
@@ -133,10 +137,10 @@ class MOSurfaceSet(MVLSlabSet):
             incar["LREAL"] = True
 
         # Setting auto_dipole correction (for slabs only)
-#       if not self.bulk and self.auto_dipole:
-#           incar["LDIPOL"] = True
-#           incar["IDIPOL"] = 3
-#           incar["DIPOL"] = self._get_center_of_mass()
+        #       if not self.bulk and self.auto_dipole:
+        #           incar["LDIPOL"] = True
+        #           incar["IDIPOL"] = 3
+        #           incar["DIPOL"] = self._get_center_of_mass()
 
         # Setting magnetic moments for children
         if self.initial_magmoms:
