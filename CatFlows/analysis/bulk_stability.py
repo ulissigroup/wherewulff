@@ -121,6 +121,8 @@ class BulkStabilityAnalysis(FiretaskBase):
         dft_energy = d["calcs_reversed"][0]["output"]["energy"]
         structure = Structure.from_dict(structure_dict)
         oxide_type = OxideType(structure).parse_oxide()[0]
+        # Add the initial magmoms to the summary dict
+        summary_dict["orig_magmoms"] = d["orig_inputs"]["incar"]["MAGMOM"]
         summary_dict["structure"] = structure.as_dict()
         summary_dict["formula_pretty"] = structure.composition.reduced_formula
         summary_dict["oxide_type"] = oxide_type
@@ -160,7 +162,7 @@ class BulkStabilityAnalysis(FiretaskBase):
             correction=correction,
             parameters=parameters,
             data=data,
-            entry_id=f"{bulk_formula}_{magnetic_order}_{bulk_stability_uuid}",
+            entry_id=f"{bulk_formula}_{mag_label}_{bulk_stability_uuid}",
         )
 
         # PhaseDiagram Analysis
@@ -189,7 +191,6 @@ class BulkStabilityAnalysis(FiretaskBase):
         summary_dict["eform_phd"] = eform_phd
         summary_dict["eform_atom_phd"] = eform_atom_phd
         summary_dict["e_hull_phd"] = e_hull_phd
-        breakpoint()
 
         # Pourbaix Diagram Analysis
         with MPRester() as mpr:
@@ -220,10 +221,12 @@ class BulkStabilityAnalysis(FiretaskBase):
             plt = PourbaixPlotter(pbx).plot_entry_stability(
                 pbx_entry, label_domains=True
             )
-            plt.savefig(f"{bulk_formula}_{magnetic_order}_pbx.png", dpi=300)
+            plt.savefig(
+                f"{bulk_formula}_{mag_label}_pbx.png", dpi=300
+            )  # FIXME: Think this should be mag_label
 
         # Export json file
-        with open(f"{bulk_formula}_{magnetic_order}_stability_analys.json", "w") as f:
+        with open(f"{bulk_formula}_{mag_label}_stability_analys.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # To_DB
