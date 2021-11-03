@@ -49,12 +49,14 @@ class BulkFlows:
     def __init__(
         self,
         bulk_structure,
+        nm_magmom_buffer=0.6,
         conventional_standard=True,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
     ):
 
         # Bulk structure
+        self.nm_magmom_buffer = nm_magmom_buffer
         self.bulk_structure = self._read_cif_file(bulk_structure)
         self.original_bulk_structure = self.bulk_structure.copy()
         # Convetional standard unit cell
@@ -110,11 +112,11 @@ class BulkFlows:
 
     def _get_metals_magmoms(self):
         """Returns dict with metal symbol and magmoms assigned"""
-        bulk_structure = set_bulk_magmoms(self.bulk_structure)
+        bulk_structure = set_bulk_magmoms(self.bulk_structure, self.nm_magmom_buffer)
         metals_symb = [
-            metal
-            for metal in self.original_bulk_structure.species
-            if Element(metal).is_metal
+            metal.element
+            for metal in self.bulk_structure.species  # FIXME: Make sure magmoms list matches the Element list before zipping
+            if Element(metal.element).is_metal
         ]
         magmoms_list = bulk_structure.site_properties["magmom"]
         magmoms_dict = {}
@@ -124,42 +126,63 @@ class BulkFlows:
 
     def _get_magnetic_orderings(self):
         """Returns a dict with AFM and FM magnetic structures orderings"""
-        enumerator = MagneticStructureEnumerator(
-            self.bulk_structure,
-            default_magmoms=self.magmoms_dict,
-            automatic=True,
-            truncate_by_symmetry=True,
-        )
+        magnetic_orderings_dict = {}
+        try:
+            enumerator = MagneticStructureEnumerator(
+                self.bulk_structure,
+                default_magmoms=self.magmoms_dict,
+                automatic=True,
+                truncate_by_symmetry=True,
+            )
+        except ValueError as e:
+            # This is probably happening because the magmoms are zero on the
+            # metal atoms. Need to catch and give a small buffer to the
+            # TMO ions. Note that in this scenario, there is no need for
+            # magnetic configurations.
+            buffer_magmom = list(
+                np.zeros(self.original_bulk_structure.num_sites, dtype=float)
+                + self.nm_magmom_buffer
+            )
+            magnetic_orderings_dict.update({"NM": buffer_magmom})
+            print(f"Encountered issue: {e}. Will give slight buffer to metal ions")
+            return magnetic_orderings_dict
+
         ordered_structures = enumerator.ordered_structures
 
-        magnetic_orderings_dict = {}
         for ord_struct in ordered_structures:
             analyzer = CollinearMagneticStructureAnalyzer(ord_struct)
             struct_with_spin = analyzer.get_structure_with_spin()
-            struct_dict = struct_with_spin.as_dict()
+            struct_with_spin.sort()  # Sort so that it is aligned with original_bulk
             if analyzer.ordering == Ordering.AFM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     afm_magmom = [
-                        float(x["species"][0]["properties"]["spin"])
-                        for x in struct_dict["sites"]
+                        site.specie.spin
+                        if site.specie.element.is_metal
+                        else self.nm_magmom_buffer
+                        for site in struct_with_spin
                     ]
                     magnetic_orderings_dict.update({"AFM": afm_magmom})
             elif analyzer.ordering == Ordering.FM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     fm_magmom = [
-                        float(x["species"][0]["properties"]["spin"])
-                        for x in struct_dict["sites"]
+                        site.specie.spin
+                        if site.specie.element.is_metal
+                        else self.nm_magmom_buffer
+                        for site in struct_with_spin
                     ]
                     magnetic_orderings_dict.update({"FM": fm_magmom})
 
         # Adding non-magnetic
-        nm_magmom = list(np.zeros(self.bulk_structure.num_sites, dtype=float))
+        nm_magmom = list(
+            np.zeros(self.original_bulk_structure.num_sites, dtype=float)
+            + self.nm_magmom_buffer
+        )
         magnetic_orderings_dict.update({"NM": nm_magmom})
         return magnetic_orderings_dict
 
     def _get_all_bulk_magnetic_configurations(self):
         """Decorates the original bulk structure with NM, AFM and FM"""
-        bulk_structure = self.bulk_structure.copy()
+        bulk_structure = self.original_bulk_structure.copy()
         magnetic_orderings = self.magnetic_orderings_dict
         # Add AFM, FM and NM
         bulk_structures_dict = {}
