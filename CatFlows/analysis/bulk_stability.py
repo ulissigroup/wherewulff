@@ -135,7 +135,6 @@ class BulkStabilityAnalysis(FiretaskBase):
             for key, value in bulk_composition.items()
             if key not in ELEMENTS_HO
         }
-        breakpoint()
         correction = 0
         for i in list(comp_dict.keys()):
             if i in composition_correction:
