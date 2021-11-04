@@ -1,9 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import warnings
-
-warnings.filterwarnings("ignore")
-
 import numpy as np
 from pymatgen.analysis.magnetism.analyzer import (
     CollinearMagneticStructureAnalyzer,
@@ -30,6 +26,9 @@ from CatFlows.dft_settings.settings import (
 from CatFlows.workflows.eos import BulkOptimize_WF, EOS_WF
 from CatFlows.workflows.static_bulk import StaticBulk_WF
 from CatFlows.workflows.bulk_stability import StabilityBulk_WF
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 # Bulk structure workflow method
@@ -114,9 +113,9 @@ class BulkFlows:
         """Returns dict with metal symbol and magmoms assigned"""
         bulk_structure = set_bulk_magmoms(self.bulk_structure, self.nm_magmom_buffer)
         metals_symb = [
-            metal.element
-            for metal in self.bulk_structure.species  # FIXME: Make sure magmoms list matches the Element list before zipping
-            if Element(metal.element).is_metal
+            site.species_string
+            for site in self.bulk_structure  # FIXME: Make sure magmoms list matches the Element list before zipping
+            if site.specie.element.is_metal
         ]
         magmoms_list = bulk_structure.site_properties["magmom"]
         magmoms_dict = {}

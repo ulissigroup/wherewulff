@@ -44,19 +44,19 @@ def set_bulk_magmoms(structure, nm_magmom_buffer=0.6, tol=0.1, scale_factor=1.2)
             # Add to dict
             element_magmom.update(
                 {
-                    str(site.specie.name): abs(scale_factor * float(magmom))
+                    str(site.species_string): abs(scale_factor * float(magmom))
                     if magmom > 0.01
                     else nm_magmom_buffer
                 }
             )
 
         elif site.specie.is_chalcogen:  # O
-            element_magmom.update({str(site.specie.name): 0.6})
+            element_magmom.update({str(site.species_string): 0.6})
 
         else:
-            element_magmom.update({str(site.specie.name): nm_magmom_buffer})
+            element_magmom.update({str(site.species_string): nm_magmom_buffer})
 
-    magmoms = [element_magmom[site.specie.name] for site in struct]
+    magmoms = [element_magmom[site.species_string] for site in struct]
 
     # Decorate
     for site, magmom in zip(struct.sites, magmoms):
