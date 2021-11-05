@@ -114,12 +114,14 @@ class BulkFlows:
         bulk_structure = set_bulk_magmoms(self.bulk_structure, self.nm_magmom_buffer)
         metals_symb = [
             site.species_string
-            for site in self.bulk_structure  # FIXME: Make sure magmoms list matches the Element list before zipping
+            for site in self.bulk_structure
             if site.specie.element.is_metal
         ]
         magmoms_list = bulk_structure.site_properties["magmom"]
         magmoms_dict = {}
-        for metal, magmom in zip(metals_symb, magmoms_list):
+        for metal, magmom in zip(
+            metals_symb, magmoms_list
+        ):  # Note this results in a sublist of tuples and is OK provided the orders for both align.
             magmoms_dict.update({str(metal): magmom})
         return magmoms_dict
 
