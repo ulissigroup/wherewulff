@@ -65,8 +65,7 @@ class SurfacePourbaixDiagram(FiretaskBase):
         # List of (hkl)
         miller_indices = list(surface_clean_dict.keys())
 
-        # Filter OH termination by DFT energy
-        # nested dict as {"hkl": {task_label: energy}}
+        # Filter OH termination by DFT energy - nested dict as {"hkl": {task_label: energy}}
         task_label_oh_dict = {}
         for hkl in miller_indices:
             task_label_oh_dict[hkl] = {}
@@ -78,8 +77,23 @@ class SurfacePourbaixDiagram(FiretaskBase):
 
         # 1st key per hkl should be the lowest one
         task_label_oh_sort = {key: sorted(values, key=lambda x:x[1]) for key, values in task_label_oh_dict.items()}
-
         oh_task_labels = [list(v[k])[0] for k, v in task_label_oh_sort.items()]
+
+        # Ox terminations
+        task_label_ox_dict = {}
+        for hkl in miller_indices:
+            task_label_ox_dict[hkl] = {}
+            for d_Ox in docs_Ox:
+                task_label = d_Ox["task_label"]
+                surf_orientation = task_label.split("-")[1]
+                dft_energy_ox = d_Ox["calcs_reversed"][-1]["output"]["energy"]
+                task_label_ox_dict[surf_orientation].update({str(task_label): dft_energy_ox})
+
+        
+
+
+
+
 
 
 
