@@ -59,7 +59,7 @@ class CatFlows:
         max_index=1,
         symmetrize=True,
         slab_repeat=[2, 2, 1],
-        selective_dynamics=True,
+        selective_dynamics=False,
         exclude_hkl=None,
         stop_at_wulff_analysis=False,
         adsorbates=OH_Ox_list,
