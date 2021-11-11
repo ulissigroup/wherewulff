@@ -1,6 +1,8 @@
 import json
 import uuid
 
+import numpy as np
+
 from pydash.objects import has, get
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -13,12 +15,15 @@ from atomate.vasp.database import VaspCalcDb
 logger = get_logger(__name__)
 
 @explicit_serialize
-class SurfacePourbaixDiagram(FiretaskBase):
+class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
     """
     Post-processing FireTask to plot the surface pourbaix diagram
     out of OH/Ox full coverage terminations
 
     Args:
+        bulk_structure: pymatgen structure for getting bulk-formula
+        db_file       : defult db.json file
+        to_db         : option whether send the data to DB or not.
 
     Returns:
         plot for each surface and DB json data.
@@ -33,8 +38,14 @@ class SurfacePourbaixDiagram(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         to_db = self.get("to_db", True)
         bulk_structure = self["bulk_structure"]
-
         summary_dict = {}
+
+        # PBX Variables
+        self.pH_range = list(range(0, 15, 1))
+        kB = 0.0000861733 # eV/K
+        Temp = 298.15 # Kelvin
+        self.K = kB * Temp * np.log(10) # Nernst slope
+        self.reference_energies = {"H2O":-14.25994015, "H2":-6.77818501}
 
         # Surface PBX diagram uuid
         surface_pbx_uuid = uuid.uuid4()
@@ -65,7 +76,7 @@ class SurfacePourbaixDiagram(FiretaskBase):
         # List of (hkl)
         miller_indices = list(surface_clean_dict.keys())
 
-        # Filter OH termination by DFT energy - nested dict as {"hkl": {task_label: energy}}
+        # Organizing OH termination by DFT energy - nested dict as {"hkl": {task_label: energy}}
         task_label_oh_dict = {}
         for hkl in miller_indices:
             task_label_oh_dict[hkl] = {}
@@ -75,19 +86,48 @@ class SurfacePourbaixDiagram(FiretaskBase):
                 dft_energy_oh = d_OH["calcs_reversed"][-1]["output"]["energy"]
                 task_label_oh_dict[surf_orientation].update({str(task_label): dft_energy_oh})
 
-        # 1st key per hkl should be the lowest one
-        task_label_oh_sort = {key: sorted(values, key=lambda x:x[1]) for key, values in task_label_oh_dict.items()}
-        oh_task_labels = [list(v[k])[0] for k, v in task_label_oh_sort.items()]
+        # Find the lowest energy OH configuration per surface orientation - {task_label: energy}
+        stable_oh_terminations = {}
+        for hkl in miller_indices:
+            oh_terminations = task_label_oh_dict[hkl]
+            find_minimum = min(oh_terminations, key=oh_terminations.get)
+            stable_oh_terminations.update({str(find_minimum): oh_terminations[find_minimum]})
 
         # Ox terminations
-        task_label_ox_dict = {}
+        stable_ox_termination = {}
         for hkl in miller_indices:
-            task_label_ox_dict[hkl] = {}
             for d_Ox in docs_Ox:
                 task_label = d_Ox["task_label"]
-                surf_orientation = task_label.split("-")[1]
                 dft_energy_ox = d_Ox["calcs_reversed"][-1]["output"]["energy"]
-                task_label_ox_dict[surf_orientation].update({str(task_label): dft_energy_ox})
+                stable_ox_termination.update({str(task_label): dft_energy_ox})
+
+    def oer_potential_std(self):
+        """
+        Standard OER bound --> H2O -> O2 + 4H+ + 4e-
+        """
+        return [(1.229 + self.K*pH)for pH in self.pH_range]
+
+    def oer_potential_up(self, u_0=1.60):
+        """
+        OER bound, U_0 selected by user and/or Experimental conditions.
+        
+        default: 1.60 V
+        """
+        return [(u_0 + self.K*pH)for pH in self.pH_range]
+
+    def _get_potential_clean_oh(self, dft_energy_oh, dft_energy_clean, nH=4, nH2O=4):
+        """
+        Get line equation from clean --> OH-terminated
+        """
+        intersept = (dft_energy_oh - dft_energy_clean - (nH2O*self.ref_energies["H2O"])) * (1/nH)
+        intersept = intersept + (0.5 * self.ref_energies["H2"])
+        return [(intersept + self.K*pH) for pH in self.pH_range]
+
+    def _get_potential_oh_ox(self, dft_energy_ox, dft_energy_oh, nH=4, nH2O=4):
+        """
+        Get line equation from OH --> Ox-terminated
+        """
+        intersept = 
 
         
 
