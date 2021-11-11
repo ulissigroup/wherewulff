@@ -155,6 +155,11 @@ class SlabAdsFireTask(FiretaskBase):
                         "structure"
                     ]
                 )
+                # Initialize from original magmoms instead of result ones.
+                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})["orig_inputs"]["incar"]["MAGMOM"]
+                new_sp = slab_struct.site_properties.update({"magmom": orig_magmoms})
+                slab_struct = slab_struct.copy(site_properties=new_sp)
+
                 slab_struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
                 slab_struct.add_site_property("bulk_equivalent", slab_equivalents)
                 slab_struct.add_site_property("forces", slab_forces)
