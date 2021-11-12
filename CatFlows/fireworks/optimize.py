@@ -168,6 +168,7 @@ def AdsSlab_FW(
     name="",
     oriented_uuid="",
     slab_uuid="",
+    ads_slab_uuid="",
     is_adslab=True,
     parents=None,
     vasp_input_set=None,
@@ -191,10 +192,6 @@ def AdsSlab_FW(
     Returns:
         Firework correspoding to slab calculation.
     """
-    import uuid
-
-    # Generate a unique ID for Slab_FW
-    fw_ads_slab_uuid = uuid.uuid4()
 
     # DFT Method
     if not vasp_input_set:
@@ -214,7 +211,7 @@ def AdsSlab_FW(
             "counter": 0,
             "_add_launchpad_and_fw_id": True,
             "_pass_job_info": True,
-            "uuid": fw_ads_slab_uuid,
+            "uuid": ads_slab_uuid,
             "wall_time": wall_time,
             "name": name,
             "max_tries": 5,
@@ -232,7 +229,7 @@ def AdsSlab_FW(
     )
 
     # Add slab_uuid through VaspToDb
-    fw.tasks[3]["additional_fields"].update({"uuid": fw_ads_slab_uuid})
+    fw.tasks[3]["additional_fields"].update({"uuid": ads_slab_uuid})
 
     # Switch-on WalltimeHandler in RunVaspCustodian
     if wall_time is not None:

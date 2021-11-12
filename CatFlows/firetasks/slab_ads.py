@@ -1,3 +1,4 @@
+import uuid
 import numpy as np
 from pydash.objects import has, get
 
@@ -10,6 +11,7 @@ from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 
 from CatFlows.fireworks.optimize import AdsSlab_FW
+from CatFlows.fireworks.surface_pourbaix import SurfacePBX_FW
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 
 
@@ -156,7 +158,9 @@ class SlabAdsFireTask(FiretaskBase):
                     ]
                 )
                 # Initialize from original magmoms instead of output ones.
-                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})["orig_inputs"]["incar"]["MAGMOM"]
+                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
+                    "orig_inputs"
+                ]["incar"]["MAGMOM"]
                 new_sp = slab_struct.site_properties.update({"magmom": orig_magmoms})
                 slab_struct = slab_struct.copy(site_properties=new_sp)
 
@@ -205,17 +209,34 @@ class SlabAdsFireTask(FiretaskBase):
             ads_slab_fws = []
             for slab, oriented_uuid, slab_uuid in slab_candidates:
                 slab_miller_index = "".join(list(map(str, slab.miller_index)))
+                hkl_fws, hkl_uuids = [], []
                 for adsorbate in adsorbates:
                     adslabs = get_clockwise_rotations(slab, adsorbate)
                     for adslab_label, adslab in adslabs.items():
                         name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
+                        ads_slab_uuid = uuid.uuid4()
                         ads_slab_fw = AdsSlab_FW(
                             adslab,
                             name=name,
                             oriented_uuid=oriented_uuid,
                             slab_uuid=slab_uuid,
+                            ads_slab_uuid=ads_slab_uuid,
                             vasp_cmd=vasp_cmd,
                         )
                         ads_slab_fws.append(ads_slab_fw)
+                        hkl_fws.append(ads_slab_fw)
+                        hkl_uuids.append(ads_slab_uuid)
+
+                # Surface PBX Diagram for each surface orientation "independent"
+                pbx_name = f"{slab.composition.reduced_formula}-{miller_index}"
+                pbx_fw = SurfacePBX_FW(
+                    reduced_formula=reduced_formula,
+                    name=pbx_name,
+                    miller_index=slab_miller_index,
+                    slab_uuid=slab_uuid,
+                    ads_slab_uuids=hkl_uuids,
+                    parents=hkl_fws,
+                )
+                ads_slab_fws.append(pbx_fw)
 
         return FWAction(detours=ads_slab_fws)
