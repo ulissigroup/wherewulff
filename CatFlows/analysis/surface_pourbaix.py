@@ -101,6 +101,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 dft_energy_ox = d_Ox["calcs_reversed"][-1]["output"]["energy"]
                 stable_ox_termination.update({str(task_label): dft_energy_ox})
 
+
     def oer_potential_std(self):
         """
         Standard OER bound --> H2O -> O2 + 4H+ + 4e-
@@ -115,19 +116,58 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         """
         return [(u_0 + self.K*pH)for pH in self.pH_range]
 
-    def _get_potential_clean_oh(self, dft_energy_oh, dft_energy_clean, nH=4, nH2O=4):
+    def _get_surface_potential_line(self, dft_energy_specie, dft_energy_reference, nH=4, nH2O=4):
         """
-        Get line equation from clean --> OH-terminated
+        Get line equation from:
+            - clean --> OH:
+                specie = OH-terminated
+                reference = clean
+            - OH --> Ox:
+                specie = Ox-terminated
+                reference = OH-terminated
+            - nH: Released (H+ + e-) PCETs
+            - nH2O: How many water molecules are adsorbed on top of the clean (e.g. 110 = 4)
         """
-        intersept = (dft_energy_oh - dft_energy_clean - (nH2O*self.ref_energies["H2O"])) * (1/nH)
+        intersept = (dft_energy_specie - dft_energy_reference - (nH2O*self.ref_energies["H2O"])) * (1/nH)
         intersept = intersept + (0.5 * self.ref_energies["H2"])
         return [(intersept + self.K*pH) for pH in self.pH_range]
 
-    def _get_potential_oh_ox(self, dft_energy_ox, dft_energy_oh, nH=4, nH2O=4):
+    def _get_surface_pbx_diagram(self):
         """
-        Get line equation from OH --> Ox-terminated
+        Matplotlib based function to build the PBX graph
         """
-        intersept = 
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(8,5))
+
+        # Axis labels
+        ax.set_xlabel("pH", fontsize=12, fontweight="bold")
+        ax.set_ylabel("U$_{SHE}$ (V)", fontsize=12, fontweight="bold")
+
+        # Axis Limits
+        ax.set_title(f"{bulk_formula} ({miller_index})")
+        ax.set_xlim(0.0, 14.0)
+        ax.set_ylim(0.0, 2.50)
+
+        # OER bounds for standard and selected OER conditions
+        ax.plot(self.pH_range, oer_bound_std, linestyle="--", color="black")
+        ax.plot(self.pH_range, oer_bound_up, linestyle="--", color="red")
+
+        # Surface PBX boundaries
+        ax.plot(self.pH_range, clean_2_OH, linestyle="-", color="blue")
+        ax.plot(self.pH_range, OH_2_Ox, linstyle="-", color="red")
+
+        # Fill surface-terminations regions
+        ax.fill_between(self.pH_range, clean_2_OH, color="blue", alpha=0.2, label="clean")
+        ax.fill_between(self.pH_range, clean_2_OH, OH_2_Ox, color="green", alpha=0.2, label="*OH")
+        ax.fill_between(self.pH_range, OH_2_Ox, 2.50, color="red", alpha=0.2, label="*Ox")
+
+        # Add legend
+        plt.legend()
+
+        return fig
+
+
 
         
 
