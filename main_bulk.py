@@ -11,8 +11,8 @@ bulk_flow = BulkFlows(cif_file)
 # Get Launchpad
 launchpad = bulk_flow.submit(
     hostname="localhost",
-    db_name="mo_stability",
-    port=27017,
-    username="mo_stability_admin",
-    password="ww1www3w3ree22s223eew",
+    db_name="<<DB-NAME>>",
+    port="<<DB-PORT>>",
+    username="<<DB-USERNAME>>",
+    password="<<DB-PASSWORD>>",
 )
