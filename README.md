@@ -20,11 +20,15 @@ in our group and more.
 - [x] Bulk magnetic orders (NM, AFM, FM)
 	- [x] Enumerate and decorate bulk structure with magmom and orderings
 	- [x] General implementation of Optimization + Deformation + EOS_fitting for each magnetic order
-	- [ ] Bulk Stability Analysis (after single-point)
-- [ ] Single point calculation with hybrid DFT Functional
+	- [x] Bulk Stability Analysis (after single-point)
+- [x] Surface Pourbaix Diagram Analysis
+- [ ] Reactivity OER
+	- [ ] Single site WNA
+        - [ ] Double site WNA
+        - [ ] I2M 
 - [ ] FrequenciesFW and ThermoCorrections
-- [ ] Surface Pourbaix Diagram Analysis
 - [ ] Reactivity OER (WNA - Single site)
+- [ ] SP with Hybrid Functional (worth it?)
 
 
 # Richard ToDo List
@@ -41,14 +45,16 @@ in our group and more.
 - [x] Look into passing job info from parent to child fireworks
 - [x] Add ContinueOptimizeFW to refactor branch
 - [x] Transfer of magnetic moments across parents to childs
-- [ ] WAVECAR (copy, delete, gzip) across parents to childs
-- [ ] WAVECAR Transfer across different filesystems
-- [ ] Add compatibility with 2 nodes
+- [x] WAVECAR (copy, delete, gzip) across parents to childs
+- [ ] WAVECAR Transfer across different filesystems (really?)
+- [x] Add compatibility with 2 nodes
+- [ ] Hunting for bugs! 
 
 # Yuri/Javi ToDo List
 
 - [x] Clean-up code for ADS_SLAB generation and add to refactor
 - [x] Refactor branch merging with kubernetes_test
 - [ ] Benchmark RuO2 and IrO2
-- [ ] PARSING ERROR!!!!!
+	- [x] IrO2 Manually tested and getting close to good values!
+- [x] PARSING ERROR!!!!! (was the container!)
 - [ ] Get vasp ouputs for fake_vasp
