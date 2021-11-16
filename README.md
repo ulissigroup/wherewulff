@@ -25,7 +25,7 @@ in our group and more.
 - [ ] Reactivity OER
 	- [ ] Single site WNA
         - [ ] Double site WNA
-        - [ ] I2M 
+        - [ ] I2M
 - [ ] FrequenciesFW and ThermoCorrections
 - [ ] Reactivity OER (WNA - Single site)
 - [ ] SP with Hybrid Functional (worth it?)
@@ -48,7 +48,7 @@ in our group and more.
 - [x] WAVECAR (copy, delete, gzip) across parents to childs
 - [ ] WAVECAR Transfer across different filesystems (really?)
 - [x] Add compatibility with 2 nodes
-- [ ] Hunting for bugs! 
+- [ ] Hunting for bugs!
 
 # Yuri/Javi ToDo List
 
