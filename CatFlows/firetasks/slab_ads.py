@@ -9,10 +9,13 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
+from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.fireworks.optimize import AdsSlab_FW
 from CatFlows.fireworks.surface_pourbaix import SurfacePBX_FW
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
+
+from CatFlows.workflows.surface_pourbaix import SurfacePBX_WF
 
 
 # Angles list
@@ -205,38 +208,55 @@ class SlabAdsFireTask(FiretaskBase):
                         slab_uuid,
                     )
                 )
-            # Generate a set of OptimizeFW additions that will relax all the adslab in parallel
-            ads_slab_fws = []
+
+            # Generate independent WF for OH/Ox terminations + Surface PBX
+            hkl_pbx_wfs = []
             for slab, oriented_uuid, slab_uuid in slab_candidates:
-                slab_miller_index = "".join(list(map(str, slab.miller_index)))
-                hkl_fws, hkl_uuids = [], []
-                for adsorbate in adsorbates:
-                    adslabs = get_clockwise_rotations(slab, adsorbate)
-                    for adslab_label, adslab in adslabs.items():
-                        name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
-                        ads_slab_uuid = uuid.uuid4()
-                        ads_slab_fw = AdsSlab_FW(
-                            adslab,
-                            name=name,
-                            oriented_uuid=oriented_uuid,
-                            slab_uuid=slab_uuid,
-                            ads_slab_uuid=ads_slab_uuid,
-                            vasp_cmd=vasp_cmd,
-                        )
-                        ads_slab_fws.append(ads_slab_fw)
-                        hkl_fws.append(ads_slab_fw)
-                        hkl_uuids.append(ads_slab_uuid)
-
-                # Surface PBX Diagram for each surface orientation "independent"
-                pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
-                pbx_fw = SurfacePBX_FW(
-                    reduced_formula=reduced_formula,
-                    name=pbx_name,
-                    miller_index=slab_miller_index,
+                hkl_pbx_wf = SurfacePBX_WF(
+                    slab=slab,
                     slab_uuid=slab_uuid,
-                    ads_slab_uuids=hkl_uuids,
-                    parents=hkl_fws,
+                    oriented_uuid=oriented_uuid,
+                    adsorbates=adsorbates,
+                    vasp_cmd=vasp_cmd,
+                    db_file=db_file,
                 )
-                ads_slab_fws.append(pbx_fw)
+                hkl_pbx_wfs.append(hkl_pbx_wf)
 
-        return FWAction(detours=ads_slab_fws)
+        return FWAction(detours=hkl_pbx_wfs)
+
+
+"""
+# Generate a set of OptimizeFW additions that will relax all the adslab in parallel
+ads_slab_fws = []
+for slab, oriented_uuid, slab_uuid in slab_candidates:
+    slab_miller_index = "".join(list(map(str, slab.miller_index)))
+    hkl_fws, hkl_uuids = [], []
+    for adsorbate in adsorbates:
+        adslabs = get_clockwise_rotations(slab, adsorbate)
+        for adslab_label, adslab in adslabs.items():
+            name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
+            ads_slab_uuid = uuid.uuid4()
+            ads_slab_fw = AdsSlab_FW(
+                adslab,
+                name=name,
+                oriented_uuid=oriented_uuid,
+                slab_uuid=slab_uuid,
+                ads_slab_uuid=ads_slab_uuid,
+                vasp_cmd=vasp_cmd,
+            )
+            ads_slab_fws.append(ads_slab_fw)
+            hkl_fws.append(ads_slab_fw)
+            hkl_uuids.append(ads_slab_uuid)
+
+    # Surface PBX Diagram for each surface orientation "independent"
+    pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
+    pbx_fw = SurfacePBX_FW(
+        reduced_formula=reduced_formula,
+        name=pbx_name,
+        miller_index=slab_miller_index,
+        slab_uuid=slab_uuid,
+        ads_slab_uuids=hkl_uuids,
+        parents=hkl_fws,
+    )
+    ads_slab_fws.append(pbx_fw)
+"""
