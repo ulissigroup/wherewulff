@@ -164,9 +164,10 @@ class SlabAdsFireTask(FiretaskBase):
                 orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
                     "orig_inputs"
                 ]["incar"]["MAGMOM"]
-                new_sp = slab_struct.site_properties.update({"magmom": orig_magmoms})
-                slab_struct = slab_struct.copy(site_properties=new_sp)
-
+                orig_site_properties = slab_struct.site_properties
+                # Replace the magmoms with the initial values
+                orig_site_properties['magmom'] = orig_magmoms
+                slab_struct = slab_struct.copy(site_properties=orig_site_properties)
                 slab_struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
                 slab_struct.add_site_property("bulk_equivalent", slab_equivalents)
                 slab_struct.add_site_property("forces", slab_forces)
@@ -208,7 +209,6 @@ class SlabAdsFireTask(FiretaskBase):
                         slab_uuid,
                     )
                 )
-
             # Generate independent WF for OH/Ox terminations + Surface PBX
             hkl_pbx_wfs = []
             for slab, oriented_uuid, slab_uuid in slab_candidates:
