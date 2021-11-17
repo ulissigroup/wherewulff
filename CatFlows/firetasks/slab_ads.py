@@ -100,7 +100,7 @@ class SlabAdsFireTask(FiretaskBase):
                 ]["incar"]["MAGMOM"]
                 orig_site_properties = slab_struct.site_properties
                 # Replace the magmoms with the initial values
-                orig_site_properties['magmom'] = orig_magmoms
+                orig_site_properties["magmom"] = orig_magmoms
                 slab_struct = slab_struct.copy(site_properties=orig_site_properties)
                 slab_struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
                 slab_struct.add_site_property("bulk_equivalent", slab_equivalents)

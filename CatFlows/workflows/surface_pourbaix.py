@@ -72,7 +72,9 @@ def get_clockwise_rotations(slab, molecule):
     return adslab_dict
 
 
-def SurfacePBX_WF(slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_dile=DB_FILE):
+def SurfacePBX_WF(
+    slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_dile=DB_FILE
+):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
 
@@ -92,7 +94,9 @@ def SurfacePBX_WF(slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD,
     for adsorbate in adsorbates:
         adslabs = get_clockwise_rotations(slab, adsorbate)
         for adslab_label, adslab in adslabs.items():
-            name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
+            name = (
+                f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
+            )
             ads_slab_uuid = uuid.uuid4()
             ads_slab_fw = AdsSlab_FW(
                 adslab,
@@ -100,7 +104,7 @@ def SurfacePBX_WF(slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD,
                 oriented_uuid=oriented_uuid,
                 slab_uuid=slab_uuid,
                 ads_slab_uuid=ads_slab_uuid,
-                vasp_cmd=vasp_cmd
+                vasp_cmd=vasp_cmd,
             )
             hkl_fws.append(ads_slab_fw)
             hkl_uuids.append(ads_slab_uuid)
@@ -108,19 +112,18 @@ def SurfacePBX_WF(slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD,
     # Surface PBX Diagram for each surface orientation
     pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
     pbx_fw = SurfacePBX_FW(
-             reduced_formula=reduced_formula,
-             name=pbx_name,
-             miller_index=slab_miller_index,
-             slab_uuid=slab_uuid,
-             ads_slab_uuids=hkl_uuids,
-             parents=hkl_fws,
+        reduced_formula=reduced_formula,
+        name=pbx_name,
+        miller_index=slab_miller_index,
+        slab_uuid=slab_uuid,
+        ads_slab_uuids=hkl_uuids,
+        parents=hkl_fws,
     )
 
     # Create the workflow
     all_fws = hkl_fws + [pbx_fw]
-    pbx_wf = Workflow(all_fws, name=f"{slab.composition.reduced_formula}-{slab_miller_index}-PBX Workflow")
+    pbx_wf = Workflow(
+        all_fws,
+        name=f"{slab.composition.reduced_formula}-{slab_miller_index}-PBX Workflow",
+    )
     return pbx_wf
-
-
-
-

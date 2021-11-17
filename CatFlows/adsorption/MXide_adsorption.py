@@ -470,7 +470,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         return translated_molecules
 
-    def get_transformed_molecule(self, molecule, angles_list, axis=[0,0,1]): # Javi
+    def get_transformed_molecule(self, molecule, angles_list, axis=[0, 0, 1]):  # Javi
         """
         Different aproach for adding adsorbate using new site property called "binding_site"
         """
@@ -478,7 +478,9 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         translated_molecules = []
 
         # Assert that binding_site property is in molecule
-        assert "binding_site" in molecule.site_properties.keys(), "binding_site property not in site_properties dict"
+        assert (
+            "binding_site" in molecule.site_properties.keys()
+        ), "binding_site property not in site_properties dict"
 
         # Loop over degress
         for deg in angles_list:
@@ -488,12 +490,14 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 if site.binding_site:
                     translated_molecule = molecule.copy()
                     translated_molecule.translate_sites(vector=-1 * site.coords)
-                    
-                    translated_molecule = self.add_adsorbate_properties(translated_molecule)
+
+                    translated_molecule = self.add_adsorbate_properties(
+                        translated_molecule
+                    )
                     translated_molecule.rotate_sites(theta=deg, axis=axis)
-                    setattr(translated_molecule, 'deg', round(deg, ndigits=2))
+                    setattr(translated_molecule, "deg", round(deg, ndigits=2))
                     translated_molecules.append(translated_molecule)
-                    
+
         return translated_molecules
 
     def add_adsorbate_properties(self, ads):
