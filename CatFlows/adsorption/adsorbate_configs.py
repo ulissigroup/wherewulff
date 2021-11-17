@@ -11,17 +11,18 @@ OER. Rotational degree of freedom handled by function.
 
 # OH and Ox molecules
 OH = Molecule(
-    ["O", "H"], [[0, 0, 0], [-1.0, 0.0, 0.422]], site_properties={"magmom": [0.6, 0.1]}
+    ["O", "H"], [[0, 0, 0], [-1.0, 0.0, 0.422]], site_properties={"magmom": [0.6, 0.1], "binding_site": [True, False]}
 )
-Ox = Molecule(["O"], [[0, 0, 0]], site_properties={"magmom": [0.6]})
+Ox = Molecule(["O"], [[0, 0, 0]], site_properties={"magmom": [0.6], "binding_site": [True]})
 OH_Ox_list = [OH, Ox]
 OOH_up = Molecule(
-    ["O", "O", "H"], [[0, 0, 0], [-1.067, -0.403, 0.796], [-0.696, -0.272, 1.706]]
-)
+    ["O", "O", "H"], [[0, 0, 0], [-1.067, -0.403, 0.796], [-0.696, -0.272, 1.706]], site_properties={"magmom": [0.6, 0.6, 0.1], "binding_site": [True, True, False]})
 OOH_down = Molecule(
     ["O", "O", "H"],
-    [[0, 0, 0], [-1.067, -0.403, 0.796], [-1.84688848, -0.68892498, 0.25477651]],
-)
+    [[0, 0, 0], [-1.067, -0.403, 0.796], [-1.84688848, -0.68892498, 0.25477651]], site_properties={"magmom": [0.6, 0.6, 0.1], "binding_site": [True, False, False]})
+
+oer_adsorbates_dict = {"OH": OH, "Ox": Ox, "OOH_up": OOH_up, "OOH_down": OOH_down}
+
 O2 = Molecule(["O", "O"], [[0, 0, 0], [0, 0, 1.208]])
 O2_like = O2.copy()
 O2_like.add_site_property("anchor", [True, False])
