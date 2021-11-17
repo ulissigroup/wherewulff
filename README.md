@@ -24,8 +24,10 @@ in our group and more.
 - [x] Surface Pourbaix Diagram Analysis
 - [ ] Reactivity OER
 	- [ ] Single site WNA
-        - [ ] Double site WNA
-        - [ ] I2M
+		- [x] OER SingleSite (WNA) intermediates Generator
+		- [ ] FireTask, Fireworks, workflow for OER single site 
+	- [ ] Double site WNA
+	- [ ] I2M
 - [ ] FrequenciesFW and ThermoCorrections
 - [ ] Reactivity OER (WNA - Single site)
 - [ ] SP with Hybrid Functional (worth it?)
