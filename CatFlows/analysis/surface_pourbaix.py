@@ -168,7 +168,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # To_DB
         if to_db:
-            mmdb.collection = mmdb.db[f"{self.reduced_formula}_surface_pbx"]
+            mmdb.collection = mmdb.db[f"{self.reduced_formula}-{self.miller_index}_surface_pbx"]
             mmdb.collection.insert_one(summary_dict)
 
         # Logger
