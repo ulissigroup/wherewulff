@@ -16,7 +16,7 @@ class OER_SingleSite(object):
     Args:
         slab         (PMG Slab object): Should be the most stable termination comming from the PBX analysis
         adsorbates   (Dict)           : Is a dict of the well-known OER-WNA adsorbates (OH, Ox, OOH)
-        random_state (default: 42)    : This method should choose the active site automatically and (psedo-randomly)
+        random_state (default: 42)    : This method should choose the active site automatically and (pseudo-randomly)
 
     Return:
         A dictionary of intermediates e.g. {"reference", "OH_0", "OH_1",...,"OOH_up_0",..., "OOH_down_0",...,}
