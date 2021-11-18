@@ -62,6 +62,7 @@ class OERSingleSiteFireTask(FiretaskBase):
                                                                    oh_2_ox_list)
 
         # Retrieve the surface termination clean/OH/Ox geometries
+        oriented_uuid = pbx_doc["oriented_uuid"]
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
 
         # Generate OER single site intermediates (WNA)

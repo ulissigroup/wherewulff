@@ -116,6 +116,7 @@ def SurfacePBX_WF(
         name=pbx_name,
         miller_index=slab_miller_index,
         slab_uuid=slab_uuid,
+        oriented_uuid=oriented_uuid,
         ads_slab_uuids=hkl_uuids,
         parents=hkl_fws,
     )

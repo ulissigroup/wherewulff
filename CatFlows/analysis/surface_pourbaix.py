@@ -38,6 +38,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "reduced_formula",
         "miller_index",
         "slab_uuid",
+        "oriented_uuid",
         "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
@@ -52,6 +53,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.reduced_formula = self["reduced_formula"]
         self.miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
+        oriented_uuid = self["oriented_uuid"]
         slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
 
@@ -62,6 +64,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             "reduced_formula": self.reduced_formula,
             "miller_index": self.miller_index,
             "slab_uuid": slab_uuid,
+            "oriented_uuid": oriented_uuid,
             "slab_hkl_uuid": slab_hkl_uuid,
             "ads_slab_uuids": ads_slab_uuids,
         }
@@ -220,6 +223,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                     "reduced_formula": self.reduced_formula,
                     "miller_index": self.miller_index,
                     "slab_hkl_uuid": slab_hkl_uuid,
+                    "oriented_uuid": oriented_uuid,
                     "ads_slabs_uuids": ads_slab_uuids,
                     "surface_pbx_uuid": surface_pbx_uuid,
                 }
