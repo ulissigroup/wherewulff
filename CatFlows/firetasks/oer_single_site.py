@@ -13,6 +13,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.reactivity.oer import OER_SingleSite
 from CatFlows.adsorption.adsorbate_configs import oer_adsorbates_dict
+from CatFlows.workflows.oer_single_site import OERSingleSite_WF
 
 # OER single site WF ?
 
@@ -62,20 +63,25 @@ class OERSingleSiteFireTask(FiretaskBase):
                                                                    oh_2_ox_list)
 
         # Retrieve the surface termination clean/OH/Ox geometries
-        oriented_uuid = pbx_doc["oriented_uuid"]
+        clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
+
 
         # Generate OER single site intermediates (WNA)
         oer_wna = OER_SingleSite(stable_surface, adsorbates=oer_adsorbates_dict)
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
-        # WF 
-        oer_hkl_intermediates = []
-        for inter_label, inter_geom in oer_intermediates_dict.items():
-            oer_intermediate = Slab.from_dict(inter_geom)
-            # WF
+        # OER_WF
+        oer_wf = OERSingleSite_WF(
+                 oer_dict=oer_intermediates_dict,
+                 slab=clean_surface,
+                 slab_uuid=parent_dict["slab_uuid"],
+                 oriented_uuid=parent_dict["oriented_uuid"],
+                 vasp_cmd=vasp_cmd,
+                 db_file=db_file
+        )
 
-        return FWAction(detours=oer_hkl_intermediates)
+        return FWAction(detours=[oer_wf])
 
     def _get_surface_stable_termination(self, user_point, clean_2_oh, oh_2_ox):
         """ 
