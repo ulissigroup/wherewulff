@@ -82,9 +82,13 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # Find clean surface thru uuid
         doc_clean = mmdb.collection.find_one({"uuid": slab_uuid})
+
+        slab_clean_obj = Slab.from_dict(doc_clean["slab"])
+
         slab_clean = Structure.from_dict(
             doc_clean["calcs_reversed"][-1]["output"]["structure"]
         )
+
         slab_clean_energy = doc_clean["calcs_reversed"][-1]["output"]["energy"]
         slab_clean_comp = {
             str(key): value for key, value in slab_clean.composition.items()
@@ -120,6 +124,20 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 "output"
             ]["structure"]
         )
+
+        slab_oh_obj = Slab(
+                        slab_oh.lattice,
+                        slab_oh.species,
+                        slab_oh.frac_coords,
+                        miller_index=self.miller_index,
+                        oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
+                        shift=slab_clean_obj.shift,
+                        scale_factor=slab_clean_obj.scale_factor,
+                        energy=dft_energy_oh_min,
+                        site_properties=slab_oh.site_properties,
+                        )
+
+
         slab_oh_composition = {
             str(key): value for key, value in slab_oh.composition.items()
         }
@@ -129,13 +147,26 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 "output"
             ]["structure"]
         )
+
+        slab_ox_obj = Slab(
+                        slab_ox.lattice,
+                        slab_ox.species,
+                        slab_ox.frac_coords,
+                        miller_index=self.miller_index,
+                        oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
+                        shift=slab_clean_obj.shift,
+                        scale_factor=slab_clean_obj.scale_factor,
+                        energy=dft_energy_ox,
+                        site_properties=slab_ox.site_properties,
+                        )
+
         slab_ox_composition = {
             str(key): value for key, value in slab_ox.composition.items()
         }
 
-        summary_dict["slab_clean"] = slab_clean.as_dict()
-        summary_dict["slab_oh"] = slab_oh.as_dict()
-        summary_dict["slab_ox"] = slab_ox.as_dict()
+        summary_dict["slab_clean"] = slab_clean_obj.as_dict()
+        summary_dict["slab_oh"] = slab_oh_obj.as_dict()
+        summary_dict["slab_ox"] = slab_ox_obj.as_dict()
 
         # Number of H2O and nH for PBX
         nH2O = slab_ox_composition["O"] - slab_clean_comp["O"]
@@ -164,7 +195,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         summary_dict["clean_2_OH"] = self.clean_2_OH
         summary_dict["OH_2_Ox"] = self.OH_2_Ox
 
-        # Plot it duudeeee!
+        # Plot the surface PBX diagram!
         pbx_plot = self._get_surface_pbx_diagram()
         pbx_plot.savefig(f"{self.reduced_formula}_{self.miller_index}_pbx.png", dpi=300)
 
@@ -185,7 +216,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Send the summary_dict to the child FW
         return FWAction(
             update_spec={
-                f"{self.reduced_formula}_{self.miller_index}": {
+                f"{self.reduced_formula}_{self.miller_index}_surface_pbx": {
                     "reduced_formula": self.reduced_formula,
                     "miller_index": self.miller_index,
                     "slab_hkl_uuid": slab_hkl_uuid,
