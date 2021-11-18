@@ -38,6 +38,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "reduced_formula",
         "miller_index",
         "slab_uuid",
+        "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
     ]
@@ -51,12 +52,17 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.reduced_formula = self["reduced_formula"]
         self.miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
+        slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
+
+        # Create a new slab_hkl_uuid
+        slab_hkl_uuid = str(slab_uuid)+"_"+str(self.miller_index)
 
         summary_dict = {
             "reduced_formula": self.reduced_formula,
             "miller_index": self.miller_index,
             "slab_uuid": slab_uuid,
+            "slab_hkl_uuid": slab_hkl_uuid,
             "ads_slab_uuids": ads_slab_uuids,
         }
 
@@ -174,6 +180,20 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Logger
         logger.info(
             f"{self.reduced_formula}-({self.miller_index}) Surface Pourbaix Done!"
+        )
+
+        # Send the summary_dict to the child FW
+        return FWAction(
+            update_spec={
+                f"{self.reduced_formula}_{self.miller_index}": {
+                    "reduced_formula": self.reduced_formula,
+                    "miller_index": self.miller_index,
+                    "slab_hkl_uuid": slab_hkl_uuid,
+                    "ads_slabs_uuids": ads_slab_uuids,
+                    "surface_pbx_uuid": surface_pbx_uuid,
+                }
+            },
+            propagate=True,
         )
 
     def oer_potential_std(self):
