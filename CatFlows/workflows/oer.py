@@ -33,8 +33,8 @@ def OER_WF(
         parents=parents,
     )
 
-    all_fws = [oer_fw]
-    if parents is not None:
-        all_fws.extend(parents)
-    oer_wf = Workflow(all_fws, name=f"{bulk_formula}-{miller_index} OER Single Site WNA")
-    return oer_wf
+#    all_fws = [oer_fw]
+#    if parents is not None:
+#        all_fws.extend(parents)
+#    oer_wf = Workflow(all_fws, name=f"{bulk_formula}-{miller_index} OER Single Site WNA")
+    return oer_fw
