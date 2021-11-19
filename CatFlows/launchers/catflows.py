@@ -24,6 +24,7 @@ from CatFlows.dft_settings.settings import (
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
 from CatFlows.workflows.wulff_shape import WulffShape_WF
 from CatFlows.workflows.slab_ads import SlabAds_WF
+from CatFlows.workflows.oer import OER_WF
 from CatFlows.adsorption.adsorbate_configs import OH_Ox_list
 
 
@@ -190,14 +191,29 @@ class CatFlows:
 
     def _get_ads_slab_wfs(self, parents=None):
         """Returns all the Ads_slabs fireworks"""
-        ads_slab_wfs = SlabAds_WF(
+        ads_slab_wfs, parents_fws = SlabAds_WF(
             self.bulk_structure,
             self.adsorbates,
             parents=parents,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,
         )
-        return ads_slab_wfs
+        return ads_slab_wfs, parents_fws
+
+    def _get_oer_reactivity(self, parents=None):
+        """Returns all the OER ads_slab fireworks"""
+        oer_wfs = []
+        for hkl in self.miller_indices:
+            miller_index = "".join(list(map(str, hkl)))
+            oer_wf = OER_WF(
+                self.bulk_structure,
+                miller_index,
+                parents=parents,
+                vasp_cmd=self.vasp_cmd,
+                db_file=self.db_file
+            )
+            oer_wfs.append(oer_wf)
+        return oer_wfs
 
     def _get_parents(self, workflow_list):
         """Returns an unpacked list of parents from a set of wfs"""
