@@ -40,4 +40,4 @@ def SlabAds_WF(
     if parents is not None:
         all_fws.extend(parents)
     ads_wf = Workflow(all_fws, name="{} Ads_slab optimizations".format(bulk_formula))
-    return ads_wf
+    return ads_wf, all_fws
