@@ -13,7 +13,7 @@ from pymatgen.transformations.standard_transformations import (
     AutoOxiStateDecorationTransformation,
 )
 
-from fireworks import LaunchPad
+from fireworks import LaunchPad, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from CatFlows.dft_settings.settings import (
@@ -202,18 +202,21 @@ class CatFlows:
 
     def _get_oer_reactivity(self, parents=None):
         """Returns all the OER ads_slab fireworks"""
-        oer_wfs = []
+        oer_fws = []
         for hkl in self.miller_indices:
             miller_index = "".join(list(map(str, hkl)))
-            oer_wf = OER_WF(
+            oer_fw = OER_WF(
                 self.bulk_structure,
                 miller_index,
                 parents=parents,
                 vasp_cmd=self.vasp_cmd,
                 db_file=self.db_file
             )
-            oer_wfs.append(oer_wf)
-        return oer_wfs
+            oer_fws.append(oer_fw)
+        if parents is not None:
+            oer_fws.extend(parents)
+        oer_wf = Workflow(oer_fws, name=f"{self.bulk_structure.composition.reduced_formula}-{miller_index} OER Single Site WNA")
+        return oer_wf
 
     def _get_parents(self, workflow_list):
         """Returns an unpacked list of parents from a set of wfs"""
@@ -248,8 +251,16 @@ class CatFlows:
             wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
 
             # Ads slab into the launchpad
-            ads_slab_wfs = self._get_ads_slab_wfs(parents=wulff_parents)
-            launchpad.add_wf(ads_slab_wfs)
+            ads_slab_wfs, ads_slab_fws = self._get_ads_slab_wfs(parents=wulff_parents)
+
+            #breakpoint()
+            # Add OER reactivity
+            oer_wf = self._get_oer_reactivity(parents=ads_slab_fws)
+            launchpad.add_wf(oer_wf)
+
+            # Loop over OER 
+            #for oer_wf in range(len(oer_wfs)):
+            #    launchpad.add_wf(oer_wfs[oer_wf])
 
         return launchpad
 
