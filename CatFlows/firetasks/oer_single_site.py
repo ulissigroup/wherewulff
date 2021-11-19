@@ -28,7 +28,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         OERSingleSite Firetaks.
     """
 
-    required_params = ["reduced_formula", "miller_index", "adsorbates", "vasp_cmd", "db_file"]
+    required_params = ["reduced_formula", "miller_index", "vasp_cmd", "db_file"]
     optional_params = []
 
     def run_task(self, fw_spec):
