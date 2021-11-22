@@ -25,11 +25,12 @@ in our group and more.
 - [ ] Reactivity OER
 	- [ ] Single site WNA
 		- [x] OER SingleSite (WNA) intermediates Generator
-		- [ ] FireTask, Fireworks, workflow for OER single site 
+		- [x] FireTask, Fireworks, workflow for OER single site
+                - [ ] Benchmark with IrO2 and RuO2 
 	- [ ] Double site WNA
 	- [ ] I2M
-- [ ] FrequenciesFW and ThermoCorrections
-- [ ] Reactivity OER (WNA - Single site)
+- [ ] Thermo. Corrections
+	- [ ] Manually computed and added as a yaml file when needed
 - [ ] SP with Hybrid Functional (worth it?)
 
 
