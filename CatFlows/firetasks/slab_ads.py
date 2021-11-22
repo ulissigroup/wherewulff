@@ -31,7 +31,7 @@ class SlabAdsFireTask(FiretaskBase):
 
     """
 
-    required_params = ["reduced_formula", "slabs", "adsorbates", "db_file", "vasp_cmd"]
+    required_params = ["reduced_formula", "slabs", "adsorbates", "vasp_cmd", "db_file"]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
