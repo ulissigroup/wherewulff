@@ -54,7 +54,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
         oriented_uuid = self["oriented_uuid"]
-        slab_hkl_uuid = self["slab_hkl_uuid"]
+        #slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
 
         # Create a new slab_hkl_uuid
