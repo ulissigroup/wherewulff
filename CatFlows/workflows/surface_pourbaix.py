@@ -105,6 +105,7 @@ def SurfacePBX_WF(
                 slab_uuid=slab_uuid,
                 ads_slab_uuid=ads_slab_uuid,
                 vasp_cmd=vasp_cmd,
+                db_file=db_file,
             )
             hkl_fws.append(ads_slab_fw)
             hkl_uuids.append(ads_slab_uuid)
