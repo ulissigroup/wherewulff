@@ -39,7 +39,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "oriented_uuid",
-        "slab_hkl_uuid",
+#       "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
     ]
