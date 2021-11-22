@@ -73,7 +73,7 @@ def get_clockwise_rotations(slab, molecule):
 
 
 def SurfacePBX_WF(
-    slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_dile=DB_FILE
+    slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_file=DB_FILE
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
