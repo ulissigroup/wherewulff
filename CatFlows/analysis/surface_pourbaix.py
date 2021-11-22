@@ -220,6 +220,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         return FWAction(
             update_spec={
                 f"{self.reduced_formula}_{self.miller_index}_surface_pbx": {
+                    "slab_uuid": slab_uuid,
                     "reduced_formula": self.reduced_formula,
                     "miller_index": self.miller_index,
                     "slab_hkl_uuid": slab_hkl_uuid,
