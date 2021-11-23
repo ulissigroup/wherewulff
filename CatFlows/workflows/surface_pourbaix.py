@@ -20,12 +20,12 @@ def get_angles(n_rotations=4):
     return angles
 
 
-def add_adsorbates(adslab, ads_coords, molecule):
+def add_adsorbates(adslab, ads_coords, molecule, z_offset=[0,0,0.15]):
     """Add molecule in all ads_coords once"""
     translated_molecule = molecule.copy()
     for ads_site in ads_coords:
         for mol_site in translated_molecule:
-            new_coord = ads_site + mol_site.coords
+            new_coord = (ads_site + (mol_site.coords - z_offset))
             adslab.append(
                 mol_site.specie,
                 new_coord,
