@@ -166,6 +166,7 @@ class ContinueOptimizeFW(FiretaskBase):
             elif fw_spec["is_adslab"]:
                 fw_new.spec["oriented_uuid"] = fw_spec["oriented_uuid"]
                 fw_new.spec["slab_uuid"] = fw_spec["slab_uuid"]
+                return FWAction(detours=[fw_new])
 
         # Terminal node
         else:
