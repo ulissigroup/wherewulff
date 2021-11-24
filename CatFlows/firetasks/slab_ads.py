@@ -95,9 +95,14 @@ class SlabAdsFireTask(FiretaskBase):
                     ]
                 )
                 # Initialize from original magmoms instead of output ones.
-                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
-                    "orig_inputs"
-                ]["incar"]["MAGMOM"]
+                try:
+                    orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
+                        "orig_inputs"
+                    ]["incar"]["MAGMOM"]
+                except KeyError: # Seems like the schema changes when fake_vasp on?
+                    orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
+                        "input"
+                    ]["incar"]["MAGMOM"]
                 orig_site_properties = slab_struct.site_properties
                 # Replace the magmoms with the initial values
                 orig_site_properties["magmom"] = orig_magmoms
