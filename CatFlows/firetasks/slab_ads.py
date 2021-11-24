@@ -42,7 +42,7 @@ class SlabAdsFireTask(FiretaskBase):
         adsorbates = self["adsorbates"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        wulff_uuid = fw_spec.get("wulff_uuid")
+        wulff_uuid = fw_spec.get("wulff_uuid", None)
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -50,21 +50,31 @@ class SlabAdsFireTask(FiretaskBase):
         # Slab_Ads
         if slabs is None:
             # Get wulff-shape collection from DB
-            collection = mmdb.db[f"{reduced_formula}_wulff_shape_analysis"]
-            wulff_metadata = collection.find_one(
-                {"task_label": f"{reduced_formula}_wulff_shape_{wulff_uuid}"}
-            )
+            if wulff_uuid is not None:
+                collection = mmdb.db[f"{reduced_formula}_wulff_shape_analysis"]
+                wulff_metadata = collection.find_one(
+                    {"task_label": f"{reduced_formula}_wulff_shape_{wulff_uuid}"}
+                )
 
-            # Filter by surface contribution
-            filtered_slab_miller_indices = [
-                k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
-            ]
+                # Filter by surface contribution
+                filtered_slab_miller_indices = [
+                    k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
+                ]
+                # Create the set of reduced_formulas
+                bulk_slab_keys = [
+                    "_".join([reduced_formula, miller_index])
+                    for miller_index in filtered_slab_miller_indices
+                ]
+            else:
+                # This is the case where there is no Wulff shape because
+                # there is only one miller index
+                # Get the bulk_slab_key from the fw_spec
+                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}_" in k]
+                filtered_slab_miller_indices = [
+                    bsk.split("_")[1] for bsk in bulk_slab_keys
+                ]
 
-            # Create the set of reduced_formulas
-            bulk_slab_keys = [
-                "_".join([reduced_formula, miller_index])
-                for miller_index in filtered_slab_miller_indices
-            ]
+            breakpoint()
 
             # Re-build PMG Slab object from optimized structures
             slab_candidates = []
@@ -99,7 +109,7 @@ class SlabAdsFireTask(FiretaskBase):
                     orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
                         "orig_inputs"
                     ]["incar"]["MAGMOM"]
-                except KeyError: # Seems like the schema changes when fake_vasp on?
+                except KeyError:  # Seems like the schema changes when fake_vasp on?
                     orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
                         "input"
                     ]["incar"]["MAGMOM"]
