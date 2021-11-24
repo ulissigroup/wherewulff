@@ -67,8 +67,10 @@ class CatFlows:
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
+        run_fake=False,
     ):
-
+        
+        self.run_fake = run_fake
         # Bulk structure
         self.bulk_structure = self._read_cif_file(bulk_structure)
         if conventional_standard:
@@ -93,7 +95,6 @@ class CatFlows:
         # General info
         self.bulk_formula = self._get_bulk_formula()
         self.miller_indices = self._get_miller_indices()
-        print(self.miller_indices)
         self.slab_structures = self._get_slab_structures()
         self.workflows_list = self._get_all_wfs()
         self.adsorbates = adsorbates
@@ -175,6 +176,7 @@ class CatFlows:
                 include_bulk_opt=self.include_bulk_opt,
                 vasp_cmd=self.vasp_cmd,
                 db_file=self.db_file,
+                run_fake=self.run_fake,
             )
             wfs.append(slab_wf)
         return wfs

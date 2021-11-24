@@ -2,9 +2,22 @@ from typing import Counter
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure
+from atomate.vasp.firetasks.run_calc import RunVaspFake
 
 from CatFlows.dft_settings.settings import MOSurfaceSet
 from CatFlows.firetasks.handlers import ContinueOptimizeFW
+
+
+# Dictionary that holds the paths to the VASP input
+# and output files. Right now this assumes that the code is run
+# in a container (/home/jovyan) with the files placed in the right folder.
+# Maps fw_name to the ref_dir
+ref_dirs = {"RuO2_110 bulk optimization": "/home/jovyan/mo-wflow-new/RuO2_bulk_110",
+            "RuO2_101 bulk optimization": "/home/jovyan/mo-wflow-new/RuO2_bulk_101",
+            "RuO2_110 slab optimization": "/home/jovyan/mo-wflow-new/RuO2_slab_110",
+            "RuO2_101 slab optimization": "/home/jovyan/mo-wflow-new/RuO2_slab_101",
+        }
+
 
 
 def Bulk_FW(
@@ -15,6 +28,7 @@ def Bulk_FW(
     wall_time=172800,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    run_fake=False,
 ):
     """
     Function to generate a bulk firework. Returns an OptimizeFW for the specified slab.
@@ -61,10 +75,20 @@ def Bulk_FW(
             "is_bulk": True,
         },
     )
-    # Switch-off GzipDir for WAVECAR transferring
-    fw.tasks[1].update({"gzip_output": False})
+    if run_fake:
+        assert 'RuO2' in name # Hardocoded to RuO2 inputs/outputs
+        # Replace the RunVaspCustodian Firetask with RunVaspFake
+        fake_directory = ref_dirs[name]
+        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory)
+    else:
+        # Switch-off GzipDir for WAVECAR transferring
+        fw.tasks[1].update({"gzip_output": False})
+        # Switch-on WalltimeHandler in RunVaspCustodian
+        if wall_time is not None:
+            fw.tasks[1].update({"wall_time": wall_time})
 
-    # Append Continue-optimizeFW for wall-time handling
+    # Append Continue-optimizeFW for wall-time handling and use for uuid message
+    # passing
     fw.tasks.append(
         ContinueOptimizeFW(is_bulk=True, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
     )
@@ -72,9 +96,6 @@ def Bulk_FW(
     # Add bulk_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_bulk_uuid})
 
-    # Switch-on WalltimeHandler in RunVaspCustodian
-    if wall_time is not None:
-        fw.tasks[1].update({"wall_time": wall_time})
 
     return fw
 
@@ -88,6 +109,7 @@ def Slab_FW(
     wall_time=172800,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    run_fake=False,
 ):
     """
     Function to generate a slab firework. Returns an OptimizeFW for the specified slab.
@@ -134,8 +156,17 @@ def Slab_FW(
             "is_bulk": False,
         },
     )
-    # Switch-off GzipDir for WAVECAR transferring
-    fw.tasks[1].update({"gzip_output": False})
+    if run_fake:
+        assert 'RuO2' in name # Hardocoded to RuO2 inputs/outputs
+        # Replace the RunVaspCustodian Firetask with RunVaspFake
+        fake_directory = ref_dirs[name]
+        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory)
+    else:
+        # Switch-off GzipDir for WAVECAR transferring
+        fw.tasks[1].update({"gzip_output": False})
+        # Switch-on WalltimeHandler in RunVaspCustodian
+        if wall_time is not None:
+            fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
@@ -145,9 +176,6 @@ def Slab_FW(
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
 
-    # Switch-on WalltimeHandler in RunVaspCustodian
-    if wall_time is not None:
-        fw.tasks[1].update({"wall_time": wall_time})
 
     # Add slab metadata
     if add_slab_metadata:

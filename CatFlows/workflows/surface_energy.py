@@ -11,7 +11,7 @@ from CatFlows.fireworks.optimize import Bulk_FW, Slab_FW
 
 
 def SurfaceEnergy_WF(
-    slab, include_bulk_opt=True, vasp_input_set=None, vasp_cmd=VASP_CMD, db_file=DB_FILE
+    slab, include_bulk_opt=True, vasp_input_set=None, vasp_cmd=VASP_CMD, db_file=DB_FILE, run_fake=False
 ):
     """
     Gets a workflow corresponding to a slab optimization calculation.
@@ -36,7 +36,9 @@ def SurfaceEnergy_WF(
             oriented_bulk.composition.reduced_formula, miller_index
         )
         fws.append(
-            Bulk_FW(oriented_bulk, name=name_bulk, vasp_cmd=vasp_cmd, db_file=db_file)
+            Bulk_FW(oriented_bulk, name=name_bulk, vasp_cmd=vasp_cmd,
+                db_file=db_file,
+                run_fake=run_fake)
         )
         parents = fws[0]
 
@@ -51,6 +53,7 @@ def SurfaceEnergy_WF(
         vasp_cmd=vasp_cmd,
         db_file=db_file,
         add_slab_metadata=True,
+        run_fake=run_fake
     )
 
     fws.append(slab_fw)
