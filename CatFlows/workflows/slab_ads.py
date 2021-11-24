@@ -31,7 +31,6 @@ def SlabAds_WF(
             adsorbates=adsorbates,
             slabs=None,
             vasp_cmd=vasp_cmd,
-            db_file=db_file,
         ),
         name=f"{bulk_formula} Ads_slab optimization",
         parents=parents,

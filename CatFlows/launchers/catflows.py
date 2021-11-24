@@ -223,7 +223,7 @@ class CatFlows:
 
     def _get_oer_reactivity_new(self, parents=None):
         """New OER but remove inner links"""
-        miller_index_list = ["".join(list(map(str, hkl))) for hkl in self.miller_index]
+        miller_index_list = ["".join(list(map(str, hkl))) for hkl in self.miller_indices]
         oer_wf = OER_WF_new(
                   bulk_structure=self.bulk_structure,
                   miller_index_list=miller_index_list,
