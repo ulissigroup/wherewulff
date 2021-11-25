@@ -74,8 +74,6 @@ class SlabAdsFireTask(FiretaskBase):
                     bsk.split("_")[1] for bsk in bulk_slab_keys
                 ]
 
-            breakpoint()
-
             # Re-build PMG Slab object from optimized structures
             slab_candidates = []
             for miller_index, bulk_slab_key in zip(

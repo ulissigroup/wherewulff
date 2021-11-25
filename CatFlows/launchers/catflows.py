@@ -78,8 +78,6 @@ class CatFlows:
         if add_magmoms:
             self.bulk_structure = set_bulk_magmoms(self.bulk_structure)
 
-        breakpoint()
-
         # Slab modeling parameters
         self.include_bulk_opt = include_bulk_opt
         self.max_index = max_index
