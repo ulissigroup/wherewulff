@@ -243,6 +243,7 @@ def AdsSlab_FW(
             "wall_time": wall_time,
             "name": name,
             "max_tries": 5,
+            "is_bulk": False,
             "is_adslab": is_adslab,
             "oriented_uuid": oriented_uuid,  # adslab FW should get terminal node ids
             "slab_uuid": slab_uuid,
