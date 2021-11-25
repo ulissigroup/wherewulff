@@ -27,7 +27,6 @@ def SlabAds_WF(
     ads_slab_fw = Firework(
         SlabAdsFireTask(
             reduced_formula=bulk_formula,
-            db_file=db_file,
             adsorbates=adsorbates,
             slabs=None,
             vasp_cmd=vasp_cmd,
