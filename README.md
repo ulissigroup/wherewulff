@@ -61,3 +61,10 @@ in our group and more.
 	- [x] IrO2 Manually tested and getting close to good values!
 - [x] PARSING ERROR!!!!! (was the container!)
 - [ ] Get vasp ouputs for fake_vasp
+	- [x] Until Ads_slab (Yuri)
+
+# Yuri/Javi FIXME List
+- [ ] Energy is not sigma(->0) 
+- [ ] FIX: ContinousOptimizeFW for ads_slab -> Return FWAction
+- [ ] Get Ads_slab uuids from ads_slab continuousOptimizeFW task
+- [ ] Include is_bulk as False in AdsSlab_FW
