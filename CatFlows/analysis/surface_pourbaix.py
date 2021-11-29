@@ -236,7 +236,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         """
         Standard OER bound --> H2O -> O2 + 4H+ + 4e-
         """
-        return [(1.229 + self.K * pH) for pH in self.pH_range]
+        return [(1.229 - self.K * pH) for pH in self.pH_range]
 
     def oer_potential_up(self, u_0=1.60):
         """
@@ -244,7 +244,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         default: 1.60 V
         """
-        return [(u_0 + self.K * pH) for pH in self.pH_range]
+        return [(u_0 - self.K * pH) for pH in self.pH_range]
 
     def _get_surface_potential_line(
         self, dft_energy_specie, dft_energy_reference, nH=4, nH2O=4
@@ -264,7 +264,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             dft_energy_specie - dft_energy_reference - (nH2O * self.reference_energies["H2O"])
         ) * (1 / nH)
         intersept = intersept + (0.5 * self.reference_energies["H2"])
-        return [(intersept + self.K * pH) for pH in self.pH_range]
+        return [(intersept - self.K * pH) for pH in self.pH_range]
 
     def _get_surface_pbx_diagram(self):
         """
