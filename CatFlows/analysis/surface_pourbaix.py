@@ -179,11 +179,11 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.oer_std = self.oer_potential_std()
         self.oer_up = self.oer_potential_up()
 
-        self.clean_2_OH = self._get_surface_pbx_diagram(
+        self.clean_2_OH = self._get_surface_potential_line(
             ads_slab_terminations[ads_uuid_oh_min], slab_clean_energy, nH=nH, nH2O=nH2O
         )
 
-        self.OH_2_Ox = self._get_surface_pbx_diagram(
+        self.OH_2_Ox = self._get_surface_potential_line(
             ads_slab_terminations[ads_uuid_ox],
             ads_slab_terminations[ads_uuid_oh_min],
             nH=nH,
