@@ -289,7 +289,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # Surface PBX boundaries
         ax.plot(self.pH_range, self.clean_2_OH, linestyle="-", color="blue")
-        ax.plot(self.pH_range, self.OH_2_Ox, linstyle="-", color="red")
+        ax.plot(self.pH_range, self.OH_2_Ox, linestyle="-", color="red")
 
         # Fill surface-terminations regions
         ax.fill_between(
