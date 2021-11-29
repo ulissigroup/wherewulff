@@ -261,9 +261,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             - nH2O: How many water molecules are adsorbed on top of the clean (e.g. 110 = 4)
         """
         intersept = (
-            dft_energy_specie - dft_energy_reference - (nH2O * self.ref_energies["H2O"])
+            dft_energy_specie - dft_energy_reference - (nH2O * self.reference_energies["H2O"])
         ) * (1 / nH)
-        intersept = intersept + (0.5 * self.ref_energies["H2"])
+        intersept = intersept + (0.5 * self.reference_energies["H2"])
         return [(intersept + self.K * pH) for pH in self.pH_range]
 
     def _get_surface_pbx_diagram(self):
