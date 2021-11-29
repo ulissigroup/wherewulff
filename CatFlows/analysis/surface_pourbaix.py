@@ -174,6 +174,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Number of H2O and nH for PBX
         nH2O = slab_ox_composition["O"] - slab_clean_comp["O"]
         nH = slab_oh_composition["H"]
+        nH_2 = 2.0 * nH
 
         # Graph Bounds - OER
         self.oer_std = self.oer_potential_std()
@@ -183,16 +184,18 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             ads_slab_terminations[ads_uuid_oh_min], slab_clean_energy, nH=nH, nH2O=nH2O
         )
 
+        # reference to the clean surface instead of OH-term
         self.OH_2_Ox = self._get_surface_potential_line(
             ads_slab_terminations[ads_uuid_ox],
-            ads_slab_terminations[ads_uuid_oh_min],
-            nH=nH,
-            nH2O=0,
+            slab_clean_energy,
+            nH=nH_2,
+            nH2O=nH2O,
         )
 
         # Summary dict
         summary_dict["nH2O"] = nH2O
         summary_dict["nH"] = nH
+        summary_dict["nH_2"] = nH_2
         summary_dict["oer_std"] = self.oer_std
         summary_dict["oer_up"] = self.oer_up
         summary_dict["clean_2_OH"] = self.clean_2_OH
