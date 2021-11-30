@@ -22,7 +22,7 @@ OH_Ox_list = [OH, Ox]
 OOH_up = Molecule(
     ["O", "O", "H"],
     [[0, 0, 0], [-1.067, -0.403, 0.796], [-0.696, -0.272, 1.706]],
-    site_properties={"magmom": [0.6, 0.6, 0.1], "binding_site": [True, True, False]},
+    site_properties={"magmom": [0.6, 0.6, 0.1], "binding_site": [True, False, False]},
 )
 OOH_down = Molecule(
     ["O", "O", "H"],
