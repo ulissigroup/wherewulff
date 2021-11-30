@@ -97,6 +97,29 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             str(key): value for key, value in slab_clean.composition.items()
         }
 
+        # Find oriented_bulk thru uuid (since it is not decorated)
+        # TODO: Mxide method should be compatible with decorated Elements (e.g. O2-)
+        oriented_struct = Structure.from_dict(
+            mmdb.db["tasks"].find_one({"uuid": str(oriented_uuid)})["output"]["structure"]
+        )
+
+        oriented_wyckoffs = [
+            site["properties"]["bulk_wyckoff"]
+            for site in mmdb.db["tasks"].find_one({"uuid": str(slab_uuid)})["slab"][
+                "oriented_unit_cell"
+                ]["sites"]
+        ]
+
+        oriented_equivalents = [
+                    site["properties"]["bulk_equivalent"]
+                    for site in mmdb.db["tasks"].find_one({"uuid": str(slab_uuid)})["slab"][
+                        "oriented_unit_cell"
+                    ]["sites"]
+        ]
+
+        oriented_struct.add_site_property("bulk_wyckoff", oriented_wyckoffs)
+        oriented_struct.add_site_property("bulk_equivalent", oriented_equivalents)
+
         # Filter by ads_slab_uuid and task_label
         ads_slab_terminations = {}
         dft_energy_oh_min = np.inf
@@ -143,7 +166,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                         slab_oh.species,
                         slab_oh.frac_coords,
                         miller_index=self.miller_index,
-                        oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
+                        oriented_unit_cell=oriented_struct,
                         shift=slab_clean_obj.shift,
                         scale_factor=slab_clean_obj.scale_factor,
                         energy=dft_energy_oh_min,
@@ -166,7 +189,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                         slab_ox.species,
                         slab_ox.frac_coords,
                         miller_index=self.miller_index,
-                        oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
+                        oriented_unit_cell=oriented_struct,
                         shift=slab_clean_obj.shift,
                         scale_factor=slab_clean_obj.scale_factor,
                         energy=dft_energy_ox,
