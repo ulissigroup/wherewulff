@@ -78,7 +78,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # Surface PBX diagram uuid
         surface_pbx_uuid = uuid.uuid4()
-        summary_dict["surface_pbx_uuid"] = surface_pbx_uuid
+        summary_dict["surface_pbx_uuid"] = str(surface_pbx_uuid)
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -87,7 +87,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         doc_clean = mmdb.collection.find_one({"uuid": slab_uuid})
 
         slab_clean_obj = Slab.from_dict(doc_clean["slab"])
-
+        
         slab_clean = Structure.from_dict(
             doc_clean["calcs_reversed"][-1]["output"]["structure"]
         )
@@ -121,6 +121,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         summary_dict["ads_slab_terminations"] = ads_slab_terminations
 
+        # FW collection to retrieve site properties
+        fw_collection = mmdb.db["fireworks"]
+        fw_doc_oh = fw_collection.find_one({"spec.uuid": str(ads_uuid_oh_min)})
+        fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
+
+        # Retrieve OH/Ox input struct and sort
+        struct_oh_input = Structure.from_dict(fw_doc_oh["spec"]["_tasks"][0]["structure"]) 
+        struct_oh_input.sort()
+        struct_ox_input = Structure.from_dict(fw_doc_ox["spec"]["_tasks"][0]["structure"])
+
         # OH/Ox Structural info -> Compositions
         slab_oh = Structure.from_dict(
             mmdb.collection.find_one({"uuid": ads_uuid_oh_min})["calcs_reversed"][-1][
@@ -137,7 +147,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                         shift=slab_clean_obj.shift,
                         scale_factor=slab_clean_obj.scale_factor,
                         energy=dft_energy_oh_min,
-                        site_properties=slab_oh.site_properties,
+                        site_properties=struct_oh_input.site_properties,
                         )
 
 
@@ -160,7 +170,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                         shift=slab_clean_obj.shift,
                         scale_factor=slab_clean_obj.scale_factor,
                         energy=dft_energy_ox,
-                        site_properties=slab_ox.site_properties,
+                        site_properties=struct_ox_input.site_properties,
                         )
 
         slab_ox_composition = {
