@@ -259,9 +259,10 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 reference = clean
             - OH --> Ox:
                 specie = Ox-terminated
-                reference = OH-terminated
+                reference = OH-terminated (and/or) clean
             - nH: Released (H+ + e-) PCETs
             - nH2O: How many water molecules are adsorbed on top of the clean (e.g. 110 = 4)
+            - thermo_correction: Adding Thermo corrections depeding on the termination
         """
         intersept = (
             dft_energy_specie - dft_energy_reference - (nH2O * self.reference_energies["H2O"])
