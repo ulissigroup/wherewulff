@@ -56,6 +56,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         oriented_uuid = self["oriented_uuid"]
         # slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
+        orig_ads_slab_uuids = self["ads_slab_uuids"]
+
+        # Get the dynamic adslab uuids from the fw_spec.
+        # Note that this will be different from the orig_ads_slab_uuids
+        # if the AdSlab Continuation is triggered from wall time issues
+        ads_slab_uuids = [
+            fw_spec[k]["adslab_uuid"]
+            for k in fw_spec
+            if f"{self.reduced_formula}-{self.miller_index}" in k
+        ]
 
         # Create a new slab_hkl_uuid
         slab_hkl_uuid = str(slab_uuid) + "_" + str(self.miller_index)
@@ -66,6 +76,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             "slab_uuid": slab_uuid,
             "oriented_uuid": oriented_uuid,
             "slab_hkl_uuid": slab_hkl_uuid,
+            "orig_ads_slab_uuids": orig_ads_slab_uuids,
             "ads_slab_uuids": ads_slab_uuids,
         }
 
@@ -133,12 +144,12 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 dft_energy_oh = doc_ads["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_oh <= dft_energy_oh_min:
                     dft_energy_oh_min = dft_energy_oh
-                    ads_task_label_oh_min = ads_task_label
+                    #ads_task_label_oh_min = ads_task_label
                     ads_uuid_oh_min = ads_slab_uuid
 
             if "O_" in adsorbate_label:
                 dft_energy_ox = doc_ads["calcs_reversed"][-1]["output"]["energy"]
-                ads_task_label_ox = ads_task_label
+                #ads_task_label_ox = ads_task_label
                 ads_uuid_ox = ads_slab_uuid
 
         ads_slab_terminations.update({str(ads_uuid_oh_min): dft_energy_oh_min})
