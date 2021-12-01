@@ -39,7 +39,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "oriented_uuid",
-#       "slab_hkl_uuid",
+        #       "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
     ]
@@ -54,11 +54,20 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
         oriented_uuid = self["oriented_uuid"]
-        #slab_hkl_uuid = self["slab_hkl_uuid"]
-        ads_slab_uuids = self["ads_slab_uuids"]
+        # slab_hkl_uuid = self["slab_hkl_uuid"]
+        orig_ads_slab_uuids = self["ads_slab_uuids"]
+
+        # Get the dynamic adslab uuids from the fw_spec.
+        # Note that this will be different from the orig_ads_slab_uuids
+        # if the AdSlab Continuation is triggered from wall time issues
+        ads_slab_uuids = [
+            fw_spec[k]["adslab_uuid"]
+            for k in fw_spec
+            if f"{self.reduced_formula}-{self.miller_index}" in k
+        ]
 
         # Create a new slab_hkl_uuid
-        slab_hkl_uuid = str(slab_uuid)+"_"+str(self.miller_index)
+        slab_hkl_uuid = str(slab_uuid) + "_" + str(self.miller_index)
 
         summary_dict = {
             "reduced_formula": self.reduced_formula,
@@ -66,6 +75,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             "slab_uuid": slab_uuid,
             "oriented_uuid": oriented_uuid,
             "slab_hkl_uuid": slab_hkl_uuid,
+            "orig_ads_slab_uuids": orig_ads_slab_uuids,
             "ads_slab_uuids": ads_slab_uuids,
         }
 
@@ -108,12 +118,12 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 dft_energy_oh = doc_ads["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_oh <= dft_energy_oh_min:
                     dft_energy_oh_min = dft_energy_oh
-                    ads_task_label_oh_min = ads_task_label
+                    # ads_task_label_oh_min = ads_task_label
                     ads_uuid_oh_min = ads_slab_uuid
 
             if "O_" in adsorbate_label:
                 dft_energy_ox = doc_ads["calcs_reversed"][-1]["output"]["energy"]
-                ads_task_label_ox = ads_task_label
+                # ads_task_label_ox = ads_task_label
                 ads_uuid_ox = ads_slab_uuid
 
         ads_slab_terminations.update({str(ads_uuid_oh_min): dft_energy_oh_min})
@@ -129,17 +139,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         slab_oh_obj = Slab(
-                        slab_oh.lattice,
-                        slab_oh.species,
-                        slab_oh.frac_coords,
-                        miller_index=self.miller_index,
-                        oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
-                        shift=slab_clean_obj.shift,
-                        scale_factor=slab_clean_obj.scale_factor,
-                        energy=dft_energy_oh_min,
-                        site_properties=slab_oh.site_properties,
-                        )
-
+            slab_oh.lattice,
+            slab_oh.species,
+            slab_oh.frac_coords,
+            miller_index=self.miller_index,
+            oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
+            shift=slab_clean_obj.shift,
+            scale_factor=slab_clean_obj.scale_factor,
+            energy=dft_energy_oh_min,
+            site_properties=slab_oh.site_properties,
+        )
 
         slab_oh_composition = {
             str(key): value for key, value in slab_oh.composition.items()
@@ -152,16 +161,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         slab_ox_obj = Slab(
-                        slab_ox.lattice,
-                        slab_ox.species,
-                        slab_ox.frac_coords,
-                        miller_index=self.miller_index,
-                        oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
-                        shift=slab_clean_obj.shift,
-                        scale_factor=slab_clean_obj.scale_factor,
-                        energy=dft_energy_ox,
-                        site_properties=slab_ox.site_properties,
-                        )
+            slab_ox.lattice,
+            slab_ox.species,
+            slab_ox.frac_coords,
+            miller_index=self.miller_index,
+            oriented_unit_cell=slab_clean_obj.oriented_unit_cell,
+            shift=slab_clean_obj.shift,
+            scale_factor=slab_clean_obj.scale_factor,
+            energy=dft_energy_ox,
+            site_properties=slab_ox.site_properties,
+        )
 
         slab_ox_composition = {
             str(key): value for key, value in slab_ox.composition.items()
@@ -208,7 +217,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # To_DB
         if to_db:
-            mmdb.collection = mmdb.db[f"{self.reduced_formula}-{self.miller_index}_surface_pbx"]
+            mmdb.collection = mmdb.db[
+                f"{self.reduced_formula}-{self.miller_index}_surface_pbx"
+            ]
             mmdb.collection.insert_one(summary_dict)
 
         # Logger
