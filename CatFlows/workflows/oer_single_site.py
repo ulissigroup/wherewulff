@@ -26,7 +26,7 @@ def OERSingleSite_WF(oer_dict, slab, slab_uuid, oriented_uuid, vasp_cmd=VASP_CMD
     # Reduced formula
     general_reduced_formula = slab.composition.reduced_formula
     miller_index = "".join(list(map(str, slab.miller_index)))
-
+    
 
     # Loop over OER intermediates
     for oer_inter_label, oer_inter in oer_dict.items():
