@@ -218,6 +218,7 @@ def AdsSlab_FW(
             "is_adslab": is_adslab,
             "oriented_uuid": oriented_uuid,  # adslab FW should get terminal node ids
             "slab_uuid": slab_uuid,
+            "is_bulk": False,
         },
     )
     # Switch-off GzipDir for WAVECAR transferring
