@@ -22,24 +22,24 @@ def OER_WF(
     bulk_formula = bulk_structure.composition.reduced_formula
 
     # Filter out fw that are not same miller_index
-#    parents_hkl = [fw for fw in parents if f"PBX-{bulk_formula}-{miller_index}" in fw.name]
+    #    parents_hkl = [fw for fw in parents if f"PBX-{bulk_formula}-{miller_index}" in fw.name]
 
     # WulffShape Analysis
     oer_fw = Firework(
-             OERSingleSiteFireTask(
-                reduced_formula=bulk_formula,
-                miller_index=miller_index,
-                db_file=db_file,
-                vasp_cmd=vasp_cmd,
+        OERSingleSiteFireTask(
+            reduced_formula=bulk_formula,
+            miller_index=miller_index,
+            db_file=db_file,
+            vasp_cmd=vasp_cmd,
         ),
         name=f"{bulk_formula}-{miller_index} OER Single Site WNA",
         parents=parents,
     )
 
-#    all_fws = [oer_fw]
-#    if parents is not None:
-#        all_fws.extend(parents)
-#    oer_wf = Workflow(all_fws, name=f"{bulk_formula}-{miller_index} OER Single Site WNA")
+    #    all_fws = [oer_fw]
+    #    if parents is not None:
+    #        all_fws.extend(parents)
+    #    oer_wf = Workflow(all_fws, name=f"{bulk_formula}-{miller_index} OER Single Site WNA")
     return oer_fw
 
 
@@ -67,14 +67,14 @@ def OER_WF_new(
         exclude_pbx_parents = [fw for fw in parents_pbx if f"{hkl}" not in fw.name]
         parents_hkl = list(set(parents) - set(exclude_pbx_parents))
         oer_fw = Firework(
-                 OERSingleSiteFireTask(
-                     reduced_formula=bulk_formula,
-                     miller_index=hkl,
-                     db_file=db_file,
-                     vasp_cmd=vasp_cmd
-                 ),
-                 name=f"{bulk_formula}-{hkl} OER Single Site WNA",
-                 parents=parents_hkl,
+            OERSingleSiteFireTask(
+                reduced_formula=bulk_formula,
+                miller_index=hkl,
+                db_file=db_file,
+                vasp_cmd=vasp_cmd,
+            ),
+            name=f"{bulk_formula}-{hkl} OER Single Site WNA",
+            parents=parents_hkl,
         )
         all_fws.append(oer_fw)
 
@@ -82,6 +82,3 @@ def OER_WF_new(
         all_fws.extend(parents)
         oer_wf = Workflow(all_fws, name=f"{bulk_formula} OER Single Site WNA")
     return oer_wf
-
-
-
