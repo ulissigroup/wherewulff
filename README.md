@@ -26,7 +26,7 @@ in our group and more.
 	- [ ] Single site WNA
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
-                - [ ] Benchmark with IrO2 and RuO2 
+                - [ ] Benchmark with IrO2 and RuO2
 	- [ ] Double site WNA
 	- [ ] I2M
 - [ ] Thermo. Corrections
@@ -64,7 +64,7 @@ in our group and more.
 	- [x] Until Ads_slab (Yuri)
 
 # Yuri/Javi FIXME List
-- [ ] Energy is not sigma(->0) 
+- [ ] Energy is not sigma(->0)
 - [ ] FIX: ContinousOptimizeFW for ads_slab -> Return FWAction
 - [ ] Get Ads_slab uuids from ads_slab continuousOptimizeFW task
 - [ ] Include is_bulk as False in AdsSlab_FW
