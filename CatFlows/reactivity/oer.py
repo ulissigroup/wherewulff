@@ -41,7 +41,9 @@ class OER_SingleSite(object):
 
         # Select bulk-like site nearest to "removed" oxo site
         if len(self.bulk_like_sites) > 1:
-            self.selected_site = self._find_nearest_bulk_like_site(reactive_idx=self.reactive_idx)
+            self.selected_site = self._find_nearest_bulk_like_site(
+                reactive_idx=self.reactive_idx
+            )
         else:
             self.selected_site = self.bulk_like_sites
 
@@ -65,9 +67,9 @@ class OER_SingleSite(object):
         return surface_coverage, ads_species, ads_indices, termination_info
 
     def _find_nearest_bulk_like_site(self, reactive_idx):
-        """ Find reactive site by min distance between bulk-like and selected reactive site """
+        """Find reactive site by min distance between bulk-like and selected reactive site"""
         ox_site = [site for idx, site in enumerate(self.slab) if idx == reactive_idx][0]
-        
+
         min_dist = np.inf
         for bulk_like_site in self.bulk_like_sites:
             dist = np.linalg.norm(bulk_like_site - ox_site.coords)
@@ -77,7 +79,7 @@ class OER_SingleSite(object):
         return [np.array(nn_site)]
 
     def _find_nearest_hydrogen(self, site_idx, search_list):
-        """ Depending on how the surface atoms are sorted we need to find the nearest H """
+        """Depending on how the surface atoms are sorted we need to find the nearest H"""
         fixed_site = [site for idx, site in enumerate(self.slab) if idx == site_idx][0]
 
         min_dist = np.inf
@@ -103,9 +105,13 @@ class OER_SingleSite(object):
             ads_indices_oxygen = [
                 site[0] for site in self.termination_info if site[1] == Element("O")
             ]
-            ads_indices_hyd = [site for site in self.termination_info if site[1] == Element("H")]
+            ads_indices_hyd = [
+                site for site in self.termination_info if site[1] == Element("H")
+            ]
             reactive_site_oxygen = np.random.choice(ads_indices_oxygen)
-            hyd_site = self._find_nearest_hydrogen(reactive_site_oxygen, ads_indices_hyd)
+            hyd_site = self._find_nearest_hydrogen(
+                reactive_site_oxygen, ads_indices_hyd
+            )
             reactive_site = [reactive_site_oxygen, hyd_site]
             ref_slab.remove_sites(indices=reactive_site)
 
@@ -114,7 +120,11 @@ class OER_SingleSite(object):
     def _mxidegen(self, repeat=[1, 1, 1], verbose=False):
         """Returns the MXide Method for the ref_slab"""
         mxidegen = MXideAdsorbateGenerator(
-            self.ref_slab, repeat=repeat, verbose=verbose, positions=["MX_adsites"], relax_tol=0.025
+            self.ref_slab,
+            repeat=repeat,
+            verbose=verbose,
+            positions=["MX_adsites"],
+            relax_tol=0.025,
         )
         return mxidegen
 
@@ -155,12 +165,12 @@ class OER_SingleSite(object):
             angles.append(deg)
         return angles
 
-    def _add_adsorbates(self, adslab, ads_coords, molecule, z_offset=[0,0,0.15]):
+    def _add_adsorbates(self, adslab, ads_coords, molecule, z_offset=[0, 0, 0.15]):
         """Add molecule in the open coordination site"""
         translated_molecule = molecule.copy()
         for ads_site in ads_coords:
             for mol_site in translated_molecule:
-                new_coord = (ads_site + (mol_site.coords - z_offset))
+                new_coord = ads_site + (mol_site.coords - z_offset)
                 adslab.append(
                     mol_site.specie,
                     new_coord,
