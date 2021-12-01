@@ -27,6 +27,7 @@ in our group and more.
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
                 - [ ] Benchmark with IrO2 and RuO2
+		- [ ] Unsure how is gonna handle 2 open-coordinates on the metal
 	- [ ] Double site WNA
 	- [ ] I2M
 - [ ] Thermo. Corrections
