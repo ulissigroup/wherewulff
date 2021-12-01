@@ -39,7 +39,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "oriented_uuid",
-#       "slab_hkl_uuid",
+        #       "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
     ]
@@ -54,11 +54,11 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
         oriented_uuid = self["oriented_uuid"]
-        #slab_hkl_uuid = self["slab_hkl_uuid"]
+        # slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
 
         # Create a new slab_hkl_uuid
-        slab_hkl_uuid = str(slab_uuid)+"_"+str(self.miller_index)
+        slab_hkl_uuid = str(slab_uuid) + "_" + str(self.miller_index)
 
         summary_dict = {
             "reduced_formula": self.reduced_formula,
@@ -87,7 +87,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         doc_clean = mmdb.collection.find_one({"uuid": slab_uuid})
 
         slab_clean_obj = Slab.from_dict(doc_clean["slab"])
-        
+
         slab_clean = Structure.from_dict(
             doc_clean["calcs_reversed"][-1]["output"]["structure"]
         )
@@ -100,21 +100,23 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Find oriented_bulk thru uuid (since it is not decorated)
         # TODO: Mxide method should be compatible with decorated Elements (e.g. O2-)
         oriented_struct = Structure.from_dict(
-            mmdb.db["tasks"].find_one({"uuid": str(oriented_uuid)})["output"]["structure"]
+            mmdb.db["tasks"].find_one({"uuid": str(oriented_uuid)})["output"][
+                "structure"
+            ]
         )
 
         oriented_wyckoffs = [
             site["properties"]["bulk_wyckoff"]
             for site in mmdb.db["tasks"].find_one({"uuid": str(slab_uuid)})["slab"][
                 "oriented_unit_cell"
-                ]["sites"]
+            ]["sites"]
         ]
 
         oriented_equivalents = [
-                    site["properties"]["bulk_equivalent"]
-                    for site in mmdb.db["tasks"].find_one({"uuid": str(slab_uuid)})["slab"][
-                        "oriented_unit_cell"
-                    ]["sites"]
+            site["properties"]["bulk_equivalent"]
+            for site in mmdb.db["tasks"].find_one({"uuid": str(slab_uuid)})["slab"][
+                "oriented_unit_cell"
+            ]["sites"]
         ]
 
         oriented_struct.add_site_property("bulk_wyckoff", oriented_wyckoffs)
@@ -150,9 +152,13 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
 
         # Retrieve OH/Ox input struct and sort
-        struct_oh_input = Structure.from_dict(fw_doc_oh["spec"]["_tasks"][0]["structure"]) 
+        struct_oh_input = Structure.from_dict(
+            fw_doc_oh["spec"]["_tasks"][0]["structure"]
+        )
         struct_oh_input.sort()
-        struct_ox_input = Structure.from_dict(fw_doc_ox["spec"]["_tasks"][0]["structure"])
+        struct_ox_input = Structure.from_dict(
+            fw_doc_ox["spec"]["_tasks"][0]["structure"]
+        )
 
         # OH/Ox Structural info -> Compositions
         slab_oh = Structure.from_dict(
@@ -162,17 +168,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         slab_oh_obj = Slab(
-                        slab_oh.lattice,
-                        slab_oh.species,
-                        slab_oh.frac_coords,
-                        miller_index=self.miller_index,
-                        oriented_unit_cell=oriented_struct,
-                        shift=slab_clean_obj.shift,
-                        scale_factor=slab_clean_obj.scale_factor,
-                        energy=dft_energy_oh_min,
-                        site_properties=struct_oh_input.site_properties,
-                        )
-
+            slab_oh.lattice,
+            slab_oh.species,
+            slab_oh.frac_coords,
+            miller_index=self.miller_index,
+            oriented_unit_cell=oriented_struct,
+            shift=slab_clean_obj.shift,
+            scale_factor=slab_clean_obj.scale_factor,
+            energy=dft_energy_oh_min,
+            site_properties=struct_oh_input.site_properties,
+        )
 
         slab_oh_composition = {
             str(key): value for key, value in slab_oh.composition.items()
@@ -185,16 +190,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         slab_ox_obj = Slab(
-                        slab_ox.lattice,
-                        slab_ox.species,
-                        slab_ox.frac_coords,
-                        miller_index=self.miller_index,
-                        oriented_unit_cell=oriented_struct,
-                        shift=slab_clean_obj.shift,
-                        scale_factor=slab_clean_obj.scale_factor,
-                        energy=dft_energy_ox,
-                        site_properties=struct_ox_input.site_properties,
-                        )
+            slab_ox.lattice,
+            slab_ox.species,
+            slab_ox.frac_coords,
+            miller_index=self.miller_index,
+            oriented_unit_cell=oriented_struct,
+            shift=slab_clean_obj.shift,
+            scale_factor=slab_clean_obj.scale_factor,
+            energy=dft_energy_ox,
+            site_properties=struct_ox_input.site_properties,
+        )
 
         slab_ox_composition = {
             str(key): value for key, value in slab_ox.composition.items()
@@ -244,7 +249,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # To_DB
         if to_db:
-            mmdb.collection = mmdb.db[f"{self.reduced_formula}-{self.miller_index}_surface_pbx"]
+            mmdb.collection = mmdb.db[
+                f"{self.reduced_formula}-{self.miller_index}_surface_pbx"
+            ]
             mmdb.collection.insert_one(summary_dict)
 
         # Logger
@@ -298,7 +305,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             - thermo_correction: Adding Thermo corrections depeding on the termination
         """
         intersept = (
-            dft_energy_specie - dft_energy_reference - (nH2O * self.reference_energies["H2O"])
+            dft_energy_specie
+            - dft_energy_reference
+            - (nH2O * self.reference_energies["H2O"])
         ) * (1 / nH)
         intersept = intersept + (0.5 * self.reference_energies["H2"])
         return [(intersept - self.K * pH) for pH in self.pH_range]
