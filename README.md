@@ -53,7 +53,6 @@ in our group and more.
 - [x] Add compatibility with 2 nodes
 - [ ] Ab-initio Thermodynamics (methanol):
 	- [ ] Get CH3OH adsorbate geometry
-        - [ ] 
 
 # Yuri/Javi ToDo List
 
