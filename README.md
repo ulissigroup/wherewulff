@@ -50,9 +50,10 @@ in our group and more.
 - [x] Add ContinueOptimizeFW to refactor branch
 - [x] Transfer of magnetic moments across parents to childs
 - [x] WAVECAR (copy, delete, gzip) across parents to childs
-- [ ] WAVECAR Transfer across different filesystems (really?)
 - [x] Add compatibility with 2 nodes
-- [ ] Hunting for bugs!
+- [ ] Ab-initio Thermodynamics (methanol):
+	- [ ] Get CH3OH adsorbate geometry
+        - [ ] 
 
 # Yuri/Javi ToDo List
 
@@ -62,10 +63,9 @@ in our group and more.
 	- [x] IrO2 Manually tested and getting close to good values!
 - [x] PARSING ERROR!!!!! (was the container!)
 - [ ] Get vasp ouputs for fake_vasp
-	- [x] Until Ads_slab (Yuri)
-
-# Yuri/Javi FIXME List
-- [ ] Energy is not sigma(->0)
-- [ ] FIX: ContinousOptimizeFW for ads_slab -> Return FWAction
-- [ ] Get Ads_slab uuids from ads_slab continuousOptimizeFW task
-- [ ] Include is_bulk as False in AdsSlab_FW
+	- [x] Until Ads_slab (RuO2) -> Yuri
+        - [x] Unit Ads_slab (IrO2) -> Javi
+- [ ] Energy is not sigma(->0) - (wait)
+- [x] FIX: ContinousOptimizeFW for ads_slab -> Return FWAction
+- [x] Get Ads_slab uuids from ads_slab continuousOptimizeFW task
+- [x] Include is_bulk as False in AdsSlab_FW
