@@ -210,7 +210,7 @@ class CatFlows:
                 miller_index,
                 parents=parents,
                 vasp_cmd=self.vasp_cmd,
-                db_file=self.db_file
+                db_file=self.db_file,
             )
             oer_fws.append(oer_fw)
 
@@ -221,13 +221,13 @@ class CatFlows:
 
     def _get_oer_reactivity_new(self, parents=None):
         """New OER but remove inner links"""
-        miller_index_list = ["".join(list(map(str, hkl))) for hkl in self.miller_index]
+        miller_index_list = ["".join(list(map(str, hkl))) for hkl in self.miller_indices]
         oer_wf = OER_WF_new(
-                  bulk_structure=self.bulk_structure,
-                  miller_index_list=miller_index_list,
-                  parents=parents,
-                  vasp_cmd=self.vasp_cmd,
-                  db_file=self.db_file
+            bulk_structure=self.bulk_structure,
+            miller_index_list=miller_index_list,
+            parents=parents,
+            vasp_cmd=self.vasp_cmd,
+            db_file=self.db_file,
         )
         return oer_wf
 
@@ -238,7 +238,7 @@ class CatFlows:
         return fws
 
     def _convert_to_workflow(self, fws_list, name="", parents=None):
-        """ Helper function that converts list of fws into a workflow """
+        """Helper function that converts list of fws into a workflow"""
         if parents is not None:
             fws_list.extend(parents)
         wf = Workflow(fws_list, name=name)
@@ -273,13 +273,13 @@ class CatFlows:
             # Ads slab into the launchpad
             ads_slab_wfs, ads_slab_fws = self._get_ads_slab_wfs(parents=wulff_parents)
 
-            #breakpoint()
+            # breakpoint()
             # Add OER reactivity
-            oer_wf = self._get_oer_reactivity_new(parents=ads_slab_fws)
+            oer_wf = self._get_oer_reactivity(parents=ads_slab_fws)
             launchpad.add_wf(oer_wf)
 
-            # Loop over OER 
-            #for oer_wf in range(len(oer_wfs)):
+            # Loop over OER
+            # for oer_wf in range(len(oer_wfs)):
             #    launchpad.add_wf(oer_wfs[oer_wf])
 
         return launchpad
