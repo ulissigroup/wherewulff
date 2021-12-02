@@ -35,7 +35,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         and DB json data.
     """
 
-    required_params = ["db_file"]
+    required_params = ["reduced_formula", "miller_index", "slab_uuid", "ads_slab_uuids", "db_file"]
     optional_params = ["to_db"]
 
     def run_task(self, fw_spec):
@@ -43,9 +43,50 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
         to_db = self.get("to_db", True)
+        self.reduced_formula = self["reduced_formula"]
+        self.miller_index = self["miller_index"]
+        slab_uuid = self["slab_uuid"]
+        ads_slab_uuids = self["ads_slab_uuids"]
 
         # OER variables
         self.ref_energies = {"H2O": -14.25994015, "H2": -6.77818501}
+
+        # Summary dict
+        summary_dict = {
+            "reduced_formula": self.reduced_formula,
+            "miller_index": self.miller_index,
+            "slab_uuid": slab_uuid,
+            "ads_slab_uuids": ads_slab_uuids
+        }
+
+        # Reactivity uuid
+        oer_single_site_uuid = uuid.uuid4()
+        summary_dict["oer_single_site"] = str(oer_single_site_uuid)
+
+        # Connect to DB
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+
+        # Export to json file
+        with open(f"{self.reduced_formula}_{self.miller_index}_oer.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+
+        # To DB -> (This should be unique every time)
+        if to_db:
+            mmdb.collection = mmdb.db[f"{self.reduced_formula}-{self.miller_index}_oer_single_site"]
+            mmdb.collection.insert_one(summary_dict)
+
+        # Logger
+        logger.info(f"{self.reduced_formula}-{self.miller_index} -> (overpotential: {overpotential}, PDS: {pot_det_step})")
+
+
+        # Send the summary_dict to the child FW (?)
+        return FWAction(
+            update_spec = {
+
+            },
+            propagate=True,
+        )
 
     def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
         """
