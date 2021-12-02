@@ -23,6 +23,10 @@ class OERSingleSiteFireTask(FiretaskBase):
     OER Single Site FireTask.
 
     Args:
+        reduced_formula (str): Reduced formula of the given material e.g RuO2
+        miller_index    (str): Miller index of the given surface e.g 110
+        vasp_cmd        (env): Environment variable to call vasp
+        db_file         (env): Environment variable to connect to the DB
 
     Returns:
         OERSingleSite Firetaks.
