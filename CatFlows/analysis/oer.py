@@ -27,6 +27,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
     derive the theoretical overpotential.
 
     Args:
+        db_file (env): Environment variable to connect to the DB.
 
 
     Returns:
@@ -42,3 +43,106 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
         to_db = self.get("to_db", True)
+
+        # OER variables
+        self.ref_energies = {"H2O": -14.25994015, "H2": -6.77818501}
+
+    
+    def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
+        """
+        Reaction H2O + (*) --> OH* + H+ + e-
+        Args:
+            energy_oh
+            energy_clean
+            thermo_correction
+        Returns:
+            Delta G(OH) value
+        """
+        eads_oh = (energy_oh - energy_clean - (self.ref_energies["H2O"] - (0.5 * self.ref_energies["H2"])))
+        if thermo_correction:
+            eads_oh = eads_oh + thermo_correction
+            return eads_oh
+        else:
+            return eads_oh
+
+    def Eads_Ox(self, energy_ox, energy_clean, thermo_correction=None):
+        """
+        Reaction: OH* --> O* + H+ + e-
+        Args:
+            energy_ox
+            energy_clean
+            thermo_correction
+        Returns:
+            Delta G(Ox) value
+        """
+        eads_ox = (energy_ox - energy_clean - (self.ref_energies["H2O"] - self.ref_energies["H2"]))
+        if thermo_correction:
+            eads_ox = eads_ox + thermo_correction
+            return eads_ox
+        else:
+            return eads_ox
+
+    def Eads_OOH(self, energy_ooh, energy_clean, thermo_correction=None):
+        """
+        Reaction: O* + H2O --> OOH* + H+ + e-
+        Args:
+            energy_ooh
+            energy_clean
+            thermo_correction
+        Returns:
+            Delta G(OOH) value
+        """
+        eads_ooh = (energy_ooh - energy_clean - ((2*self.ref_energies["H2O"]) - (1.5*self.ref_energies["H2"])))
+        if thermo_correction:
+            eads_ooh = eads_ooh + thermo_correction
+            return eads_ooh
+        else:
+            return eads_ooh
+
+    def oxygen_evolution(self, eads_ooh, std_potential=4.92):
+        """
+        Reaction: OOH* --> O2(g) + (*) + H+ + e-
+        Args:
+            eads_ooh
+            std_potential (default: 4.92)
+        Returns:
+            Delta G of the O2 evolution (last step)
+        """
+        o2_release = std_potential - eads_ooh
+        return o2_release
+
+    def linear_relationships_and_overpotential(self, delta_g_dict):
+        """
+        Computes linear relationships and derives theoretical overpotential
+        Args:
+            delta_g_dict = {"g_oh", "g_ox", "g_ooh", "g_o2"}
+        Returns:
+            Dictionary with linear relationships and overpotential.
+        """
+        # Linear relationships
+        ox_oh = delta_g_dict["g_ox"] - delta_g_dict["g_oh"]
+        ooh_ox = delta_g_dict["g_ooh"] - delta_g_dict["g_ox"]
+        linear_relationships_dict = {"g_oh": delta_g_dict["g_oh"],
+                                     "ox_oh": ox_oh,
+                                     "ooh_ox": ooh_ox,
+                                     "g_o2": delta_g_dict["g_o2"]}
+
+        # Find max in linear_rel. dict
+        find_max_step = max(linear_relationships_dict, key=linear_relationships_dict.get)
+
+        # Theoretical overpotential
+        oer_overpotential = linear_relationships_dict[find_max_step] - 1.23
+
+        # Result Dict
+        result_dict = {**delta_g_dict, **linear_relationships_dict}
+        result_dict["overpotential"] = oer_overpotential
+        result_dict["PDS"] = find_max_step
+        
+        return result_dict
+        
+
+
+
+
+
+        
