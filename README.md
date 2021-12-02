@@ -28,6 +28,7 @@ in our group and more.
 		- [x] FireTask, Fireworks, workflow for OER single site
                 - [ ] Benchmark with IrO2 and RuO2
 		- [ ] Unsure how is gonna handle 2 open-coordinates on the metal
+                - [ ] Should work, but there might appear some atom clashes 
 	- [ ] Double site WNA
 	- [ ] I2M
 - [ ] Thermo. Corrections
