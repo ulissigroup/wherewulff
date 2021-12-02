@@ -7,7 +7,7 @@ from pymatgen.core.surface import Slab
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 
-from atomate.utils.utils import env_chk
+from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
@@ -15,8 +15,7 @@ from CatFlows.reactivity.oer import OER_SingleSite
 from CatFlows.adsorption.adsorbate_configs import oer_adsorbates_dict
 from CatFlows.workflows.oer_single_site import OERSingleSite_WF
 
-# OER single site WF ?
-
+logger = get_logger(__name__)
 
 @explicit_serialize
 class OERSingleSiteFireTask(FiretaskBase):
@@ -70,6 +69,9 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Generate OER single site intermediates (WNA)
         oer_wna = OER_SingleSite(stable_surface, adsorbates=oer_adsorbates_dict)
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
+
+        # Logger
+        logger.info(f"{reduced_formula}-{miller_index} at (pH = {applied_pH}, V = {applied_potential} is: {surface_termination}")
 
         # OER_WF
         oer_wf = OERSingleSite_WF(
