@@ -47,7 +47,6 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         # OER variables
         self.ref_energies = {"H2O": -14.25994015, "H2": -6.77818501}
 
-    
     def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
         """
         Reaction H2O + (*) --> OH* + H+ + e-
@@ -58,7 +57,11 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         Returns:
             Delta G(OH) value
         """
-        eads_oh = (energy_oh - energy_clean - (self.ref_energies["H2O"] - (0.5 * self.ref_energies["H2"])))
+        eads_oh = (
+            energy_oh
+            - energy_clean
+            - (self.ref_energies["H2O"] - (0.5 * self.ref_energies["H2"]))
+        )
         if thermo_correction:
             eads_oh = eads_oh + thermo_correction
             return eads_oh
@@ -75,7 +78,11 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         Returns:
             Delta G(Ox) value
         """
-        eads_ox = (energy_ox - energy_clean - (self.ref_energies["H2O"] - self.ref_energies["H2"]))
+        eads_ox = (
+            energy_ox
+            - energy_clean
+            - (self.ref_energies["H2O"] - self.ref_energies["H2"])
+        )
         if thermo_correction:
             eads_ox = eads_ox + thermo_correction
             return eads_ox
@@ -92,7 +99,11 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         Returns:
             Delta G(OOH) value
         """
-        eads_ooh = (energy_ooh - energy_clean - ((2*self.ref_energies["H2O"]) - (1.5*self.ref_energies["H2"])))
+        eads_ooh = (
+            energy_ooh
+            - energy_clean
+            - ((2 * self.ref_energies["H2O"]) - (1.5 * self.ref_energies["H2"]))
+        )
         if thermo_correction:
             eads_ooh = eads_ooh + thermo_correction
             return eads_ooh
@@ -122,13 +133,17 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         # Linear relationships
         ox_oh = delta_g_dict["g_ox"] - delta_g_dict["g_oh"]
         ooh_ox = delta_g_dict["g_ooh"] - delta_g_dict["g_ox"]
-        linear_relationships_dict = {"g_oh": delta_g_dict["g_oh"],
-                                     "ox_oh": ox_oh,
-                                     "ooh_ox": ooh_ox,
-                                     "g_o2": delta_g_dict["g_o2"]}
+        linear_relationships_dict = {
+            "g_oh": delta_g_dict["g_oh"],
+            "ox_oh": ox_oh,
+            "ooh_ox": ooh_ox,
+            "g_o2": delta_g_dict["g_o2"],
+        }
 
         # Find max in linear_rel. dict
-        find_max_step = max(linear_relationships_dict, key=linear_relationships_dict.get)
+        find_max_step = max(
+            linear_relationships_dict, key=linear_relationships_dict.get
+        )
 
         # Theoretical overpotential
         oer_overpotential = linear_relationships_dict[find_max_step] - 1.23
@@ -137,12 +152,5 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         result_dict = {**delta_g_dict, **linear_relationships_dict}
         result_dict["overpotential"] = oer_overpotential
         result_dict["PDS"] = find_max_step
-        
+
         return result_dict
-        
-
-
-
-
-
-        
