@@ -40,7 +40,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "ads_slab_uuids",
-        #"surface_termination", - might be useful to filter out
+        # "surface_termination", - might be useful to filter out
         "db_file",
     ]
     optional_params = ["to_db"]
@@ -83,19 +83,16 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Filter min energy per intermediate
+        # reference, OH_n, O_n, OOH_up_n, OOH_down_n
         oer_intermediates = {}
         for n, ads_slab_uuid in enumerate(ads_slab_uuids):
             doc_oer = mmdb.collection.find_one({"uuid": ads_slab_uuid})
             oer_task_label = doc_oer["task_label"]
-            adsorbate_label = oer_task_label.split("-")[2] # reference, OH_n, O_n, OOH_up_n, OOH_down_n
+            adsorbate_label = oer_task_label.split("-")[2]
             if "reference" in adsorbate_label:
                 dft_energy_reference = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 oer_uuid_reference = ads_slab_uuid
                 oer_intermediates["reference"] = dft_energy_reference
-
-
-
-
 
         # Export to json file
         with open(f"{self.reduced_formula}_{self.miller_index}_oer.json", "w") as f:
