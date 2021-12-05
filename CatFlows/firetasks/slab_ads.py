@@ -31,7 +31,14 @@ class SlabAdsFireTask(FiretaskBase):
 
     """
 
-    required_params = ["reduced_formula", "slabs", "adsorbates", "vasp_cmd", "db_file"]
+    required_params = [
+        "reduced_formula",
+        "slabs",
+        "adsorbates",
+        "vasp_cmd",
+        "db_file",
+        "run_fake",
+    ]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
@@ -43,6 +50,7 @@ class SlabAdsFireTask(FiretaskBase):
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         wulff_uuid = fw_spec.get("wulff_uuid", None)
+        run_fake = self.get("run_fake", False)
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -166,6 +174,7 @@ class SlabAdsFireTask(FiretaskBase):
                     adsorbates=adsorbates,
                     vasp_cmd=vasp_cmd,
                     db_file=db_file,
+                    run_fake=run_fake,
                 )
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 

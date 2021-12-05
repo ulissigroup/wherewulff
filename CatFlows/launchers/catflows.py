@@ -199,6 +199,7 @@ class CatFlows:
             parents=parents,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,
+            run_fake=self.run_fake,
         )
         return ads_slab_wfs, parents_fws
 

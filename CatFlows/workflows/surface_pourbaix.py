@@ -20,12 +20,12 @@ def get_angles(n_rotations=4):
     return angles
 
 
-def add_adsorbates(adslab, ads_coords, molecule, z_offset=[0,0,0.15]):
+def add_adsorbates(adslab, ads_coords, molecule, z_offset=[0, 0, 0.15]):
     """Add molecule in all ads_coords once"""
     translated_molecule = molecule.copy()
     for ads_site in ads_coords:
         for mol_site in translated_molecule:
-            new_coord = (ads_site + (mol_site.coords - z_offset))
+            new_coord = ads_site + (mol_site.coords - z_offset)
             adslab.append(
                 mol_site.specie,
                 new_coord,
@@ -73,7 +73,13 @@ def get_clockwise_rotations(slab, molecule):
 
 
 def SurfacePBX_WF(
-    slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_file=DB_FILE
+    slab,
+    slab_uuid,
+    oriented_uuid,
+    adsorbates,
+    vasp_cmd=VASP_CMD,
+    db_file=DB_FILE,
+    run_fake=False,
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
@@ -106,6 +112,7 @@ def SurfacePBX_WF(
                 ads_slab_uuid=ads_slab_uuid,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
+                run_fake=run_fake,
             )
             hkl_fws.append(ads_slab_fw)
             hkl_uuids.append(ads_slab_uuid)
