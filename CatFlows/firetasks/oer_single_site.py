@@ -17,6 +17,7 @@ from CatFlows.workflows.oer_single_site import OERSingleSite_WF
 
 logger = get_logger(__name__)
 
+
 @explicit_serialize
 class OERSingleSiteFireTask(FiretaskBase):
     """
@@ -32,7 +33,14 @@ class OERSingleSiteFireTask(FiretaskBase):
         OERSingleSite Firetaks.
     """
 
-    required_params = ["reduced_formula", "miller_index", "applied_potential", "applied_pH", "vasp_cmd", "db_file"]
+    required_params = [
+        "reduced_formula",
+        "miller_index",
+        "applied_potential",
+        "applied_pH",
+        "vasp_cmd",
+        "db_file",
+    ]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -46,8 +54,8 @@ class OERSingleSiteFireTask(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # User-defined parameters !
-        #applied_potential = 1.60  # volts
-        #applied_pH = 0  # pH conditions
+        # applied_potential = 1.60  # volts
+        # applied_pH = 0  # pH conditions
         user_point = np.array([applied_pH, applied_potential])
 
         parent_dict = fw_spec[f"{reduced_formula}_{miller_index}_surface_pbx"]
@@ -77,7 +85,9 @@ class OERSingleSiteFireTask(FiretaskBase):
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
-        logger.info(f"{reduced_formula}-{miller_index} at (pH = {applied_pH}, V = {applied_potential} is: {surface_termination}")
+        logger.info(
+            f"{reduced_formula}-{miller_index} at (pH = {applied_pH}, V = {applied_potential} is: {surface_termination}"
+        )
 
         # OER_WF
         oer_wf = OERSingleSite_WF(
