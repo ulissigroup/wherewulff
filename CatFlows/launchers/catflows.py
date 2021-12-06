@@ -41,8 +41,13 @@ class CatFlows:
         max_index             (default: 1)      : Maximum number for (h,k,l) miller indexes.
         symmetrize            (default: True)   : To enforce that top/bottom layers are symmetrized while slicing the slab model.
         slab_repeat           (default: [2,2,1]): Slab model supercell in the xy plane.
-        selective_dynamics    (default: True)   : Contraint bottom-half of the slab model.
+        selective_dynamics    (default: False)  : Contraint bottom-half of the slab model.
         wulff_analysis        (default: True)   : Add Wulff shape Analysis in the workflow (To prioritize surfaces).
+        exclude_hkl           (default: list)   : List of tupple miller indexes [(h, k, l), (h', k', l')] to not compute.
+        stop_at_wulff_an      (default: False)  : Stop workflow at Wulff Shape level. (avoid pbx and reactivity).
+        adsorbates_list       (default: List)   : List of adsorbates as Molecule PMG objects (OH/Ox)
+        applied_potential     (default: 1.60)   : Applied potential to determine the most stable termination at given voltage.
+        applied_pH            (default: 0.0)    : Applied pH to determine the most stable termination at give pH.
         vasp_input_set        (default: None)   : To select DFT method for surface optimizations.
         vasp_cmd                                : VASP execution command (configured in my_fworker.py file)
         db_file                                 : Directs to db.json file for mongodb database configuration.
@@ -64,6 +69,8 @@ class CatFlows:
         exclude_hkl=None,
         stop_at_wulff_analysis=False,
         adsorbates=OH_Ox_list,
+        applied_potential=1.60,
+        applied_pH=0,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
@@ -98,6 +105,10 @@ class CatFlows:
         self.slab_structures = self._get_slab_structures()
         self.workflows_list = self._get_all_wfs()
         self.adsorbates = adsorbates
+
+        # PBX conditions
+        self.applied_potential = applied_potential
+        self.applied_pH = applied_pH
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -211,6 +222,8 @@ class CatFlows:
             oer_fw = OER_WF(
                 self.bulk_structure,
                 miller_index,
+                applied_potential=self.applied_potential,
+                applied_pH=self.applied_pH,
                 parents=parents,
                 vasp_cmd=self.vasp_cmd,
                 db_file=self.db_file,
