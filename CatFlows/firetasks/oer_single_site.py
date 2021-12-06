@@ -83,6 +83,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             slab=clean_surface,
             slab_uuid=parent_dict["slab_uuid"],
             oriented_uuid=parent_dict["oriented_uuid"],
+            surface_termination=surface_termination,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
         )
