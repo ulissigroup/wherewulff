@@ -126,14 +126,58 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
                     oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
 
-            # Add both oer dicts into summary_dict
-            summary_dict["oer_uuids"] = oer_intermediates_uuid
-            summary_dict["oer_energies"] = oer_intermediates_energy
+        # Add both oer dicts into summary_dict
+        summary_dict["oer_uuids"] = oer_intermediates_uuid
+        summary_dict["oer_energies"] = oer_intermediates_energy
 
-            
+        # Compute delta G
+        delta_g_oer_dict = {}
 
+        # Eads_OH
+        eads_oh = self.Eads_OH(oer_intermediates_energy["OH"], 
+                               oer_intermediates_energy["reference"],
+                               thermo_correction=None)
 
+        delta_g_oer_dict["g_oh"] = eads_oh
 
+        # Eads_Ox
+        eads_ox = self.Eads_Ox(oer_intermediates_energy["Ox"],
+                               oer_intermediates_energy["reference"],
+                               thermo_correction=None)
+        
+        delta_g_oer_dict["g_ox"] = eads_ox
+
+        # Eads_OOH
+        eads_ooh_up = self.Eads_OOH(oer_intermediates_energy["OOH_up"],
+                                    oer_intermediates_energy["reference"],
+                                    thermo_correction=None)
+
+        eads_ooh_down = self.Eads_OOH(oer_intermediates_energy["OOH_down"],
+                                      oer_intermediates_energy["reference"],
+                                      thermo_correction=None)
+
+        # Select between OOH_up and OOH_down
+        if eads_ooh_up <= eads_ooh_down:
+            delta_g_oer_dict["g_ooh"] = eads_ooh_up
+
+        if eads_ooh_down <= eads_ooh_up:
+            delta_g_oer_dict["g_ooh"] = eads_ooh_down
+
+        # O2 evolution
+        o2_evol = self.oxygen_evolution(delta_g_oer_dict["g_ooh"], 
+                                        std_potential=4.92)
+
+        delta_g_oer_dict["g_o2"] = o2_evol
+
+        # Linear Relationships - Theoretical overpotential - PDS
+        oer_dict = self.linear_relationships_and_overpotential(delta_g_oer_dict)
+        overpotential = oer_dict["overpotential"]
+        pds_step = oer_dict["PDS"]
+
+        # Add oer_dict to summary_dict
+        summary_dict["oer_info"] = oer_dict
+        summary_dict["overpotential"] = overpotential
+        summary_dict["PDS"] = pds_step
 
 
         # Export to json file
@@ -149,7 +193,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
 
         # Logger
         logger.info(
-            f"{self.reduced_formula}-{self.miller_index} -> (overpotential: {overpotential}, PDS: {pot_det_step})"
+            f"{self.reduced_formula}-{self.miller_index} -> (overpotential: {overpotential}, PDS: {pds_step})"
         )
 
         # Send the summary_dict to the child FW (?)
@@ -160,7 +204,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
 
     def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
         """
-        Reaction H2O + (*) --> OH* + H+ + e-
+        Reaction: H2O + (*) --> OH* + H+ + e-
         Args:
             energy_oh
             energy_clean
