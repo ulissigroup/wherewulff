@@ -87,14 +87,24 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Retrieve the surface termination from pbx collection
-        pbx_collection = mmdb.db[f"{self.reduced_formula}-{self.miller_index}_surface_pbx"]
-        doc_termination = pbx_collection.find_one({"surface_pbx_uuid": surface_pbx_uuid})
+        pbx_collection = mmdb.db[
+            f"{self.reduced_formula}-{self.miller_index}_surface_pbx"
+        ]
+        doc_termination = pbx_collection.find_one(
+            {"surface_pbx_uuid": surface_pbx_uuid}
+        )
 
-        stable_termination = Slab.from_dict(doc_termination[f"slab_{surface_termination}"]) # ox or oh
+        stable_termination = Slab.from_dict(
+            doc_termination[f"slab_{surface_termination}"]
+        )  # ox or oh
 
         # Filter OER intermediates (reference, OH_n, O_n, OOH_up_n, OOH_down_n)
         oer_intermediates_uuid, oer_intermediates_energy = {}, {}
-        dft_energy_oh_min, dft_energy_ooh_up_min, dft_energy_ooh_down_min = np.inf, np.inf, np.inf
+        dft_energy_oh_min, dft_energy_ooh_up_min, dft_energy_ooh_down_min = (
+            np.inf,
+            np.inf,
+            np.inf,
+        )
         for n, ads_slab_uuid in enumerate(ads_slab_uuids):
             doc_oer = mmdb.collection.find_one({"uuid": ads_slab_uuid})
             oer_task_label = doc_oer["task_label"]
@@ -151,27 +161,35 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         delta_g_oer_dict = {}
 
         # Eads_OH
-        eads_oh = self.Eads_OH(oer_intermediates_energy["OH"], 
-                               oer_intermediates_energy["reference"],
-                               thermo_correction=None)
+        eads_oh = self.Eads_OH(
+            oer_intermediates_energy["OH"],
+            oer_intermediates_energy["reference"],
+            thermo_correction=None,
+        )
 
         delta_g_oer_dict["g_oh"] = eads_oh
 
         # Eads_Ox
-        eads_ox = self.Eads_Ox(oer_intermediates_energy["Ox"],
-                               oer_intermediates_energy["reference"],
-                               thermo_correction=None)
-        
+        eads_ox = self.Eads_Ox(
+            oer_intermediates_energy["Ox"],
+            oer_intermediates_energy["reference"],
+            thermo_correction=None,
+        )
+
         delta_g_oer_dict["g_ox"] = eads_ox
 
         # Eads_OOH
-        eads_ooh_up = self.Eads_OOH(oer_intermediates_energy["OOH_up"],
-                                    oer_intermediates_energy["reference"],
-                                    thermo_correction=None)
+        eads_ooh_up = self.Eads_OOH(
+            oer_intermediates_energy["OOH_up"],
+            oer_intermediates_energy["reference"],
+            thermo_correction=None,
+        )
 
-        eads_ooh_down = self.Eads_OOH(oer_intermediates_energy["OOH_down"],
-                                      oer_intermediates_energy["reference"],
-                                      thermo_correction=None)
+        eads_ooh_down = self.Eads_OOH(
+            oer_intermediates_energy["OOH_down"],
+            oer_intermediates_energy["reference"],
+            thermo_correction=None,
+        )
 
         # Select between OOH_up and OOH_down
         if eads_ooh_up <= eads_ooh_down:
@@ -181,8 +199,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             delta_g_oer_dict["g_ooh"] = eads_ooh_down
 
         # O2 evolution
-        o2_evol = self.oxygen_evolution(delta_g_oer_dict["g_ooh"], 
-                                        std_potential=4.92)
+        o2_evol = self.oxygen_evolution(delta_g_oer_dict["g_ooh"], std_potential=4.92)
 
         delta_g_oer_dict["g_o2"] = o2_evol
 
@@ -195,7 +212,6 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         summary_dict["oer_info"] = oer_dict
         summary_dict["overpotential"] = overpotential
         summary_dict["PDS"] = pds_step
-
 
         # Export to json file
         with open(f"{self.reduced_formula}_{self.miller_index}_oer.json", "w") as f:
@@ -220,7 +236,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     "oer_single_site_uuid": str(oer_single_site_uuid),
                     "overpotential": overpotential,
                     "PDS": pds_step,
-                    "oer_info": oer_dict
+                    "oer_info": oer_dict,
                 }
             }
         )
