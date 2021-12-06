@@ -12,7 +12,13 @@ from CatFlows.fireworks.oer_single_site import OER_SingleSiteAnalyzer_FW
 
 
 def OERSingleSite_WF(
-    oer_dict, slab, slab_uuid, oriented_uuid, surface_termination, vasp_cmd=VASP_CMD, db_file=DB_FILE
+    oer_dict,
+    slab,
+    slab_uuid,
+    oriented_uuid,
+    surface_termination,
+    vasp_cmd=VASP_CMD,
+    db_file=DB_FILE,
 ):
     """
     Wrap-up workflow for OER single site (wna) + Reactivity Analysis
@@ -32,7 +38,7 @@ def OERSingleSite_WF(
     # Loop over OER intermediates
     for oer_inter_label, oer_inter in oer_dict.items():
         oer_intermediate = Slab.from_dict(oer_inter)
-        #reduced_formula = oer_intermediate.composition.reduced_formula
+        # reduced_formula = oer_intermediate.composition.reduced_formula
         name = f"{general_reduced_formula}-{miller_index}-{oer_inter_label}"
         oer_inter_uuid = uuid.uuid4()
         oer_inter_fw = AdsSlab_FW(
