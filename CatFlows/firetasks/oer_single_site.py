@@ -32,7 +32,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         OERSingleSite Firetaks.
     """
 
-    required_params = ["reduced_formula", "miller_index", "vasp_cmd", "db_file"]
+    required_params = ["reduced_formula", "miller_index", "applied_potential", "applied_pH", "vasp_cmd", "db_file"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -40,12 +40,14 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
+        applied_potential = self["applied_potential"]
+        applied_pH = self["applied_pH"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # User-defined parameters !
-        applied_potential = 1.60  # volts
-        applied_pH = 0  # pH conditions
+        #applied_potential = 1.60  # volts
+        #applied_pH = 0  # pH conditions
         user_point = np.array([applied_pH, applied_potential])
 
         parent_dict = fw_spec[f"{reduced_formula}_{miller_index}_surface_pbx"]
