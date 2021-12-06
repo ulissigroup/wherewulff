@@ -40,7 +40,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "ads_slab_uuids",
-        # "surface_termination", - might be useful to filter out
+        "surface_termination",
         "db_file",
     ]
     optional_params = ["to_db"]
@@ -54,6 +54,10 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         self.miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
+        surface_termination = self["surface_termination"]
+
+        parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
+        surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
 
         # Get the dynamic adslab uuids from the fw_spec.
         # Note that this will be different from the orig_ads_slab_uuids
@@ -81,6 +85,12 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+        # Retrieve the surface termination from pbx collection
+        pbx_collection = mmdb.db[f"{self.reduced_formula}-{self.miller_index}_surface_pbx"]
+        doc_termination = pbx_collection.find_one({"surface_pbx_uuid": surface_pbx_uuid})
+
+        stable_termination = Slab.from_dict(doc_termination[f"slab_{surface_termination}"]) # ox or oh
 
         # Filter OER intermediates (reference, OH_n, O_n, OOH_up_n, OOH_down_n)
         oer_intermediates_uuid, oer_intermediates_energy = {}, {}
@@ -125,6 +135,13 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     dft_energy_ooh_down = dft_energy_ooh_down
                     oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
                     oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
+
+        # Add termination as OER intermediate
+        if surface_termination == "ox":
+            oer_intermediates_energy["Ox"] = stable_termination.energy
+
+        if surface_termination == "oh":
+            oer_intermediates_energy["OH"] = stable_termination.energy
 
         # Add both oer dicts into summary_dict
         summary_dict["oer_uuids"] = oer_intermediates_uuid
