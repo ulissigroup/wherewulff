@@ -26,9 +26,8 @@ in our group and more.
 	- [ ] Single site WNA
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
-                - [ ] Benchmark with IrO2 and RuO2
-		- [ ] Unsure how is gonna handle 2 open-coordinates on the metal
-                - [ ] Should work, but there might appear some atom clashes 
+        - [x] OER_SingleSiteAnalyzer for delta G (4 steps), overpotential, PDS
+        - [ ] Benchmark IrO2 and RuO2
 	- [ ] Double site WNA
 	- [ ] I2M
 - [ ] Thermo. Corrections
