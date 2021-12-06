@@ -8,10 +8,11 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 from pymatgen.core.surface import Slab
 
 from CatFlows.fireworks.optimize import AdsSlab_FW
+from CatFlows.fireworks.oer_single_site import OER_SingleSiteAnalyzer_FW
 
 
 def OERSingleSite_WF(
-    oer_dict, slab, slab_uuid, oriented_uuid, vasp_cmd=VASP_CMD, db_file=DB_FILE
+    oer_dict, slab, slab_uuid, oriented_uuid, surface_termination, vasp_cmd=VASP_CMD, db_file=DB_FILE
 ):
     """
     Wrap-up workflow for OER single site (wna) + Reactivity Analysis
@@ -31,8 +32,8 @@ def OERSingleSite_WF(
     # Loop over OER intermediates
     for oer_inter_label, oer_inter in oer_dict.items():
         oer_intermediate = Slab.from_dict(oer_inter)
-        reduced_formula = oer_intermediate.composition.reduced_formula
-        name = f"{reduced_formula}-{miller_index}-{oer_inter_label}"
+        #reduced_formula = oer_intermediate.composition.reduced_formula
+        name = f"{general_reduced_formula}-{miller_index}-{oer_inter_label}"
         oer_inter_uuid = uuid.uuid4()
         oer_inter_fw = AdsSlab_FW(
             oer_intermediate,
@@ -46,9 +47,19 @@ def OERSingleSite_WF(
         oer_uuids.append(oer_inter_uuid)
 
     # Reactivity Analysis
+    oer_fw = OER_SingleSiteAnalyzer_FW(
+        reduced_formula=str(general_reduced_formula),
+        miller_index=miller_index,
+        name=f"{general_reduced_formula}-{miller_index}-OER-Analysis",
+        slab_uuid=slab_uuid,
+        ads_slab_uuids=oer_uuids,
+        surface_termination=surface_termination,
+        parents=oer_fws,
+        db_file=db_file,
+    )
 
     # Create the workflow
-    all_fws = oer_fws
+    all_fws = oer_fws + [oer_fw]
     oer_single_site = Workflow(
         all_fws, name=f"{general_reduced_formula}-{miller_index}-OER SingleSite"
     )
