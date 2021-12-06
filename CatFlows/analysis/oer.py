@@ -82,17 +82,59 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        # Filter min energy per intermediate
-        # reference, OH_n, O_n, OOH_up_n, OOH_down_n
-        oer_intermediates = {}
+        # Filter OER intermediates (reference, OH_n, O_n, OOH_up_n, OOH_down_n)
+        oer_intermediates_uuid, oer_intermediates_energy = {}, {}
+        dft_energy_oh_min, dft_energy_ooh_up_min, dft_energy_ooh_down_min = np.inf, np.inf, np.inf
         for n, ads_slab_uuid in enumerate(ads_slab_uuids):
             doc_oer = mmdb.collection.find_one({"uuid": ads_slab_uuid})
             oer_task_label = doc_oer["task_label"]
             adsorbate_label = oer_task_label.split("-")[2]
+            # reference active site
             if "reference" in adsorbate_label:
                 dft_energy_reference = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 oer_uuid_reference = ads_slab_uuid
-                oer_intermediates["reference"] = dft_energy_reference
+                oer_intermediates_uuid["reference"] = oer_uuid_reference
+                oer_intermediates_energy["reference"] = dft_energy_reference
+            # select OH intermediate as min dft energy
+            if "OH_" in adsorbate_label:
+                dft_energy_oh = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                if dft_energy_oh <= dft_energy_oh_min:
+                    dft_energy_oh_min = dft_energy_oh
+                    oer_uuid_oh = adsorbate_label
+                    oer_intermediates_uuid["OH"] = oer_uuid_oh
+                    oer_intermediates_energy["OH"] = dft_energy_oh_min
+            # select Ox intermediate as min dft energy (no rotation - just one)
+            if "O_" in adsorbate_label:
+                dft_energy_oh = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                oer_uuid_ox = adsorbate_label
+                oer_intermediates_uuid["Ox"] = oer_uuid_ox
+                oer_intermediates_energy["Ox"] = dft_energy_oh
+            # select OOH_up intermediate as min dft energy
+            if "OOH_up_" in adsorbate_label:
+                dft_energy_ooh_up = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                if dft_energy_ooh_up <= dft_energy_ooh_up_min:
+                    oer_uuid_ooh_up = adsorbate_label
+                    dft_energy_ooh_up_min = dft_energy_ooh_up
+                    oer_intermediates_uuid["OOH_up"] = oer_uuid_ooh_up
+                    oer_intermediates_energy["OOH_up"] = dft_energy_ooh_up_min
+            # select OOH_down intermediate as min dft energy
+            if "OOH_down_" in adsorbate_label:
+                dft_energy_ooh_down = doc_oer["calcs"][-1]["output"]["energy"]
+                if dft_energy_ooh_down <= dft_energy_ooh_down_min:
+                    oer_uuid_ooh_down = adsorbate_label
+                    dft_energy_ooh_down = dft_energy_ooh_down
+                    oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
+                    oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
+
+            # Add both oer dicts into summary_dict
+            summary_dict["oer_uuids"] = oer_intermediates_uuid
+            summary_dict["oer_energies"] = oer_intermediates_energy
+
+            
+
+
+
+
 
         # Export to json file
         with open(f"{self.reduced_formula}_{self.miller_index}_oer.json", "w") as f:
