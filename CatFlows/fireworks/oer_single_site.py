@@ -35,7 +35,6 @@ def OER_SingleSiteAnalyzer_FW(
         ),
         name=name,
         parents=parents,
-        
     )
 
     return fw
