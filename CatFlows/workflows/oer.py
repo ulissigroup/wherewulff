@@ -7,7 +7,13 @@ from CatFlows.firetasks.oer_single_site import OERSingleSiteFireTask
 
 
 def OER_WF(
-    bulk_structure, miller_index, applied_potential=1.60, applied_pH=0, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE
+    bulk_structure,
+    miller_index,
+    applied_potential=1.60,
+    applied_pH=0,
+    parents=None,
+    vasp_cmd=VASP_CMD,
+    db_file=DB_FILE,
 ):
     """
     Wrap-up workflow to do the OER Single site WNA after SurfacePBX.
