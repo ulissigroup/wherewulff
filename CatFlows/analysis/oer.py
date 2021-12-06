@@ -215,8 +215,14 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
 
         # Send the summary_dict to the child FW (?)
         return FWAction(
-            update_spec={},
-            propagate=True,
+            stored_data={
+                f"{self.reduced_formula}_{self.miller_index}_oer_single_site": {
+                    "oer_single_site_uuid": str(oer_single_site_uuid),
+                    "overpotential": overpotential,
+                    "PDS": pds_step,
+                    "oer_info": oer_dict
+                }
+            }
         )
 
     def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
