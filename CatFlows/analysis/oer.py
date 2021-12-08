@@ -38,6 +38,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
     required_params = [
         "reduced_formula",
         "miller_index",
+        "metal_site",
         "slab_uuid",
         "ads_slab_uuids",
         "surface_termination",
@@ -52,6 +53,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         to_db = self.get("to_db", True)
         self.reduced_formula = self["reduced_formula"]
         self.miller_index = self["miller_index"]
+        self.metal_site = self["metal_site"]
         slab_uuid = self["slab_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
         surface_termination = self["surface_termination"]
@@ -72,6 +74,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         summary_dict = {
             "reduced_formula": self.reduced_formula,
             "miller_index": self.miller_index,
+            "metal_site": self.metal_site,
             "slab_uuid": slab_uuid,
             "ads_slab_uuids": ads_slab_uuids,
         }
@@ -214,13 +217,13 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         summary_dict["PDS"] = pds_step
 
         # Export to json file
-        with open(f"{self.reduced_formula}_{self.miller_index}_oer.json", "w") as f:
+        with open(f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # To DB -> (This should be unique every time)
         if to_db:
             mmdb.collection = mmdb.db[
-                f"{self.reduced_formula}-{self.miller_index}_oer_single_site"
+                f"{self.reduced_formula}-{self.miller_index}_{self.metal_site}_oer_single_site"
             ]
             mmdb.collection.insert_one(summary_dict)
 
@@ -232,7 +235,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         # Send the summary_dict to the child FW (?)
         return FWAction(
             stored_data={
-                f"{self.reduced_formula}_{self.miller_index}_oer_single_site": {
+                f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer_single_site": {
                     "oer_single_site_uuid": str(oer_single_site_uuid),
                     "overpotential": overpotential,
                     "PDS": pds_step,
