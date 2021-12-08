@@ -9,6 +9,7 @@ from CatFlows.firetasks.oer_single_site import OERSingleSiteFireTask
 def OER_WF(
     bulk_structure,
     miller_index,
+    metal_site,
     applied_potential=1.60,
     applied_pH=0,
     parents=None,
@@ -19,10 +20,14 @@ def OER_WF(
     Wrap-up workflow to do the OER Single site WNA after SurfacePBX.
     Args:
         bulk_structure (Structure): Bulk structure to refer the wulff shape
-        vasp_cmd: vasp executable
-        db_file: database file.
+        miller_index   (String)   : Crystallographic orientation (h,k,l).
+        applied_potential (float) : Potential at which the surface performs OER.
+        applied_pH        (int)   : pH conditions for either acidic or alkaline OER.
+        parents           (list)  : fw_ids for previous FireTasks.
+        vasp_cmd                  : VASP executable
+        db_file                   : DB file.
     Returns:
-        JSON file with Wulff Analysis.
+        OER Workflow to generate/optimize OER intermediates and reactivity Analysis.
     """
     # Bulk structure formula
     bulk_formula = bulk_structure.composition.reduced_formula
@@ -35,6 +40,7 @@ def OER_WF(
         OERSingleSiteFireTask(
             reduced_formula=bulk_formula,
             miller_index=miller_index,
+            metal_site=metal_site,
             applied_potential=applied_potential,
             applied_pH=applied_pH,
             db_file=db_file,
