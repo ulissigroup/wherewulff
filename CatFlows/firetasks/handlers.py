@@ -124,7 +124,6 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Appending extra tasks
-            fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
             fw_new.tasks[3]["additional_fields"].update({"uuid": fw_new_uuid})
 
             # Disable gunzip in RunVaspCustodian
@@ -141,7 +140,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # GzipPrevFolder
-            #fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
+            # fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
 
             fw_new.tasks.append(
                 ContinueOptimizeFW(
@@ -159,12 +158,14 @@ class ContinueOptimizeFW(FiretaskBase):
             import os
 
             if "nid" in os.environ["HOSTNAME"]:
+                fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
                 host = (
                     "nersc"  # this needs to be in the fworker config as query on nersc
                 )
-            else:
+            elif "mo-wflow" in os.environ["HOSTNAME"]:
                 # Switch off wall-time handling in child
                 fw_new.spec["wall_time"] = None
+                fw_new.tasks[1].update({"wall_time": None})
                 host = "laikapack"  # should be in laikapack config
 
             # Pin the children down to the same filesystem as the root
