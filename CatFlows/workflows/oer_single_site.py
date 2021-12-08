@@ -14,6 +14,7 @@ from CatFlows.fireworks.oer_single_site import OER_SingleSiteAnalyzer_FW
 def OERSingleSite_WF(
     oer_dict,
     slab,
+    metal_site,
     slab_uuid,
     oriented_uuid,
     surface_termination,
@@ -39,7 +40,7 @@ def OERSingleSite_WF(
     for oer_inter_label, oer_inter in oer_dict.items():
         oer_intermediate = Slab.from_dict(oer_inter)
         # reduced_formula = oer_intermediate.composition.reduced_formula
-        name = f"{general_reduced_formula}-{miller_index}-{oer_inter_label}"
+        name = f"{general_reduced_formula}-{miller_index}-{metal_site}-{oer_inter_label}"
         oer_inter_uuid = uuid.uuid4()
         oer_inter_fw = AdsSlab_FW(
             oer_intermediate,
@@ -56,7 +57,8 @@ def OERSingleSite_WF(
     oer_fw = OER_SingleSiteAnalyzer_FW(
         reduced_formula=str(general_reduced_formula),
         miller_index=miller_index,
-        name=f"{general_reduced_formula}-{miller_index}-OER-Analysis",
+        metal_site=metal_site,
+        name=f"{general_reduced_formula}-{miller_index}-{metal_site}-OER-Analysis",
         slab_uuid=slab_uuid,
         ads_slab_uuids=oer_uuids,
         surface_termination=surface_termination,
@@ -67,6 +69,6 @@ def OERSingleSite_WF(
     # Create the workflow
     all_fws = oer_fws + [oer_fw]
     oer_single_site = Workflow(
-        all_fws, name=f"{general_reduced_formula}-{miller_index}-OER SingleSite"
+        all_fws, name=f"{general_reduced_formula}-{miller_index}-{metal_site}-OER SingleSite"
     )
     return oer_single_site
