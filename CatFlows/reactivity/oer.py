@@ -15,6 +15,7 @@ class OER_SingleSite(object):
 
     Args:
         slab         (PMG Slab object): Should be the most stable termination comming from the PBX analysis
+        metal_site   (string: Ir)     : User selected metal_site composition when the material is bi-metallic
         adsorbates   (Dict)           : Is a dict of the well-known OER-WNA adsorbates (OH, Ox, OOH)
         random_state (default: 42)    : This method should choose the active site automatically and (pseudo-randomly)
 
@@ -22,12 +23,13 @@ class OER_SingleSite(object):
         A dictionary of intermediates e.g. {"reference", "OH_0", "OH_1",...,"OOH_up_0",..., "OOH_down_0",...,}
     """
 
-    def __init__(self, slab, adsorbates=oer_adsorbates_dict, random_state=42):
+    def __init__(self, slab, metal_site="", adsorbates=oer_adsorbates_dict, random_state=42):
         self.slab = slab
+        self.metal_site = metal_site
         self.adsorbates = adsorbates
         self.random_state = random_state
 
-        # methods
+        # Inspect slab site properties to determine termination (OH/Ox)
         (
             self.surface_coverage,
             self.ads_species,
@@ -35,6 +37,12 @@ class OER_SingleSite(object):
             self.termination_info,
         ) = self._get_surface_termination()
 
+        # Select active site composition
+        active_sites_dict = self._group_ads_sites_by_metal()
+        assert self.metal_site in active_sites_dict.keys(), f"There is no available {self.metal_site} on the surface"
+        self.ads_indices = active_sites_dict[self.metal_site]
+
+        # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
         self.mxidegen = self._mxidegen()
         self.bulk_like_sites, _ = self.mxidegen.get_bulk_like_adsites()
@@ -89,6 +97,30 @@ class OER_SingleSite(object):
                 min_dist = dist
                 nn_site = site
         return nn_site[0]
+
+    def _find_nearest_metal(self, reactive_idx):
+        """Find reactive site by min distance between any metal and oxygen"""
+        reactive_site = [site for idx, site in enumerate(self.slab) if idx == reactive_idx][0]
+
+        min_dist = np.inf
+        for site in self.slab:
+            if Element(site.specie).is_metal:
+                dist = site.distance(reactive_site)
+                if dist <= min_dist:
+                    min_dist = dist
+                    closest_metal = site
+        return closest_metal
+
+    def _group_ads_sites_by_metal(self):
+        """Groups self.ads_indices by metal"""
+        sites_by_metal = {}
+        for ads_idx in self.ads_indices:
+            close_site = self._find_nearest_metal(ads_idx)
+            if str(close_site.specie) not in sites_by_metal.keys():
+                sites_by_metal.update({str(close_site.specie): [ads_idx]})
+            elif str(close_site.specie) in sites_by_metal.keys():
+                sites_by_metal[str(close_site.specie)].append(ads_idx)
+        return sites_by_metal
 
     def _get_reference_slab(self):
         """Random selects a termination adsorbate and clean its"""
