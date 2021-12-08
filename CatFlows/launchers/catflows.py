@@ -71,6 +71,7 @@ class CatFlows:
         adsorbates=OH_Ox_list,
         applied_potential=1.60,
         applied_pH=0,
+        metal_site="",
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
@@ -108,6 +109,9 @@ class CatFlows:
         # PBX conditions
         self.applied_potential = applied_potential
         self.applied_pH = applied_pH
+
+        # Reactivite site
+        self.metal_site = metal_site
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -219,6 +223,7 @@ class CatFlows:
             oer_fw = OER_WF(
                 self.bulk_structure,
                 miller_index,
+                metal_site=self.metal_site,
                 applied_potential=self.applied_potential,
                 applied_pH=self.applied_pH,
                 parents=parents,
@@ -283,13 +288,13 @@ class CatFlows:
             launchpad.add_wf(wulff_wf)
 
         else:
+            # Wulff-shape Analysis
             wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
 
-            # Ads slab into the launchpad
+            # Surface Pourbaix Diagram (OH/Ox)
             ads_slab_wfs, ads_slab_fws = self._get_ads_slab_wfs(parents=wulff_parents)
 
-            # breakpoint()
-            # Add OER reactivity
+            # Reactivity -> OER 
             oer_wf = self._get_oer_reactivity(parents=ads_slab_fws)
             launchpad.add_wf(oer_wf)
 
