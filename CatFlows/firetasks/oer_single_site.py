@@ -26,6 +26,7 @@ class OERSingleSiteFireTask(FiretaskBase):
     Args:
         reduced_formula (str): Reduced formula of the given material e.g RuO2
         miller_index    (str): Miller index of the given surface e.g 110
+        metal_site      (str): OER site composition (selecting the metal)
         vasp_cmd        (env): Environment variable to call vasp
         db_file         (env): Environment variable to connect to the DB
 
@@ -36,6 +37,7 @@ class OERSingleSiteFireTask(FiretaskBase):
     required_params = [
         "reduced_formula",
         "miller_index",
+        "metal_site"
         "applied_potential",
         "applied_pH",
         "vasp_cmd",
@@ -48,6 +50,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
+        metal_site = self["metal_site"]
         applied_potential = self["applied_potential"]
         applied_pH = self["applied_pH"]
         vasp_cmd = self["vasp_cmd"]
@@ -81,7 +84,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
 
         # Generate OER single site intermediates (WNA)
-        oer_wna = OER_SingleSite(stable_surface, adsorbates=oer_adsorbates_dict)
+        oer_wna = OER_SingleSite(stable_surface, metal_site=metal_site, adsorbates=oer_adsorbates_dict)
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
@@ -93,6 +96,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         oer_wf = OERSingleSite_WF(
             oer_dict=oer_intermediates_dict,
             slab=clean_surface,
+            metal_site=metal_site,
             slab_uuid=parent_dict["slab_uuid"],
             oriented_uuid=parent_dict["oriented_uuid"],
             surface_termination=surface_termination,
