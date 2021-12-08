@@ -12,6 +12,7 @@ def OER_SingleSiteAnalyzer_FW(
     reduced_formula="",
     name="",
     miller_index="",
+    metal_site="",
     slab_uuid="",
     ads_slab_uuids="",
     surface_termination="",
@@ -27,6 +28,7 @@ def OER_SingleSiteAnalyzer_FW(
         OER_SingleSiteAnalyzer(
             reduced_formula=reduced_formula,
             miller_index=miller_index,
+            metal_site=metal_site,
             slab_uuid=slab_uuid,
             ads_slab_uuids=ads_slab_uuids,
             surface_termination=surface_termination,
