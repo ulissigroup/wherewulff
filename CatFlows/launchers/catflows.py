@@ -9,6 +9,8 @@ from pymatgen.core.surface import (
     get_symmetrically_distinct_miller_indices,
 )
 
+from pymatgen.analysis.local_env import VoronoiNN
+
 from pymatgen.transformations.standard_transformations import (
     AutoOxiStateDecorationTransformation,
 )
@@ -145,6 +147,38 @@ class CatFlows:
         mvec = np.cross(slab.lattice.matrix[0], slab.lattice.matrix[1])
         return mvec / np.linalg.norm(mvec)
 
+    def _count_surface_metals(self, slab):
+        """Check whether the metal_site is on top of the surface for reactivity"""
+        spg = SpacegroupAnalyzer(slab.oriented_unit_cell)
+        ucell = spg.get_symmetrized_structure()
+        v = VoronoiNN()
+        unique_indices = [equ[0] for equ in ucell.equivalent_indices]
+
+        # Check oriented cell atoms coordination
+        cn_dict = {}
+        for i in unique_indices:
+            el = ucell[i].species_string
+            if el not in cn_dict.keys():
+                cn_dict[el] = []
+            cn = v.get_cn(ucell, i, use_weights=True)
+            cn = float("%.5f" % (round(cn, 5)))
+            if cn not in cn_dict[el]:
+                cn_dict[el].append(cn)
+
+        # Check if metal_site in top layer
+        active_sites = []
+        for i, site in enumerate(slab):
+            if site.frac_coords[2] > slab.center_of_mass[2]:
+                if self.metal_site in site.species_string:
+                    cn = float("%.5f" % (round(v.get_cn(slab, i, use_weights=True), 5)))
+                    if cn < min(cn_dict[site.specie_string]):
+                        active_sites.append(site)
+
+        # Min c parameter reference to bottom layer
+        bottom_c = min([site.c for site in slab])
+
+        return sum([site.c - bottom_c for site in active_sites])
+
     def _get_slab_structures(self, ftol=0.01):
         """Returns a list of slab structures"""
         slab_list = []
@@ -166,6 +200,7 @@ class CatFlows:
             else:
                 all_slabs = slab_gen.get_slabs(symmetrize=False, ftol=ftol)
 
+            slab_candidates = [] 
             for slab in all_slabs:
                 slab_formula = slab.composition.reduced_formula
                 if (
@@ -174,7 +209,18 @@ class CatFlows:
                     and slab_formula == self.bulk_formula
                 ):
                     slab.make_supercell(self.slab_repeat)
-                    slab_list.append(slab)
+                    slab_candidates.append(slab)
+
+            # This is new!
+            if len(slab_candidates) > 1:
+                count_metal = 0
+                for slab_cand in slab_candidates:
+                    count = self._count_surface_metals(slab_cand)
+                    if count > count_metal:
+                        count_metal = count
+                        slab_list.append(slab_cand)
+            else:
+                slab_list.append(slab_candidates[0])
 
         return slab_list
 
