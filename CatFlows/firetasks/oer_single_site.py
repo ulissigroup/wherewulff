@@ -37,7 +37,7 @@ class OERSingleSiteFireTask(FiretaskBase):
     required_params = [
         "reduced_formula",
         "miller_index",
-        "metal_site"
+        "metal_site",
         "applied_potential",
         "applied_pH",
         "vasp_cmd",
