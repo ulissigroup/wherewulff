@@ -23,14 +23,17 @@ in our group and more.
 	- [x] Bulk Stability Analysis (after single-point)
 - [x] Surface Pourbaix Diagram Analysis
 - [ ] Reactivity OER
-	- [ ] Single site WNA
+	- [ ] Single site WNA:
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
         - [x] OER_SingleSiteAnalyzer for delta G (4 steps), overpotential, PDS
-                - [ ] Geometry check (Connectivity), abstract min energy search
-        - [ ] Benchmark IrO2 and RuO2
-	- [ ] Double site WNA
-	- [ ] I2M
+    - [ ] OER_SingleSiteAnalyzer:
+        - [ ] Abstract min energy search function
+        - [ ] Geometry check (Connectivity O-H)
+    - [ ] Benchmark IrO2 and RuO2
+	- [ ] Double site WNA:
+        - [ ] WNA
+	    - [ ] I2M
 - [ ] Thermo. Corrections
 	- [ ] Manually computed and added as a yaml file when needed
 - [ ] SP with Hybrid Functional (worth it?)
