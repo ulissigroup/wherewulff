@@ -27,6 +27,7 @@ in our group and more.
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
         - [x] OER_SingleSiteAnalyzer for delta G (4 steps), overpotential, PDS
+                - [ ] Geometry check (Connectivity), abstract min energy search
         - [ ] Benchmark IrO2 and RuO2
 	- [ ] Double site WNA
 	- [ ] I2M
