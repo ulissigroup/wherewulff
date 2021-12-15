@@ -1,7 +1,5 @@
-[![WhereWulff-test](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff-test.yml/badge.svg)](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff-test.yml)
-
-
 # MO Wulff Workflow
+[![WhereWulff-test](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff-test.yml/badge.svg)](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff-test.yml)
 
 ![workflow](img/MO_Workflow.png)
 
