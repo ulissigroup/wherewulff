@@ -23,11 +23,11 @@ jobs:
     runs-on:
      - self-hosted
      - linux
-     - workspace-atomate
+     - shared-scratch
     container:
       image: ulissigroup/kubeflow_vasp:atomate_stack
       volumes: 
-      - /home/jovyan/workspace-atomate:/home/jovyan/workspace-atomate
+      - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
       
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
