@@ -21,13 +21,21 @@ jobs:
   WhereWulff:
     # The type of runner that the job will run on
     runs-on:
-     - self-hosted
-     - linux
-     - shared-scratch
+     - ubuntu-latest
+     #- self-hosted
+     #- linux
+     #- shared-scratch
+    #container:
+    #  image: ulissigroup/kubeflow_vasp:atomate_stack
+    #  volumes: 
+    #  - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
     container:
-      image: ulissigroup/kubeflow_vasp:atomate_stack
-      volumes: 
-      - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
+      image: docker://ulissigroup/kubeflow_vasp:atomate_stack
+      volumes:
+        - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
       
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
