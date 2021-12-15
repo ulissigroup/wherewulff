@@ -38,12 +38,12 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # 1) Authenticate to laikapack
-      - uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.ZULISSI_KUBECONFIG }}
-          context: ulissigroup-desktops-fqdn
-        id: setcontext
+    #  - uses: azure/k8s-set-context@v1
+    #    with:
+    #      method: kubeconfig
+    #      kubeconfig: ${{ secrets.ZULISSI_KUBECONFIG }}
+    #      context: ulissigroup-desktops-fqdn
+    #    id: setcontext
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: checkout the repo
         uses: actions/checkout@v2
