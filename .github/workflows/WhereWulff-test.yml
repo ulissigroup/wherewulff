@@ -29,11 +29,11 @@ jobs:
     #  image: ulissigroup/kubeflow_vasp:atomate_stack
     #  volumes: 
     #  - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
-    container:
-      image: docker://ulissigroup/kubeflow_vasp:atomate_stack
-      credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #container:
+    #  image: docker://ulissigroup/kubeflow_vasp:atomate_stack
+    #  credentials:
+    #    username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #    password: ${{ secrets.DOCKERHUB_TOKEN }}
       
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
