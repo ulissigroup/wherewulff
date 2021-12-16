@@ -42,7 +42,8 @@ def get_clockwise_rotations(slab, molecule):
     mxidegen = MXideAdsorbateGenerator(
         slab, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"], relax_tol=0.025
     )
-    bulk_like_sites, _ = mxidegen.get_bulk_like_adsites()
+    bulk_like, _ = mxidegen.get_bulk_like_adsites()
+    bulk_like_sites = mxidegen._filter_clashed_sites(bulk_like)
 
     # set n_rotations to 1 if mono-atomic
     n = len(molecule[0]) if type(molecule).__name__ == "list" else len(molecule)
