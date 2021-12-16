@@ -593,6 +593,17 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             self.slab.lattice.get_cartesian_coords(fcoord) for fcoord in adsites
         ], partitions
 
+    def _filter_clashed_sites(self, ads_sites_list): # Javi
+        """Let's filter clashed ads_site positions with real sites"""
+        clashed_idx = []
+        for idx, ads_site in enumerate(ads_sites_list):
+            for site in self.slab:
+                if site.specie == Element(self.X):
+                    dist = np.linalg.norm(ads_site - site.coords)
+                    if dist < self.bondlength:
+                        clashed_idx.append(idx)
+        return [m for n, m in enumerate(ads_sites_list) if n not in clashed_idx]
+
     def get_surface_Xsites(self):
 
         # Identify surface sites
