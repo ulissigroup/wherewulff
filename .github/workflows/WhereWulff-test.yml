@@ -30,6 +30,7 @@ jobs:
 #      - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
     container:
      image: docker://ulissigroup/kubeflow_vasp:atomate_stack
+     options: --user root
      credentials:
        username: ${{ secrets.DOCKERHUB_USERNAME }}
        password: ${{ secrets.DOCKERHUB_TOKEN }}
