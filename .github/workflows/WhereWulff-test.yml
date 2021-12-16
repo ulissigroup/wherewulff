@@ -54,4 +54,6 @@ jobs:
       - name: Check the env
         run: |
             env
+            cd /home/jovyan # Does /home/jovyan exist?
+            ls -al
 
