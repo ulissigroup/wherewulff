@@ -21,10 +21,10 @@ jobs:
   WhereWulff:
     # The type of runner that the job will run on
     runs-on:
-     #- ubuntu-latest
-     - self-hosted
-     - linux
-     - shared-scratch
+     - ubuntu-latest
+#      - self-hosted
+#      - linux
+#      - shared-scratch
 
 #      volumes:
 #      - /home/jovyan/shared-scratch:/home/jovyan/shared-scratch
