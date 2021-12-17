@@ -56,10 +56,13 @@ jobs:
             env
             cd /home/jovyan # Does /home/jovyan exist?
             ls -al
+            echo "---\n"
             # Reset mongodb
-            mongod & yes | lpad reset
-            # Display processes
-            ps -aux
-            
-            # ./atomate_run.sh
+            mongod &>/dev/null & yes | lpad reset
+            echo "---\n"
+            # Go to repo directory
+            cd $GITHUB_WORKSPACE && ls -al
+            echo "---\n"
+            # Execute
+            ./submit_test.sh
 
