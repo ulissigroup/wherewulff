@@ -161,7 +161,7 @@ class MOSurfaceSet(MVLSlabSet):
             "NSW": 300,
             "NCORE": 4,
             "LWAVE": True,
-            "LCHARG": True,
+            "LCHARG": False,
             "ISTART": 1,
             "NELM": 80,
             "NCORE": 4,
