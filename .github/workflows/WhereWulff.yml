@@ -51,6 +51,7 @@ jobs:
             yes | lpad reset
             echo "---\n"
             # Go to repo directory
+            export PYTHONPATH=$GITHUB_WORKSPACE
             cd $GITHUB_WORKSPACE && ls -al
             echo "---\n"
             # Execute
