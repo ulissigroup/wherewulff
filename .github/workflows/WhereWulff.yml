@@ -45,8 +45,10 @@ jobs:
             cd /home/jovyan # Does /home/jovyan exist?
             ls -al
             echo "---\n"
-            # Reset mongodb
-            mongod --quiet &>/dev/null & yes | lpad reset
+            # Mongodb in the back
+            mongod --quiet &>/dev/null &
+            # Reset local database
+            yes | lpad reset
             echo "---\n"
             # Go to repo directory
             cd $GITHUB_WORKSPACE && ls -al
