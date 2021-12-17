@@ -56,4 +56,10 @@ jobs:
             env
             cd /home/jovyan # Does /home/jovyan exist?
             ls -al
+            # Reset mongodb
+            mongod & yes | lpad reset
+            # Display processes
+            ps -aux
+            
+            # ./atomate_run.sh
 
