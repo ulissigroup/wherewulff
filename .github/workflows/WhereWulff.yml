@@ -46,7 +46,7 @@ jobs:
             ls -al
             echo "---\n"
             # Reset mongodb
-            mongod &>/dev/null & yes | lpad reset
+            mongod --quiet &>/dev/null & yes | lpad reset
             echo "---\n"
             # Go to repo directory
             cd $GITHUB_WORKSPACE && ls -al
