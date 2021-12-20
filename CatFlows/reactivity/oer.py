@@ -63,7 +63,7 @@ class OER_SingleSite(object):
         termination_info = [
             [idx, site.specie, site.frac_coords]
             for idx, site in enumerate(self.slab.sites)
-            if site.properties["surface_properties"] == "adsorbate"
+            if "surface_properties" in site.properties and site.properties["surface_properties"] == "adsorbate"
         ]
 
         # Filter sites information
