@@ -94,6 +94,12 @@ class SlabAdsFireTask(FiretaskBase):
                         "structure"
                     ]
                 )
+                # Original Structure
+                slab_struct_orig = Structure.from_dict(
+                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["input"][
+                        "structure"
+                    ]
+                )
                 # Initialize from original magmoms instead of output ones.
                 orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
                     "orig_inputs"
@@ -105,11 +111,24 @@ class SlabAdsFireTask(FiretaskBase):
                 slab_struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
                 slab_struct.add_site_property("bulk_equivalent", slab_equivalents)
                 slab_struct.add_site_property("forces", slab_forces)
+                # Original Structure site decoration
+                slab_struct_orig = slab_struct_orig.copy(site_properties=orig_site_properties)
+                slab_struct_orig.add_Site_property("bulk_wyckoff", slab_wyckoffs)
+                slab_struct_orig.add_Site_property("bulk_equivalent", slab_equivalents)
+
+                # Oriented unit cell Structure output and input
                 orient_struct = Structure.from_dict(
                     mmdb.db["tasks"].find_one({"uuid": oriented_uuid})["output"][
                         "structure"
                     ]
                 )
+                oriented_struct_orig = Structure.from_dict(
+                    mmdb.db["tasks"].find_one({"uuid": oriented_uuid})["input"][
+                        "structure"
+                    ]
+                )
+
+                # Oriented unit cell site properties
                 oriented_wyckoffs = [
                     site["properties"]["bulk_wyckoff"]
                     for site in mmdb.db["tasks"].find_one({"uuid": slab_uuid})["slab"][
@@ -122,10 +141,18 @@ class SlabAdsFireTask(FiretaskBase):
                         "oriented_unit_cell"
                     ]["sites"]
                 ]
+
+                # Decorate oriented unit cell with site properties
                 orient_struct.add_site_property("bulk_wyckoff", oriented_wyckoffs)
                 orient_struct.add_site_property("bulk_equivalent", oriented_equivalents)
+
+                oriented_struct_orig.add_site_property("bulk_wyckoff", oriented_wyckoffs)
+                oriented_struct_orig.add_site_property("bulk_equivalent", oriented_equivalents)
+
+                # Optimized Slab object
                 slab_candidates.append(
                     (
+                        # Output
                         Slab(
                             slab_struct.lattice,
                             slab_struct.species,
@@ -138,6 +165,18 @@ class SlabAdsFireTask(FiretaskBase):
                                 "output"
                             ]["energy"],
                             site_properties=slab_struct.site_properties,
+                        ),
+                        # Input
+                        Slab(
+                            slab_struct_orig.lattice,
+                            slab_struct_orig.species,
+                            slab_struct_orig.frac_coords,
+                            miller_index=list(map(int, miller_index)),
+                            oriented_unit_cell=oriented_struct_orig,
+                            shift=0,
+                            scale_factor=0,
+                            energy=0,
+                            site_properties=slab_struct_orig.site_properties,
                         ),
                         oriented_uuid,
                         slab_uuid,
