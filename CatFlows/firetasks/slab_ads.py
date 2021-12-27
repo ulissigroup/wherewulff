@@ -188,9 +188,10 @@ class SlabAdsFireTask(FiretaskBase):
                 )
             # Generate independent WF for OH/Ox terminations + Surface PBX
             hkl_pbx_wfs = []
-            for slab, oriented_uuid, slab_uuid in slab_candidates:
+            for slab_out, slab_inp, oriented_uuid, slab_uuid in slab_candidates:
                 hkl_pbx_wf = SurfacePBX_WF(
-                    slab=slab,
+                    slab=slab_out,
+                    slab_orig=slab_inp,
                     slab_uuid=slab_uuid,
                     oriented_uuid=oriented_uuid,
                     adsorbates=adsorbates,
