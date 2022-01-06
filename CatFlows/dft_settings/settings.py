@@ -60,7 +60,7 @@ def set_bulk_magmoms(structure, nm_magmom_buffer=0.6, tol=0.1, scale_factor=1.2)
 
     # Decorate
     for site, magmom in zip(struct.sites, magmoms):
-        site.properties["magmom"] = magmom
+        site.properties["magmom"] = round(magmom, 2)
     return struct
 
 
@@ -147,6 +147,10 @@ class MOSurfaceSet(MVLSlabSet):
         # Setting magnetic moments for children
         if self.initial_magmoms:
             incar["MAGMOM"] = self.initial_magmoms
+
+        if "LDAUPRINT" in incar.keys():
+            incar["LDAUPRINT"] = 0 # silent mode
+
 
         # Incar Settings for optimization
         incar_config = {
