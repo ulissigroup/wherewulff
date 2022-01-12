@@ -153,6 +153,23 @@ class ContinueOptimizeFW(FiretaskBase):
             if counter > 0:
                 fw_new.tasks[6]["additional_fields"].update({"slab": slab})
 
+            # Get the environment that the parent ran on (either laikapack or nersc for now) and enforce that
+            # child runs on the same resource/filesystem. Additionally, if the root ran on laikapack and
+            # job triggered walltime handler, then the child can relinquish wall_time constraints
+            import os
+
+            if "nid" in os.environ["HOSTNAME"]:
+                host = (
+                    "nersc"  # this needs to be in the fworker config as query on nersc
+                )
+            else:
+                # Switch off wall-time handling in child
+                fw_new.spec["wall_time"] = None
+                host = "laikapack"  # should be in laikapack config
+
+            # Pin the children down to the same filesystem as the root
+            fw_new.spec["host"] = host
+
             # Bulk Continuation
             if is_bulk:
                 return FWAction(detours=[fw_new])
