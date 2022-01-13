@@ -141,7 +141,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # GzipPrevFolder
-            fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
+            #fw_new.tasks.insert(3, GzipPrevDir(calc_dir=parent_dir_name))
 
             fw_new.tasks.append(
                 ContinueOptimizeFW(
@@ -151,7 +151,7 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
             if counter > 0:
-                fw_new.tasks[6]["additional_fields"].update({"slab": slab})
+                fw_new.tasks[5]["additional_fields"].update({"slab": slab})
 
             # Get the environment that the parent ran on (either laikapack or nersc for now) and enforce that
             # child runs on the same resource/filesystem. Additionally, if the root ran on laikapack and
