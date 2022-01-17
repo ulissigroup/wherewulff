@@ -74,7 +74,7 @@ class BulkStabilityAnalysis(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         pbx_plot = self.get("pbx_plot", True)
         to_db = self.get("to_db", True)
-        bulk_stability_uuid = uuid.uuid4()
+        bulk_stability_uuid = str(uuid.uuid4())
         summary_dict = {"uuid": bulk_stability_uuid}
 
         # Connect to DB
@@ -90,33 +90,12 @@ class BulkStabilityAnalysis(FiretaskBase):
             mmdb.collection.find_one({"static_bulk_uuid": sb_uuid})
             for sb_uuid in bulk_static_uuids
         ]
-        # Selecting the minimum energy magnetic configuration
-        bulk_candidates = {}
-        for doc in docs:
-            dft_energy = doc["calcs_reversed"][-1]["output"]["energy"]
-            magnetic_order = doc["magnetic_ordering"]
-            bulk_candidates.update({str(magnetic_order): dft_energy})
-
-        filter_magnetic_order = [
-            key
-            for key, value in bulk_candidates.items()
-            if value == min(bulk_candidates.values())
-        ]
-
-        # Point to the most stable
-        if len(filter_magnetic_order) == 1:
-            mag_label = filter_magnetic_order[0]
-            d = mmdb.collection.find_one(
-                {"task_label": f"{bulk_formula}_{mag_label}_static_energy"}
-            )
-            logger.info(f"Selecting {mag_label} as the most stable!")
-        else:
-            d = mmdb.collection.find_one(
-                {"task_label": f"{bulk_formula}_NM_static_energy"}
-            )
-            logger.info("Selecting NM, because all are the same...")
+        # Get the doc with the lowest dft_energy
+        d = sorted(docs, key=lambda x: x['calcs_reversed'][-1]['output']['energy'])[0] 
 
         # Collect data
+        mag_label = d['magnetic_ordering']
+        logger.info(f"Selecting {mag_label} as the most stable!")
         structure_dict = d["calcs_reversed"][0]["output"]["structure"]
         dft_energy = d["calcs_reversed"][0]["output"]["energy"]
         structure = Structure.from_dict(structure_dict)

@@ -23,12 +23,17 @@ in our group and more.
 	- [x] Bulk Stability Analysis (after single-point)
 - [x] Surface Pourbaix Diagram Analysis
 - [ ] Reactivity OER
-	- [ ] Single site WNA
+	- [ ] Single site WNA:
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
-                - [ ] Benchmark with IrO2 and RuO2 
-	- [ ] Double site WNA
-	- [ ] I2M
+        - [x] OER_SingleSiteAnalyzer for delta G (4 steps), overpotential, PDS
+    - [ ] OER_SingleSiteAnalyzer:
+        - [ ] Abstract min energy search function
+        - [ ] Geometry check (Connectivity O-H)
+    - [ ] Benchmark IrO2 and RuO2
+	- [ ] Double site WNA:
+        - [ ] WNA
+	    - [ ] I2M
 - [ ] Thermo. Corrections
 	- [ ] Manually computed and added as a yaml file when needed
 - [ ] SP with Hybrid Functional (worth it?)
@@ -49,9 +54,9 @@ in our group and more.
 - [x] Add ContinueOptimizeFW to refactor branch
 - [x] Transfer of magnetic moments across parents to childs
 - [x] WAVECAR (copy, delete, gzip) across parents to childs
-- [ ] WAVECAR Transfer across different filesystems (really?)
 - [x] Add compatibility with 2 nodes
-- [ ] Hunting for bugs!
+- [ ] Ab-initio Thermodynamics (methanol):
+	- [ ] Get CH3OH adsorbate geometry
 
 # Yuri/Javi ToDo List
 
@@ -61,3 +66,9 @@ in our group and more.
 	- [x] IrO2 Manually tested and getting close to good values!
 - [x] PARSING ERROR!!!!! (was the container!)
 - [ ] Get vasp ouputs for fake_vasp
+	- [x] Until Ads_slab (RuO2) -> Yuri
+        - [x] Unit Ads_slab (IrO2) -> Javi
+- [ ] Energy is not sigma(->0) - (wait)
+- [x] FIX: ContinousOptimizeFW for ads_slab -> Return FWAction
+- [x] Get Ads_slab uuids from ads_slab continuousOptimizeFW task
+- [x] Include is_bulk as False in AdsSlab_FW
