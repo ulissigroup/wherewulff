@@ -297,7 +297,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
     def _add_site_properties(self, structure, mmdb, uuid_termination):
         """Abstracted way to add site properties into struct object"""
         # Copy structure object
-        struct = structure.copy(site_propeties=structure.site_properties)
+        struct = structure.copy(site_properties=structure.site_properties)
 
         # Retrieve site properties depending on uuid
         slab_wyckoffs = [
