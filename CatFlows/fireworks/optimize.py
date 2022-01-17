@@ -95,7 +95,7 @@ def Bulk_FW(
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
-        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory)
+        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
         # Switch-off GzipDir for WAVECAR transferring
         fw.tasks[1].update({"gzip_output": False})
@@ -177,7 +177,7 @@ def Slab_FW(
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
-        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory)
+        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
         # Switch-off GzipDir for WAVECAR transferring
         fw.tasks[1].update({"gzip_output": False})
@@ -273,7 +273,7 @@ def AdsSlab_FW(
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
-        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory)
+        fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
         # Switch-off GzipDir for WAVECAR transferring
         fw.tasks[1].update({"gzip_output": False})
