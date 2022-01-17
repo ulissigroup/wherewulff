@@ -335,11 +335,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             ]
         ]
 
+        # Initialize from original magmoms
+        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["orig_inputs"]["incar"]["MAGMOM"]
+
+        # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
         struct.add_site_property("bulk_equivalent", slab_equivalents)
         struct.add_site_property("binding_site", binding_site)
         struct.add_site_property("surface_properties", surface_properties)
         struct.add_site_property("forces", forces)
+        struct.add_site_property("magmom", orig_magmoms)
 
         return struct
 

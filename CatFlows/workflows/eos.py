@@ -18,6 +18,7 @@ import uuid
 def EOS_WF(
     bulk_structures_dict,
     deformations=None,
+    n_deformations=6,
     vasp_input_set=None,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
@@ -54,7 +55,7 @@ def EOS_WF(
     # Deformations
     if not deformations:
         deformations = [
-            (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.157, 0.157, 6)
+            (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.157, 0.157, n_deformations)
         ]
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     # breakpoint()
