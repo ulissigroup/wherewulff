@@ -117,6 +117,7 @@ def SurfacePBX_WF(
     adsorbates,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    run_fake=False
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
@@ -149,6 +150,7 @@ def SurfacePBX_WF(
                 ads_slab_uuid=ads_slab_uuid,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
+                run_fake=run_fake
             )
             hkl_fws.append(ads_slab_fw)
             hkl_uuids.append(ads_slab_uuid)
@@ -163,6 +165,7 @@ def SurfacePBX_WF(
         oriented_uuid=oriented_uuid,
         ads_slab_uuids=hkl_uuids,
         parents=hkl_fws,
+        run_fake=run_fake
     )
 
     # Create the workflow

@@ -42,6 +42,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         #       "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
+        "run_fake"
     ]
     optional_params = ["to_db"]
 
@@ -57,6 +58,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
         orig_ads_slab_uuids = self["ads_slab_uuids"]
+        self.run_fake = self.get("run_fake", False)
 
         # Get the dynamic adslab uuids from the fw_spec.
         # Note that this will be different from the orig_ads_slab_uuids
@@ -297,7 +299,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
     def _add_site_properties(self, structure, mmdb, uuid_termination):
         """Abstracted way to add site properties into struct object"""
         # Copy structure object
-        struct = structure.copy(site_propeties=structure.site_properties)
+        struct = structure.copy(site_properties=structure.site_properties)
 
         # Retrieve site properties depending on uuid
         slab_wyckoffs = [
@@ -336,9 +338,15 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         ]
 
         # Initialize from original magmoms
-        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
-            "orig_inputs"
-        ]["incar"]["MAGMOM"]
+        if not self.run_fake:
+            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                "orig_inputs"
+            ]["incar"]["MAGMOM"]
+        else:
+            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                "input"
+            ]["incar"]["MAGMOM"]
+
 
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)

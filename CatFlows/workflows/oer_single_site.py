@@ -20,6 +20,7 @@ def OERSingleSite_WF(
     surface_termination,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    run_fake=False
 ):
     """
     Wrap-up workflow for OER single site (wna) + Reactivity Analysis
@@ -49,6 +50,7 @@ def OERSingleSite_WF(
             slab_uuid=slab_uuid,
             ads_slab_uuid=oer_inter_uuid,
             vasp_cmd=vasp_cmd,
+            run_fake=run_fake
         )
         oer_fws.append(oer_inter_fw)
         oer_uuids.append(oer_inter_uuid)

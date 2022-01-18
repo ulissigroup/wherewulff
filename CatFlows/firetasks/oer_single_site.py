@@ -42,6 +42,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         "applied_pH",
         "vasp_cmd",
         "db_file",
+        "run_fake"
     ]
     optional_params = []
 
@@ -55,6 +56,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         applied_pH = self["applied_pH"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
+        run_fake = self.get("run_fake", False)
 
         # User-defined parameters !
         # applied_potential = 1.60  # volts
@@ -102,6 +104,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             surface_termination=surface_termination,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
+            run_fake=run_fake
         )
 
         return FWAction(detours=[oer_wf])

@@ -34,6 +34,7 @@ def SlabAds_WF(
             reduced_formula=bulk_formula,
             adsorbates=adsorbates,
             slabs=None,
+            db_file=db_file,
             vasp_cmd=vasp_cmd,
             run_fake=run_fake,
         ),
