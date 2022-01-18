@@ -37,7 +37,6 @@ def SlabAds_WF(
             db_file=db_file,
             vasp_cmd=vasp_cmd,
             run_fake=run_fake,
-            db_file=db_file,
         ),
         name=f"{bulk_formula} Ads_slab optimization",
         parents=parents,
