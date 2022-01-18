@@ -232,7 +232,6 @@ class CatFlows:
                 parents=parents,
                 vasp_cmd=self.vasp_cmd,
                 db_file=self.db_file,
-                metal_site="Ir",
                 run_fake=self.run_fake
             )
             oer_fws.append(oer_fw)
