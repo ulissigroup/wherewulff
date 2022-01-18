@@ -159,8 +159,11 @@ class BulkFlows:
             if analyzer.ordering == Ordering.AFM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     afm_magmom = [
-                        site.specie.spin
-                        if site.specie.element.is_metal
+                        float(site.specie.spin)
+                        if (
+                            site.specie.element.is_metal
+                            and abs(float(site.specie.spin)) > 0.01
+                        )
                         else self.nm_magmom_buffer
                         for site in struct_with_spin
                     ]
@@ -168,8 +171,11 @@ class BulkFlows:
             elif analyzer.ordering == Ordering.FM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     fm_magmom = [
-                        site.specie.spin
-                        if site.specie.element.is_metal
+                        float(site.specie.spin)
+                        if (
+                            site.specie.element.is_metal
+                            and abs(float(site.specie.spin)) > 0.01
+                        )
                         else self.nm_magmom_buffer
                         for site in struct_with_spin
                     ]
