@@ -42,7 +42,8 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         #       "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
-        "run_fake"
+        "run_fake",
+        "surface_pbx_uuid",
     ]
     optional_params = ["to_db"]
 
@@ -59,6 +60,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         ads_slab_uuids = self["ads_slab_uuids"]
         orig_ads_slab_uuids = self["ads_slab_uuids"]
         self.run_fake = self.get("run_fake", False)
+        surface_pbx_uuid = self["surface_pbx_uuid"]
 
         # Get the dynamic adslab uuids from the fw_spec.
         # Note that this will be different from the orig_ads_slab_uuids
@@ -90,7 +92,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.reference_energies = {"H2O": -14.25994015, "H2": -6.77818501}
 
         # Surface PBX diagram uuid
-        surface_pbx_uuid = uuid.uuid4()
+        #        surface_pbx_uuid = uuid.uuid4()
         summary_dict["surface_pbx_uuid"] = str(surface_pbx_uuid)
 
         # Connect to DB
@@ -346,7 +348,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
                 "input"
             ]["incar"]["MAGMOM"]
-
 
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)

@@ -15,7 +15,8 @@ def OER_WF(
     parents=None,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
-    run_fake=False
+    run_fake=False,
+    surface_pbx_uuid="",
 ):
     """
     Wrap-up workflow to do the OER Single site WNA after SurfacePBX.
@@ -46,7 +47,8 @@ def OER_WF(
             applied_pH=applied_pH,
             db_file=db_file,
             vasp_cmd=vasp_cmd,
-            run_fake=run_fake
+            run_fake=run_fake,
+            surface_pbx_uuid=surface_pbx_uuid,
         ),
         name=f"{bulk_formula}-{miller_index} OER Single Site WNA",
         parents=parents,

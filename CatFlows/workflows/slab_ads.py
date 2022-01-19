@@ -13,6 +13,9 @@ def SlabAds_WF(
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
+    metal_site="",
+    applied_potential=1.60,
+    applied_pH=0,
 ):
     """
     Wrap-up workflow to do the Wulff Shape Analysis after MO_SLABS_WF.
@@ -31,12 +34,16 @@ def SlabAds_WF(
     # WulffShape Analysis
     ads_slab_fw = Firework(
         SlabAdsFireTask(
+            bulk_structure=bulk_structure,
             reduced_formula=bulk_formula,
             adsorbates=adsorbates,
             slabs=None,
             db_file=db_file,
             vasp_cmd=vasp_cmd,
             run_fake=run_fake,
+            metal_site=metal_site,
+            applied_potential=applied_potential,
+            applied_pH=applied_pH,
         ),
         name=f"{bulk_formula} Ads_slab optimization",
         parents=parents,

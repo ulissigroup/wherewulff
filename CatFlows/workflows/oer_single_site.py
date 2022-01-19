@@ -20,7 +20,8 @@ def OERSingleSite_WF(
     surface_termination,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
-    run_fake=False
+    run_fake=False,
+    surface_pbx_uuid="",
 ):
     """
     Wrap-up workflow for OER single site (wna) + Reactivity Analysis
@@ -41,7 +42,9 @@ def OERSingleSite_WF(
     for oer_inter_label, oer_inter in oer_dict.items():
         oer_intermediate = Slab.from_dict(oer_inter)
         # reduced_formula = oer_intermediate.composition.reduced_formula
-        name = f"{general_reduced_formula}-{miller_index}-{metal_site}-{oer_inter_label}"
+        name = (
+            f"{general_reduced_formula}-{miller_index}-{metal_site}-{oer_inter_label}"
+        )
         oer_inter_uuid = uuid.uuid4()
         oer_inter_fw = AdsSlab_FW(
             oer_intermediate,
@@ -50,7 +53,7 @@ def OERSingleSite_WF(
             slab_uuid=slab_uuid,
             ads_slab_uuid=oer_inter_uuid,
             vasp_cmd=vasp_cmd,
-            run_fake=run_fake
+            run_fake=run_fake,
         )
         oer_fws.append(oer_inter_fw)
         oer_uuids.append(oer_inter_uuid)
@@ -66,11 +69,13 @@ def OERSingleSite_WF(
         surface_termination=surface_termination,
         parents=oer_fws,
         db_file=db_file,
+        surface_pbx_uuid=surface_pbx_uuid,
     )
 
     # Create the workflow
     all_fws = oer_fws + [oer_fw]
     oer_single_site = Workflow(
-        all_fws, name=f"{general_reduced_formula}-{miller_index}-{metal_site}-OER SingleSite"
+        all_fws,
+        name=f"{general_reduced_formula}-{miller_index}-{metal_site}-OER SingleSite",
     )
     return oer_single_site

@@ -110,6 +110,7 @@ def _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, bondlength,
 
 
 def SurfacePBX_WF(
+    bulk_structure,
     slab,
     slab_orig,
     slab_uuid,
@@ -117,7 +118,10 @@ def SurfacePBX_WF(
     adsorbates,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
-    run_fake=False
+    run_fake=False,
+    metal_site="",
+    applied_potential=1.6,
+    applied_pH=0,
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
@@ -141,7 +145,7 @@ def SurfacePBX_WF(
             name = (
                 f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
             )
-            ads_slab_uuid = uuid.uuid4()
+            ads_slab_uuid = str(uuid.uuid4())
             ads_slab_fw = AdsSlab_FW(
                 adslab,
                 name=name,
@@ -150,12 +154,13 @@ def SurfacePBX_WF(
                 ads_slab_uuid=ads_slab_uuid,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
-                run_fake=run_fake
+                run_fake=run_fake,
             )
             hkl_fws.append(ads_slab_fw)
             hkl_uuids.append(ads_slab_uuid)
 
     # Surface PBX Diagram for each surface orientation
+    surface_pbx_uuid = str(uuid.uuid4())
     pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
     pbx_fw = SurfacePBX_FW(
         reduced_formula=reduced_formula,
@@ -165,13 +170,30 @@ def SurfacePBX_WF(
         oriented_uuid=oriented_uuid,
         ads_slab_uuids=hkl_uuids,
         parents=hkl_fws,
-        run_fake=run_fake
+        db_file=DB_FILE,
+        run_fake=run_fake,
+        surface_pbx_uuid=surface_pbx_uuid,
     )
 
     # Create the workflow
-    all_fws = hkl_fws + [pbx_fw]
-    pbx_wf = Workflow(
+    from CatFlows.workflows.oer import OER_WF
+
+    oer_fw = OER_WF(
+        bulk_structure=bulk_structure,
+        miller_index=slab_miller_index,
+        metal_site=metal_site,
+        applied_potential=applied_potential,
+        applied_pH=applied_pH,
+        parents=[pbx_fw],
+        run_fake=run_fake,
+        vasp_cmd=VASP_CMD,
+        db_file=DB_FILE,
+        surface_pbx_uuid=surface_pbx_uuid,
+    )
+
+    all_fws = hkl_fws + [pbx_fw] + [oer_fw]
+    oer_wf = Workflow(
         all_fws,
         name=f"{slab.composition.reduced_formula}-{slab_miller_index}-PBX Workflow",
     )
-    return pbx_wf
+    return oer_wf

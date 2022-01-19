@@ -18,6 +18,7 @@ def OER_SingleSiteAnalyzer_FW(
     surface_termination="",
     parents=None,
     db_file=DB_FILE,
+    surface_pbx_uuid="",
 ):
     """
     Converts the OER_SingleSiteAnalyzer FireTask to FireWorks.
@@ -34,6 +35,7 @@ def OER_SingleSiteAnalyzer_FW(
             surface_termination=surface_termination,
             db_file=db_file,
             to_db=True,
+            surface_pbx_uuid=surface_pbx_uuid,
         ),
         name=name,
         parents=parents,
