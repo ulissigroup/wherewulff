@@ -135,13 +135,14 @@ class OERSingleSiteFireTask(FiretaskBase):
         oh_2_ox_end = np.array([14, oh_2_ox[-1]])
 
         above_oh = is_above(user_point, oh_2_ox_origin, oh_2_ox_end)
+        breakpoint()
 
         # decide
-        if above_clean is False:
+        if not above_clean:
             surface_termination = "clean"
-        elif above_clean is True and above_oh is False:
+        elif above_clean and not above_oh:
             surface_termination = "oh"
-        elif above_clean is True and above_oh is True:
+        elif above_clean and above_oh:
             surface_termination = "ox"
 
         return surface_termination
