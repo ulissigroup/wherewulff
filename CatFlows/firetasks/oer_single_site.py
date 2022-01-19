@@ -135,7 +135,6 @@ class OERSingleSiteFireTask(FiretaskBase):
         oh_2_ox_end = np.array([14, oh_2_ox[-1]])
 
         above_oh = is_above(user_point, oh_2_ox_origin, oh_2_ox_end)
-        breakpoint()
 
         # decide
         if not above_clean:
