@@ -219,7 +219,10 @@ class CatFlows:
                     if count > count_metal:
                         count_metal = count
                         slab_list.append(slab_cand)
-            else:
+            elif len(slab_candidates) == 0:
+                #TODO improve this? Handle it gracefully?
+                raise Exception('No slab candidates')
+            else
                 slab_list.append(slab_candidates[0])
 
         return slab_list
