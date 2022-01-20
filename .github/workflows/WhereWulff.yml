@@ -58,5 +58,5 @@ jobs:
             cd $GITHUB_WORKSPACE && ls -al
             echo "---\n"
             # Execute
-            ./submit_test.sh
+            python main_slab.py && rlaunch rapidfire
 
