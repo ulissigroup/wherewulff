@@ -35,6 +35,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: checkout the repo
         uses: actions/checkout@v2
+        with:
+          ref: unit_tests
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
@@ -52,6 +54,7 @@ jobs:
             echo "---\n"
             # Go to repo directory
             export PYTHONPATH=$GITHUB_WORKSPACE
+            echo "Checking out the code base..."
             cd $GITHUB_WORKSPACE && ls -al
             echo "---\n"
             # Execute
