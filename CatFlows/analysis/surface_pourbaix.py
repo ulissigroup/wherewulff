@@ -157,7 +157,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         summary_dict["ads_slab_terminations"] = ads_slab_terminations
 
-        # FW collection to retrieve site properties
+        #### FW collection to retrieve site properties
         fw_collection = mmdb.db["fireworks"]
         fw_doc_oh = fw_collection.find_one({"spec.uuid": str(ads_uuid_oh_min)})
         fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
@@ -178,6 +178,11 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             ]["structure"]
         )
 
+        # Appending site properties on slab_oh structure
+        slab_oh = self._add_site_properties(
+            slab_oh, mmdb, uuid_termination=ads_uuid_oh_min
+        )
+
         slab_oh_obj = Slab(
             slab_oh.lattice,
             slab_oh.species,
@@ -187,7 +192,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             shift=slab_clean_obj.shift,
             scale_factor=slab_clean_obj.scale_factor,
             energy=dft_energy_oh_min,
-            site_properties=struct_oh_input.site_properties,
+            site_properties=slab_oh.site_properties,
         )
 
         slab_oh_composition = {
@@ -200,6 +205,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             ]["structure"]
         )
 
+        # Appending site properties on slab_ox structure
+        slab_ox = self._add_site_properties(slab_ox, mmdb, uuid_termination=ads_uuid_ox)
+
         slab_ox_obj = Slab(
             slab_ox.lattice,
             slab_ox.species,
@@ -209,7 +217,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             shift=slab_clean_obj.shift,
             scale_factor=slab_clean_obj.scale_factor,
             energy=dft_energy_ox,
-            site_properties=struct_ox_input.site_properties,
+            site_properties=slab_ox.site_properties,
         )
 
         slab_ox_composition = {
@@ -285,6 +293,60 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             },
             propagate=True,
         )
+
+    def _add_site_properties(self, structure, mmdb, uuid_termination):
+        """Abstracted way to add site properties into struct object"""
+        # Copy structure object
+        struct = structure.copy(site_properties=structure.site_properties)
+
+        # Retrieve site properties depending on uuid
+        slab_wyckoffs = [
+            site["properties"]["bulk_wyckoff"]
+            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
+                "sites"
+            ]
+        ]
+
+        slab_equivalents = [
+            site["properties"]["bulk_equivalent"]
+            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
+                "sites"
+            ]
+        ]
+
+        surface_properties = [
+            site["properties"]["surface_properties"]
+            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
+                "sites"
+            ]
+        ]
+
+        binding_site = [
+            site["properties"]["binding_site"]
+            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
+                "sites"
+            ]
+        ]
+
+        forces = [
+            site["properties"]["forces"]
+            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
+                "sites"
+            ]
+        ]
+
+        # Initialize from original magmoms
+        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["orig_inputs"]["incar"]["MAGMOM"]
+
+        # Appending surface properties for slab object
+        struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
+        struct.add_site_property("bulk_equivalent", slab_equivalents)
+        struct.add_site_property("binding_site", binding_site)
+        struct.add_site_property("surface_properties", surface_properties)
+        struct.add_site_property("forces", forces)
+        struct.add_site_property("magmom", orig_magmoms)
+
+        return struct
 
     def oer_potential_std(self):
         """

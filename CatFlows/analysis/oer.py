@@ -27,11 +27,16 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
     derive the theoretical overpotential.
 
     Args:
-        db_file (env): Environment variable to connect to the DB.
-
+        reduced_formula     (e.g IrO2)   : Formula of the given material.
+        miller_index        (e.g [1,1,0]): Crystallographic orientation from slab model.
+        metal_site          (e.g Ir)     : Targeted element as reactive site in the slab model.
+        slab_uuid           (str)        : Unique hash to identify previous jobs in the same run.
+        ads_slabs_uuid      (str)        : Unique hashes from PBX to identify those DFT runs.
+        surface_termination (str)        : Either clean, OH or Ox from Surface Pourbaix workflow.
+        db_file             (env)        : Environment variable to connect to the DB.
 
     Returns:
-        Reactivity post-processing for a given surface
+        OER Single site Reactivity post-processing for a given surface
         and DB json data.
     """
 
@@ -243,6 +248,11 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 }
             }
         )
+    
+    # TODO: Abstract the min energy
+    def _get_min_energy_intermediate(self):
+        """Returns min DFT energy across same intermediate"""
+        return
 
     def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
         """

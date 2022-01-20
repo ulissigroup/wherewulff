@@ -96,9 +96,7 @@ class SlabAdsFireTask(FiretaskBase):
                 )
                 # Original Structure
                 slab_struct_orig = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["input"][
-                        "structure"
-                    ]
+                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["input"]["structure"]
                 )
                 # Initialize from original magmoms instead of output ones.
                 orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
@@ -112,9 +110,11 @@ class SlabAdsFireTask(FiretaskBase):
                 slab_struct.add_site_property("bulk_equivalent", slab_equivalents)
                 slab_struct.add_site_property("forces", slab_forces)
                 # Original Structure site decoration
-                slab_struct_orig = slab_struct_orig.copy(site_properties=orig_site_properties)
-                slab_struct_orig.add_Site_property("bulk_wyckoff", slab_wyckoffs)
-                slab_struct_orig.add_Site_property("bulk_equivalent", slab_equivalents)
+                slab_struct_orig = slab_struct_orig.copy(
+                    site_properties=orig_site_properties
+                )
+                slab_struct_orig.add_site_property("bulk_wyckoff", slab_wyckoffs)
+                slab_struct_orig.add_site_property("bulk_equivalent", slab_equivalents)
 
                 # Oriented unit cell Structure output and input
                 orient_struct = Structure.from_dict(
@@ -146,8 +146,12 @@ class SlabAdsFireTask(FiretaskBase):
                 orient_struct.add_site_property("bulk_wyckoff", oriented_wyckoffs)
                 orient_struct.add_site_property("bulk_equivalent", oriented_equivalents)
 
-                oriented_struct_orig.add_site_property("bulk_wyckoff", oriented_wyckoffs)
-                oriented_struct_orig.add_site_property("bulk_equivalent", oriented_equivalents)
+                oriented_struct_orig.add_site_property(
+                    "bulk_wyckoff", oriented_wyckoffs
+                )
+                oriented_struct_orig.add_site_property(
+                    "bulk_equivalent", oriented_equivalents
+                )
 
                 # Optimized Slab object
                 slab_candidates.append(
@@ -184,9 +188,10 @@ class SlabAdsFireTask(FiretaskBase):
                 )
             # Generate independent WF for OH/Ox terminations + Surface PBX
             hkl_pbx_wfs = []
-            for slab, oriented_uuid, slab_uuid in slab_candidates:
+            for slab_out, slab_inp, oriented_uuid, slab_uuid in slab_candidates:
                 hkl_pbx_wf = SurfacePBX_WF(
-                    slab=slab,
+                    slab=slab_out,
+                    slab_orig=slab_inp,
                     slab_uuid=slab_uuid,
                     oriented_uuid=oriented_uuid,
                     adsorbates=adsorbates,
