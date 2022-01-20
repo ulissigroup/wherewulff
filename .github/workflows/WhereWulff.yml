@@ -43,6 +43,8 @@ jobs:
         run: ls -al
       - name: Check the env
         run: |
+            # Set the home environment variable to /home/jovyan to locate the .pmgrc.yaml config file
+            export HOME=/home/jovyan
             env
             cd /home/jovyan # Does /home/jovyan exist?
             ls -al
