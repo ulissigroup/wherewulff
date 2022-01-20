@@ -157,11 +157,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         summary_dict["ads_slab_terminations"] = ads_slab_terminations
 
-<<<<<<< HEAD
         # FW collection to retrieve site properties
-=======
-        #### FW collection to retrieve site properties
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
         fw_collection = mmdb.db["fireworks"]
         fw_doc_oh = fw_collection.find_one({"spec.uuid": str(ads_uuid_oh_min)})
         fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
@@ -182,14 +178,10 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             ]["structure"]
         )
 
-<<<<<<< HEAD
-=======
-        # Appending site properties on slab_oh structure
         slab_oh = self._add_site_properties(
             slab_oh, mmdb, uuid_termination=ads_uuid_oh_min
         )
 
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
         slab_oh_obj = Slab(
             slab_oh.lattice,
             slab_oh.species,
@@ -199,11 +191,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             shift=slab_clean_obj.shift,
             scale_factor=slab_clean_obj.scale_factor,
             energy=dft_energy_oh_min,
-<<<<<<< HEAD
-            site_properties=struct_oh_input.site_properties,
-=======
             site_properties=slab_oh.site_properties,
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
         )
 
         slab_oh_composition = {
@@ -228,11 +216,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             shift=slab_clean_obj.shift,
             scale_factor=slab_clean_obj.scale_factor,
             energy=dft_energy_ox,
-<<<<<<< HEAD
-            site_properties=struct_ox_input.site_properties,
-=======
             site_properties=slab_ox.site_properties,
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
         )
 
         slab_ox_composition = {
