@@ -92,11 +92,7 @@ class OER_SingleSite(object):
 
         min_dist = np.inf
         for site in search_list:
-<<<<<<< HEAD
-            dist = np.linalg.norm(fixed_site.coords - site[2])
-=======
             dist = np.linalg.norm(fixed_site.frac_coords - site[2])
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
             if dist <= min_dist:
                 min_dist = dist
                 nn_site = site

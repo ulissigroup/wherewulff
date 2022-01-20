@@ -268,11 +268,7 @@ class CatFlows:
             miller_index = "".join(list(map(str, hkl)))
             oer_fw = OER_WF(
                 self.bulk_structure,
-<<<<<<< HEAD
-                miller_index,
-=======
                 miller_index=miller_index,
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
                 metal_site=self.metal_site,
                 applied_potential=self.applied_potential,
                 applied_pH=self.applied_pH,

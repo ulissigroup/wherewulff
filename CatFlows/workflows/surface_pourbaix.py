@@ -100,11 +100,7 @@ def _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, bondlength,
 
 
 def SurfacePBX_WF(
-<<<<<<< HEAD
-    slab, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_file=DB_FILE
-=======
     slab, slab_orig, slab_uuid, oriented_uuid, adsorbates, vasp_cmd=VASP_CMD, db_file=DB_FILE
->>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
