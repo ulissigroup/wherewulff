@@ -48,6 +48,7 @@ class BulkFlows:
     def __init__(
         self,
         bulk_structure,
+        n_deformations=21,
         nm_magmom_buffer=0.6,
         conventional_standard=True,
         vasp_cmd=VASP_CMD,
@@ -58,6 +59,7 @@ class BulkFlows:
         self.nm_magmom_buffer = nm_magmom_buffer
         self.bulk_structure = self._read_cif_file(bulk_structure)
         self.original_bulk_structure = self.bulk_structure.copy()
+        self.n_deformations = n_deformations
         # Convetional standard unit cell
         if conventional_standard:
             self.bulk_structure = self._get_conventional_standard()
@@ -157,8 +159,11 @@ class BulkFlows:
             if analyzer.ordering == Ordering.AFM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     afm_magmom = [
-                        site.specie.spin
-                        if site.specie.element.is_metal
+                        float(site.specie.spin)
+                        if (
+                            site.specie.element.is_metal
+                            and abs(float(site.specie.spin)) > 0.01
+                        )
                         else self.nm_magmom_buffer
                         for site in struct_with_spin
                     ]
@@ -166,8 +171,11 @@ class BulkFlows:
             elif analyzer.ordering == Ordering.FM:
                 if struct_with_spin.num_sites == self.original_bulk_structure.num_sites:
                     fm_magmom = [
-                        site.specie.spin
-                        if site.specie.element.is_metal
+                        float(site.specie.spin)
+                        if (
+                            site.specie.element.is_metal
+                            and abs(float(site.specie.spin)) > 0.01
+                        )
                         else self.nm_magmom_buffer
                         for site in struct_with_spin
                     ]
@@ -209,6 +217,7 @@ class BulkFlows:
             bulk_struct = Structure.from_dict(bulk_struct)
             eos_wf = EOS_WF(
                 bulk_struct,
+                n_deformations=self.n_deformations,
                 magnetic_ordering=mag_ord,
                 parents=parents,
                 vasp_cmd=self.vasp_cmd,

@@ -1,0 +1,21 @@
+Traceback (most recent call last):                                                                                                                                                                                 
+  File "main_bulk.py", line 11, in <module>                                                                                                                                                                        
+    launchpad = bulk_flow.submit(                                                                                                                                                                                  
+  File "/global/u1/i/ibenlo/mo-wulff-workflow/CatFlows/launchers/bulkflows.py", line 292, in submit
+    _, eos_parents = self._get_all_wfs()
+  File "/global/u1/i/ibenlo/mo-wulff-workflow/CatFlows/launchers/bulkflows.py", line 222, in _get_all_wfs
+    eos_wf, fws_all = EOS_WF(
+  File "/global/u1/i/ibenlo/mo-wulff-workflow/CatFlows/workflows/eos.py", line 63, in EOS_WF
+    vasp_static = MOSurfaceSet(
+  File "/global/u1/i/ibenlo/mo-wulff-workflow/CatFlows/dft_settings/settings.py", line 107, in __init__
+    super(MOSurfaceSet, self).__init__(
+  File "/global/homes/i/ibenlo/.conda/envs/fireworks-javi/lib/python3.8/site-packages/pymatgen/io/vasp/sets.py", line 2166, in __init__                                                                           
+    super().__init__(structure, **kwargs)
+  File "/global/homes/i/ibenlo/.conda/envs/fireworks-javi/lib/python3.8/site-packages/pymatgen/io/vasp/sets.py", line 883, in __init__                                                                            
+    super().__init__(structure, MPRelaxSet.CONFIG, **kwargs)
+  File "/global/homes/i/ibenlo/.conda/envs/fireworks-javi/lib/python3.8/site-packages/pymatgen/io/vasp/sets.py", line 382, in __init__                                                                            
+    get_valid_magmom_struct(structure, spin_mode="auto", inplace=True)
+  File "/global/homes/i/ibenlo/.conda/envs/fireworks-javi/lib/python3.8/site-packages/pymatgen/io/vasp/sets.py", line 3059, in get_valid_magmom_struct                                                            
+    elif len(isite.properties["magmom"]) == 3:
+TypeError: object of type 'int' has no len()
+

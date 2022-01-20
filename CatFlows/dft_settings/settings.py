@@ -60,7 +60,7 @@ def set_bulk_magmoms(structure, nm_magmom_buffer=0.6, tol=0.1, scale_factor=1.2)
 
     # Decorate
     for site, magmom in zip(struct.sites, magmoms):
-        site.properties["magmom"] = magmom
+        site.properties["magmom"] = round(magmom, 2)
     return struct
 
 
@@ -148,6 +148,10 @@ class MOSurfaceSet(MVLSlabSet):
         if self.initial_magmoms:
             incar["MAGMOM"] = self.initial_magmoms
 
+        if "LDAUPRINT" in incar.keys():
+            incar["LDAUPRINT"] = 0 # silent mode
+
+
         # Incar Settings for optimization
         incar_config = {
             "GGA": "PE",
@@ -161,6 +165,8 @@ class MOSurfaceSet(MVLSlabSet):
             "NSW": 300,
             "NCORE": 4,
             "LWAVE": True,
+            "LCHARG": False,
+            "LVTOT": False,
             "ISTART": 1,
             "NELM": 80,
             "NCORE": 4,

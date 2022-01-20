@@ -63,7 +63,7 @@ class OER_SingleSite(object):
         termination_info = [
             [idx, site.specie, site.frac_coords]
             for idx, site in enumerate(self.slab.sites)
-            if site.properties["surface_properties"] == "adsorbate"
+            if "surface_properties" in site.properties and site.properties["surface_properties"] == "adsorbate"
         ]
 
         # Filter sites information
@@ -92,7 +92,11 @@ class OER_SingleSite(object):
 
         min_dist = np.inf
         for site in search_list:
+<<<<<<< HEAD
             dist = np.linalg.norm(fixed_site.coords - site[2])
+=======
+            dist = np.linalg.norm(fixed_site.frac_coords - site[2])
+>>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
             if dist <= min_dist:
                 min_dist = dist
                 nn_site = site

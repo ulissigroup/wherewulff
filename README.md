@@ -1,4 +1,6 @@
 # MO Wulff Workflow
+[![WhereWulff](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff.yml/badge.svg)](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff.yml)
+---
 
 ![workflow](img/MO_Workflow.png)
 
@@ -23,13 +25,23 @@ in our group and more.
 	- [x] Bulk Stability Analysis (after single-point)
 - [x] Surface Pourbaix Diagram Analysis
 - [ ] Reactivity OER
-	- [ ] Single site WNA
+	- [ ] Single site WNA:
 		- [x] OER SingleSite (WNA) intermediates Generator
 		- [x] FireTask, Fireworks, workflow for OER single site
         - [x] OER_SingleSiteAnalyzer for delta G (4 steps), overpotential, PDS
+<<<<<<< HEAD
         - [ ] Benchmark IrO2 and RuO2
 	- [ ] Double site WNA
 	- [ ] I2M
+=======
+    - [ ] OER_SingleSiteAnalyzer:
+        - [ ] Abstract min energy search function
+        - [ ] Geometry check (Connectivity O-H)
+    - [ ] Benchmark IrO2 and RuO2
+	- [ ] Double site WNA:
+        - [ ] WNA
+	    - [ ] I2M
+>>>>>>> fc038895dc2d386d7ef9001685ca4730e185674b
 - [ ] Thermo. Corrections
 	- [ ] Manually computed and added as a yaml file when needed
 - [ ] SP with Hybrid Functional (worth it?)
