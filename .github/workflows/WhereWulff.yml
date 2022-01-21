@@ -50,7 +50,7 @@ jobs:
             ls -al
             echo "---\n"
             # Mongodb in the back
-            mongod --quiet &>/dev/null &
+            mongod --quiet>/dev/null &
             # Reset local database
             yes | lpad reset
             echo "---\n"
