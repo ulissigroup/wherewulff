@@ -2,6 +2,7 @@ import json
 import uuid
 
 import numpy as np
+import re
 
 from pymatgen.core import Structure
 from pymatgen.core.composition import Composition
@@ -118,7 +119,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         for n, ads_slab_uuid in enumerate(ads_slab_uuids):
             doc_oer = mmdb.collection.find_one({"uuid": ads_slab_uuid})
             oer_task_label = doc_oer["task_label"]
-            adsorbate_label = oer_task_label.split("-")[2]
+            adsorbate_label = oer_task_label.split("-")[3]
             # reference active site
             if "reference" in adsorbate_label:
                 dft_energy_reference = doc_oer["calcs_reversed"][-1]["output"]["energy"]
@@ -126,7 +127,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 oer_intermediates_uuid["reference"] = oer_uuid_reference
                 oer_intermediates_energy["reference"] = dft_energy_reference
             # select OH intermediate as min dft energy
-            if "OH_" in adsorbate_label:
+            if re.match("^OH_.*", adsorbate_label):
                 dft_energy_oh = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_oh <= dft_energy_oh_min:
                     dft_energy_oh_min = dft_energy_oh
@@ -140,7 +141,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 oer_intermediates_uuid["Ox"] = oer_uuid_ox
                 oer_intermediates_energy["Ox"] = dft_energy_oh
             # select OOH_up intermediate as min dft energy
-            if "OOH_up_" in adsorbate_label:
+            if re.match("^OOH_up_.*", adsorbate_label):
                 dft_energy_ooh_up = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_ooh_up <= dft_energy_ooh_up_min:
                     oer_uuid_ooh_up = adsorbate_label
@@ -149,13 +150,12 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_energy["OOH_up"] = dft_energy_ooh_up_min
             # select OOH_down intermediate as min dft energy
             if "OOH_down_" in adsorbate_label:
-                dft_energy_ooh_down = doc_oer["calcs"][-1]["output"]["energy"]
+                dft_energy_ooh_down = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_ooh_down <= dft_energy_ooh_down_min:
                     oer_uuid_ooh_down = adsorbate_label
-                    dft_energy_ooh_down = dft_energy_ooh_down
+                    dft_energy_ooh_down_min = dft_energy_ooh_down
                     oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
                     oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
-
         # Add termination as OER intermediate
         if surface_termination == "ox":
             oer_intermediates_energy["Ox"] = stable_termination.energy
