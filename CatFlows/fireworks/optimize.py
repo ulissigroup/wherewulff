@@ -44,7 +44,7 @@ ref_dirs = {
     "IrO2-110-Ir-OOH_down_0": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_110_OOH_down_0",
     "IrO2-110-Ir-OOH_down_1": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_110_OOH_down_1",
     "IrO2-110-Ir-OOH_down_2": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_110_OOH_down_2",
-    "IrO2-110-Ir-OOH_down_3": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/XXX",
+    "IrO2-110-Ir-OOH_down_3": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_110_OOH_down_3",
     "IrO2-101-Ir-reference": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_101_reference",
     "IrO2-101-Ir-OH_0": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_101_OH_0",
     "IrO2-101-Ir-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_101_OH_1",
