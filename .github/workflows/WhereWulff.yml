@@ -53,6 +53,6 @@ jobs:
             cd $GITHUB_WORKSPACE
             echo "---\n"
             # Run the OER workflow with fireworks
-            python main_slab.py && rlaunch rapidfire
+            python main_slab.py && rlaunch rapidfire && mongo localhost:27017/fireworks --quiet --eval 'printjson(db.runCommand("dbHash"))' | grep -v UUID > db_hashes.json
       # TODO: Once the workflow is run, run a unittest suite
 
