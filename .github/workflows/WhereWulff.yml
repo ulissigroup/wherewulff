@@ -33,23 +33,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: checkout the repo
+      - name: Checkout the unit_tests branch from the repo
         uses: actions/checkout@v2
         with:
           ref: unit_tests
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: ls -al
-      - name: Check the env
+      - name: Run end-to-end OER workflow on IrO2
         run: |
             # Set the home environment variable to /home/jovyan to locate the .pmgrc.yaml config file
             export HOME=/home/jovyan
-            env
-            cd /home/jovyan # Does /home/jovyan exist?
-            ls -al
-            echo "---\n"
-            # Mongodb in the back
+            # Mongo daemon in the background
             mongod --quiet>/dev/null &
             # Reset local database
             yes | lpad reset
@@ -57,8 +50,9 @@ jobs:
             # Go to repo directory
             export PYTHONPATH=$GITHUB_WORKSPACE
             echo "Checking out the code base..."
-            cd $GITHUB_WORKSPACE && ls -al
+            cd $GITHUB_WORKSPACE
             echo "---\n"
-            # Execute
+            # Run the OER workflow with fireworks
             python main_slab.py && rlaunch rapidfire
+      # TODO: Once the workflow is run, run a unittest suite
 
