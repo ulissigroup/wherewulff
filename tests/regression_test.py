@@ -9,12 +9,13 @@ class RegressionTest(unittest.TestCase):
         client = MongoClient("mongodb://localhost:27017")
         self.db = client.get_database("fireworks")
         # Read the JSON hash from executing the workflow
+        # Note that these hashes are specific to the github host runner
         with open("db_hashes.json") as f:
             self.hash_dict = json.load(f)
-        self.db_hash = "3bc982413f0d2e943495de0156f7be81"
-        self.IrO2_101_Ir_oer_single_site_hash = "aded4a1dfb98d39c46198c15dde1805d"
-        self.IrO2_110_Ir_oer_single_site_hash = "c3018f1ec562edccd1c17da6fc5a4d60"
-        self.fireworks_hash = "a66517ba7ad6038d9bc40360308cd909"
+        self.db_hash = "983357eed593c66edea3174911effcd9"
+        self.IrO2_101_Ir_oer_single_site_hash = "306ec6114c3f92814ae1dcbf0f36b430"
+        self.IrO2_110_Ir_oer_single_site_hash = "d4bbded9c8aaa3754ba0f46a6f2dd04d"
+        self.fireworks_hash = "21e09ce2884dc8118bb8a43816d176c9"
 
     def test_db_hashes(self):
         """This checks that the output of the
