@@ -58,5 +58,6 @@ jobs:
       - name: Running regression test
         run: |
             # Run suite of tests based on the metadata in the local fireworks db
-            cat db_hashes.json
+            mv db_hashes.json $GITHUB_WORKSPACE/tests
+            cd tests && cat db_hashes.json && python -m unittest regression_test.py
 
