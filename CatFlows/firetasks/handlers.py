@@ -81,10 +81,11 @@ class ContinueOptimizeFW(FiretaskBase):
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
 
-            # Slab object of parent
-            slab = Slab.from_dict(
-                db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
-            )
+            # Slab object of parent - Only needed if doing slab or adslab
+            if not fw_spec["is_bulk"]:
+                slab = Slab.from_dict(
+                    db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
+                )
 
             # Retriving magnetic moments from parent
             magmoms = structure.site_properties["magmom"]
