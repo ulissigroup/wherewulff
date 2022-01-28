@@ -159,14 +159,14 @@ class ContinueOptimizeFW(FiretaskBase):
             import os
 
             if "nid" in os.environ["HOSTNAME"]:
-                fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
+                fw_new.tasks[3].update({"wall_time": fw_spec["wall_time"]})
                 host = (
                     "nersc"  # this needs to be in the fworker config as query on nersc
                 )
             elif "mo-wflow" in os.environ["HOSTNAME"]:
                 # Switch off wall-time handling in child
                 fw_new.spec["wall_time"] = None
-                fw_new.tasks[1].update({"wall_time": None})
+                fw_new.tasks[3].update({"wall_time": None})
                 host = "laikapack"  # should be in laikapack config
 
             # Pin the children down to the same filesystem as the root
