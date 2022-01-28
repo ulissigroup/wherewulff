@@ -150,7 +150,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
-            if counter > 0:
+            if counter > 0 and not fw_spec["is_bulk"]:
                 fw_new.tasks[5]["additional_fields"].update({"slab": slab})
 
             # Get the environment that the parent ran on (either laikapack or nersc for now) and enforce that
