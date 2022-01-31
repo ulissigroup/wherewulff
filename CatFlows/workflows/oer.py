@@ -9,6 +9,7 @@ from CatFlows.firetasks.oer_single_site import OERSingleSiteFireTask
 def OER_WF(
     bulk_structure,
     miller_index,
+    slab_orig,
     metal_site,
     applied_potential=1.60,
     applied_pH=0,
@@ -42,6 +43,7 @@ def OER_WF(
         OERSingleSiteFireTask(
             reduced_formula=bulk_formula,
             miller_index=miller_index,
+            slab_orig=slab_orig,
             metal_site=metal_site,
             applied_potential=applied_potential,
             applied_pH=applied_pH,

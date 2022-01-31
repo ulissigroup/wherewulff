@@ -181,6 +181,7 @@ def SurfacePBX_WF(
     oer_fw = OER_WF(
         bulk_structure=bulk_structure,
         miller_index=slab_miller_index,
+        slab_orig=slab_orig,
         metal_site=metal_site,
         applied_potential=applied_potential,
         applied_pH=applied_pH,

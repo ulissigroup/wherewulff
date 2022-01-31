@@ -23,8 +23,9 @@ class OER_SingleSite(object):
         A dictionary of intermediates e.g. {"reference", "OH_0", "OH_1",...,"OOH_up_0",..., "OOH_down_0",...,}
     """
 
-    def __init__(self, slab, metal_site="", adsorbates=oer_adsorbates_dict, random_state=42):
+    def __init__(self, slab, slab_orig, metal_site="", adsorbates=oer_adsorbates_dict, random_state=42):
         self.slab = slab
+        self.slab_orig = slab_orig
         self.metal_site = metal_site
         self.adsorbates = adsorbates
         self.random_state = random_state
@@ -44,16 +45,27 @@ class OER_SingleSite(object):
 
         # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
-        self.mxidegen = self._mxidegen()
-        self.bulk_like_sites, _ = self.mxidegen.get_bulk_like_adsites()
+
+        # Shifted bulk_like_sites
+        self.bulk_like_sites, self.bulk_like_dict = self._get_shifed_bulk_like_sites()
+
+        # Selected site
+        self.selected_site = self.bulk_like_dict[self.reactive_idx]
+
+        # Print
+        print(self.ads_indices, self.reactive_idx, self.bulk_like_dict)
+
+
+#        self.mxidegen = self._mxidegen()
+#        self.bulk_like_sites, _ = self.mxidegen.get_bulk_like_adsites()
 
         # Select bulk-like site nearest to "removed" oxo site
-        if len(self.bulk_like_sites) > 1:
-            self.selected_site = self._find_nearest_bulk_like_site(
-                reactive_idx=self.reactive_idx
-            )
-        else:
-            self.selected_site = self.bulk_like_sites
+#        if len(self.bulk_like_sites) > 1:
+#            self.selected_site = self._find_nearest_bulk_like_site(
+#                reactive_idx=self.reactive_idx
+#            )
+#        else:
+#            self.selected_site = self.bulk_like_sites
 
         # np seed
         np.random.seed(self.random_state)
@@ -152,13 +164,69 @@ class OER_SingleSite(object):
     def _mxidegen(self, repeat=[1, 1, 1], verbose=False):
         """Returns the MXide Method for the ref_slab"""
         mxidegen = MXideAdsorbateGenerator(
-            self.ref_slab,
+            self.ref_slab, # 110 -> 3O* + 1 (*) and slab_orig 4(*)
             repeat=repeat,
             verbose=verbose,
             positions=["MX_adsites"],
             relax_tol=0.025,
         )
         return mxidegen
+
+    def _get_shifted_bulk_like_sites(self, repeat=[1,1,1], verbose=False):
+        """Get Perturbed bulk-like sites"""
+        # Mxide on pristine slab
+        mxidegen = MXideAdsorbateGenerator(
+            self.slab_orig,
+            repeat=repeat,
+            verbose=verbose,
+            position=['MX_adsites'],
+            relax_tol=0.025
+        )
+
+        # Pristine bulk_like sites
+        bulk_like, _ = mxidegen.get_bulk_like_adsites()
+        bondlength, X = mxidegen.bondlength, mxidegen.X
+
+        # Create the clean slab
+        clean_slab = self._get_clean_slab()
+
+        # Perturb pristine bulk_like sites
+        bulk_like_shifted = self._bulk_like_adsites_perturbation(self.slab_orig, clean_slab, bulk_like, bondlength=bondlength, X=X)
+
+        # Sort the bulk_like_sites with ads_idx
+        bulk_like_dict = {} # {idx: [x,y,z]}
+        min_dist = np.inf
+        for bulk_like_site in bulk_like_shifted:
+            for idx, site in enumerate(self.slab):
+                if site.coords[2] > self.slab.center_of_mass[2]:
+                    dist = np.linalg.norm(bulk_like_site - site.coords)
+                    if dist <= min_dist:
+                        bulk_like_dict.update({idx: bulk_like_site})
+        return bulk_like_shifted, bulk_like_dict
+
+    def _bulk_like_adsites_perturbation(self, slab_ref, slab, bulk_like_sites, bondlength, X):
+        """Let's perturb bulk_like_sites with delta (xyz)"""
+        slab_ref_coords = slab_ref.cart_coords
+        slab_coords = slab.cart_coords
+
+        delta_coords = slab_coords - slab_ref_coords
+
+        metal_idx = []
+        for bulk_like_site in bulk_like_sites:
+            for idx, site in enumerate(slab_ref):
+                if site.specie != Element(X) and site.coords[2] > slab_ref.center_of_mass[2]:
+                    dist = np.linalg.norm(bulk_like_site - site.coords)
+                    if dist < bondlength:
+                        metal_idx.append(idx)
+
+        bulk_like_deltas = [delta_coords[i] for i in metal_idx]
+        return [n+m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
+
+    def _get_clean_slab(self):
+        """Remove all the adsorbates"""
+        clean_slab = self.slab.copy()
+        clean_slab.remove_sites(indices=[self.ads_indices])
+        return clean_slab
 
     def _get_oer_intermediates(
         self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=4
