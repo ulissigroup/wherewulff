@@ -144,6 +144,7 @@ class OER_SingleSite(object):
         if self.surface_coverage[0] == "oxo":
             ref_slab = self.slab.copy()
             reactive_site = np.random.choice(self.ads_indices)
+            reactive_site = 101
             ref_slab.remove_sites(indices=[reactive_site])
 
             return ref_slab, reactive_site
