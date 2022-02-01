@@ -23,9 +23,10 @@ class OER_SingleSite(object):
         A dictionary of intermediates e.g. {"reference", "OH_0", "OH_1",...,"OOH_up_0",..., "OOH_down_0",...,}
     """
 
-    def __init__(self, slab, slab_orig, metal_site="", adsorbates=oer_adsorbates_dict, random_state=42):
+    def __init__(self, slab, slab_orig, bulk_like_sites, metal_site="", adsorbates=oer_adsorbates_dict, random_state=42):
         self.slab = slab
         self.slab_orig = slab_orig
+        self.bulk_like_sites = bulk_like_sites
         self.metal_site = metal_site
         self.adsorbates = adsorbates
         self.random_state = random_state
@@ -178,23 +179,23 @@ class OER_SingleSite(object):
     def _get_shifted_bulk_like_sites(self, repeat=[1,1,1], verbose=False):
         """Get Perturbed bulk-like sites"""
         # Mxide on pristine slab
-        mxidegen = MXideAdsorbateGenerator(
-            self.slab_orig,
-            repeat=repeat,
-            verbose=verbose,
-            positions=['MX_adsites'],
-            relax_tol=0.025
-        )
+        #mxidegen = MXideAdsorbateGenerator(
+        #    self.slab_orig,
+        #    repeat=repeat,
+        #    verbose=verbose,
+        #    positions=['MX_adsites'],
+        #    relax_tol=0.025
+        #)
 
         # Pristine bulk_like sites
-        bulk_like, _ = mxidegen.get_bulk_like_adsites()
-        bondlength, X = mxidegen.bondlength, mxidegen.X
+        #bulk_like, _ = mxidegen.get_bulk_like_adsites()
+        #bondlength, X = mxidegen.bondlength, mxidegen.X
 
         # Create the clean slab
-        clean_slab = self._get_clean_slab()
+        #clean_slab = self._get_clean_slab()
 
         # Perturb pristine bulk_like sites
-        bulk_like_shifted = self._bulk_like_adsites_perturbation(self.slab_orig, clean_slab, bulk_like, bondlength=bondlength, X=X)
+        bulk_like_shifted = self._bulk_like_adsites_perturbation_oxygens(self.slab_orig, self.slab)
 
         # Sort the bulk_like_sites with ads_idx
         bulk_like_dict = {} # {idx: [x,y,z]}
@@ -229,6 +230,27 @@ class OER_SingleSite(object):
 
         bulk_like_deltas = [delta_coords[i] for i in metal_idx]
         return [n+m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
+
+    def _bulk_like_adsite_perturbation_oxygens(self, slab_ref, slab):
+        """peturbation on oxygens"""
+        slab_ref_coords = slab_ref.cart_coords # input
+        slab_coords = slab.cart_coords # output
+
+        delta_coords = slab_coords - slab_ref_coords
+
+        ox_idx = []
+        min_dist = np.inf
+        for bulk_like_site in self.bulk_like_sites:
+            for idx, site in enumerate(slab_ref):
+                if site.specie == Element("O") and site.coords[2] > slab_ref.center_of_mass[2]:
+                    dist = np.linalg.norm(bulk_like_site - site.coords)
+                    if dist <= min_dist:
+                        min_dist = dist
+                        ox_idx.append(idx)
+
+        bulk_like_deltas = [delta_coords[i] for i in ox_idx]
+        return [n+m for n, m in zip(bulk_like_site, bulk_like_deltas)]
+
 
     def _get_clean_slab(self):
         """Remove all the adsorbates"""

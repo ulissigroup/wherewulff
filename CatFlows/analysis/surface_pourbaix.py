@@ -183,7 +183,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         # Appending site properties on slab_oh structure
-        slab_oh = self._add_site_properties(
+        slab_oh, slab_oh_orig = self._add_site_properties(
             slab_oh, mmdb, uuid_termination=ads_uuid_oh_min
         )
 
@@ -210,7 +210,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         # Appending site properties on slab_ox structure
-        slab_ox = self._add_site_properties(slab_ox, mmdb, uuid_termination=ads_uuid_ox)
+        slab_ox, slab_ox_orig = self._add_site_properties(slab_ox, mmdb, uuid_termination=ads_uuid_ox)
 
         slab_ox_obj = Slab(
             slab_ox.lattice,
@@ -230,7 +230,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         summary_dict["slab_clean"] = slab_clean_obj.as_dict()
         summary_dict["slab_oh"] = slab_oh_obj.as_dict()
+        summary_dict["slab_oh_orig"] = slab_oh_orig
         summary_dict["slab_ox"] = slab_ox_obj.as_dict()
+        summary_dict["slab_ox_orig"] = slab_ox_orig
 
         # Number of H2O and nH for PBX
         nH2O = slab_ox_composition["O"] - slab_clean_comp["O"]
@@ -344,10 +346,18 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
                 "orig_inputs"
             ]["incar"]["MAGMOM"]
+
+            struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                "orig_inputs"
+            ]["structure"]
         else:
             orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
                 "input"
             ]["incar"]["MAGMOM"]
+
+            struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                "input"
+            ]["structure"]
 
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
@@ -357,7 +367,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         struct.add_site_property("forces", forces)
         struct.add_site_property("magmom", orig_magmoms)
 
-        return struct
+        return struct, struct_orig
 
     def oer_potential_std(self):
         """

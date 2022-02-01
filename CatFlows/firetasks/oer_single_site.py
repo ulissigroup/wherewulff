@@ -38,6 +38,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         "reduced_formula",
         "miller_index",
         "slab_orig",
+        "bulk_like_sites",
         "metal_site",
         "applied_potential",
         "applied_pH",
@@ -54,6 +55,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
         slab_orig = self["slab_orig"]
+        bulk_like_sites = self["bulk_like_sites"]
         metal_site = self["metal_site"]
         applied_potential = self["applied_potential"]
         applied_pH = self["applied_pH"]
@@ -89,11 +91,15 @@ class OERSingleSiteFireTask(FiretaskBase):
         clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
 
+        # Retrieve the surface termination as input
+        stable_surface_orig = Structure.from_dict(pbx_doc[f"slab_{surface_termination}_orig"])
+
         # Generate OER single site intermediates (WNA)
         breakpoint()
         oer_wna = OER_SingleSite(
-            stable_surface, slab_orig=slab_orig, metal_site=metal_site, adsorbates=oer_adsorbates_dict
+            stable_surface, slab_orig=stable_surface_orig, bulk_like_sites=bulk_like_sites, metal_site=metal_site, adsorbates=oer_adsorbates_dict
         )
+        
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
