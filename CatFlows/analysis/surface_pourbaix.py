@@ -150,6 +150,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                     dft_energy_oh_min = dft_energy_oh
                     # ads_task_label_oh_min = ads_task_label
                     ads_uuid_oh_min = ads_slab_uuid
+                    n_oh_rotation = adsorbate_label.split("_")[1]
 
             if "O_" in adsorbate_label:
                 dft_energy_ox = doc_ads["calcs_reversed"][-1]["output"]["energy"]
@@ -231,6 +232,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         summary_dict["slab_clean"] = slab_clean_obj.as_dict()
         summary_dict["slab_oh"] = slab_oh_obj.as_dict()
         summary_dict["slab_oh_orig"] = slab_oh_orig
+        summary_dict["n_oh_rotation"] = n_oh_rotation
         summary_dict["slab_ox"] = slab_ox_obj.as_dict()
         summary_dict["slab_ox_orig"] = slab_ox_orig
 
