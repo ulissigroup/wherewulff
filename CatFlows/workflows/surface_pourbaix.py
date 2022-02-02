@@ -82,6 +82,7 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
         slab_ads = add_adsorbates(
             slab_ads, bulk_like_shifted, molecule_rotations[rot_idx]
         )
+        slab_ads.sort()
         adslab_dict.update({"{}_{}".format(molecule_formula, rot_idx + 1): slab_ads})
 
     return adslab_dict, bulk_like_shifted
@@ -139,6 +140,7 @@ def SurfacePBX_WF(
     slab_miller_index = "".join(list(map(str, slab.miller_index)))
 
     # Generate a set of OptimizeFW additons that will relax all the adslab in parallel
+    ads_slab_orig = {}
     for adsorbate in adsorbates:
         adslabs, bulk_like_shifted = get_clockwise_rotations(slab_orig, slab, adsorbate)
         for adslab_label, adslab in adslabs.items():
@@ -156,6 +158,7 @@ def SurfacePBX_WF(
                 db_file=db_file,
                 run_fake=run_fake,
             )
+            ads_slab_orig.update({adslab_label: adslab})
             hkl_fws.append(ads_slab_fw)
             hkl_uuids.append(ads_slab_uuid)
 
@@ -183,6 +186,7 @@ def SurfacePBX_WF(
         miller_index=slab_miller_index,
         slab_orig=slab_orig,
         bulk_like_sites=bulk_like_shifted,
+        ads_dict_orig=ads_slab_orig,
         metal_site=metal_site,
         applied_potential=applied_potential,
         applied_pH=applied_pH,
