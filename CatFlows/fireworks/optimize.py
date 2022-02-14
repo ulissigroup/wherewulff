@@ -324,7 +324,7 @@ def AdsSlab_FW(
             "is_bulk": False,
         },
     )
-    if run_fake:
+    if run_fake and not "-Ru-" in name:
         assert (
             "RuO2" in name or "IrO2" in name or "TiRuO4" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
