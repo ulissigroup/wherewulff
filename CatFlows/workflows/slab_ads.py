@@ -7,7 +7,14 @@ from CatFlows.firetasks.slab_ads import SlabAdsFireTask
 
 
 def SlabAds_WF(
-    bulk_structure, adsorbates, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE
+    bulk_structure, 
+    adsorbates, 
+    parents=None, 
+    vasp_cmd=VASP_CMD, 
+    db_file=DB_FILE,
+    metal_site="",
+    applied_potential=1.60,
+    applied_pH=0,
 ):
     """
     Wrap-up workflow to do the Wulff Shape Analysis after MO_SLABS_WF.
@@ -26,11 +33,15 @@ def SlabAds_WF(
     # WulffShape Analysis
     ads_slab_fw = Firework(
         SlabAdsFireTask(
+            bulk_structure=bulk_structure,
             reduced_formula=bulk_formula,
             adsorbates=adsorbates,
             slabs=None,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
+            metal_site=metal_site,
+            applied_potential=applied_potential,
+            applied_pH=applied_pH,
         ),
         name=f"{bulk_formula} Ads_slab optimization",
         parents=parents,
