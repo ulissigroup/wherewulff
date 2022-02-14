@@ -31,18 +31,32 @@ class SlabAdsFireTask(FiretaskBase):
 
     """
 
-    required_params = ["reduced_formula", "slabs", "adsorbates", "vasp_cmd", "db_file"]
+    required_params = [
+        "bulk_structure",
+        "reduced_formula", 
+        "slabs", 
+        "adsorbates", 
+        "vasp_cmd", 
+        "db_file"
+        "metal_site",
+        "applied_potential",
+        "applied_pH",
+    ]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
 
         # Variables
+        bulk_structure = self["bulk_structure"] # already deserialized
         reduced_formula = self["reduced_formula"]
         slabs = self["slabs"]
         adsorbates = self["adsorbates"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        wulff_uuid = fw_spec.get("wulff_uuid")
+        wulff_uuid = fw_spec.get("wulff_uuid", None)
+        metal_site = self.get("metal_site", "")
+        applied_potential = self.get("applied_potential", 1.60)
+        applied_pH = self.get("applied_pH", 0.0)
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -50,21 +64,29 @@ class SlabAdsFireTask(FiretaskBase):
         # Slab_Ads
         if slabs is None:
             # Get wulff-shape collection from DB
-            collection = mmdb.db[f"{reduced_formula}_wulff_shape_analysis"]
-            wulff_metadata = collection.find_one(
-                {"task_label": f"{reduced_formula}_wulff_shape_{wulff_uuid}"}
-            )
+            if wulff_uuid is not None:
+                collection = mmdb.db[f"{reduced_formula}_wulff_shape_analysis"]
+                wulff_metadata = collection.find_one(
+                    {"task_label": f"{reduced_formula}_wulff_shape_{wulff_uuid}"}
+                )
 
-            # Filter by surface contribution
-            filtered_slab_miller_indices = [
-                k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
-            ]
-
-            # Create the set of reduced_formulas
-            bulk_slab_keys = [
-                "_".join([reduced_formula, miller_index])
-                for miller_index in filtered_slab_miller_indices
-            ]
+                # Filter by surface contribution
+                filtered_slab_miller_indices = [
+                    k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
+                ]
+                # Create the set of reduced_formulas
+                bulk_slab_keys = [
+                    "_".join([reduced_formula, miller_index])
+                    for miller_index in filtered_slab_miller_indices
+                ]
+            else:
+                # This is the case where there is no Wulff shape because
+                # there is only one miller index
+                # Get the bulk_slab_key from the fw_spec
+                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}_" in k]
+                filtered_slab_miller_indices = [
+                    bsk.split("_")[1] for bsk in bulk_slab_keys
+                ]
 
             # Re-build PMG Slab object from optimized structures
             slab_candidates = []
@@ -190,6 +212,7 @@ class SlabAdsFireTask(FiretaskBase):
             hkl_pbx_wfs = []
             for slab_out, slab_inp, oriented_uuid, slab_uuid in slab_candidates:
                 hkl_pbx_wf = SurfacePBX_WF(
+                    bulk_structure=bulk_structure,
                     slab=slab_out,
                     slab_orig=slab_inp,
                     slab_uuid=slab_uuid,
@@ -197,44 +220,11 @@ class SlabAdsFireTask(FiretaskBase):
                     adsorbates=adsorbates,
                     vasp_cmd=vasp_cmd,
                     db_file=db_file,
+                    metal_site=metal_site,
+                    applied_potential=applied_potential,
+                    applied_pH=applied_pH,
                 )
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 
         return FWAction(detours=hkl_pbx_wfs)
-
-
-"""
-# Generate a set of OptimizeFW additions that will relax all the adslab in parallel
-ads_slab_fws = []
-for slab, oriented_uuid, slab_uuid in slab_candidates:
-    slab_miller_index = "".join(list(map(str, slab.miller_index)))
-    hkl_fws, hkl_uuids = [], []
-    for adsorbate in adsorbates:
-        adslabs = get_clockwise_rotations(slab, adsorbate)
-        for adslab_label, adslab in adslabs.items():
-            name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
-            ads_slab_uuid = uuid.uuid4()
-            ads_slab_fw = AdsSlab_FW(
-                adslab,
-                name=name,
-                oriented_uuid=oriented_uuid,
-                slab_uuid=slab_uuid,
-                ads_slab_uuid=ads_slab_uuid,
-                vasp_cmd=vasp_cmd,
-            )
-            ads_slab_fws.append(ads_slab_fw)
-            hkl_fws.append(ads_slab_fw)
-            hkl_uuids.append(ads_slab_uuid)
-
-    # Surface PBX Diagram for each surface orientation "independent"
-    pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
-    pbx_fw = SurfacePBX_FW(
-        reduced_formula=reduced_formula,
-        name=pbx_name,
-        miller_index=slab_miller_index,
-        slab_uuid=slab_uuid,
-        ads_slab_uuids=hkl_uuids,
-        parents=hkl_fws,
-    )
-    ads_slab_fws.append(pbx_fw)
-"""
+        
