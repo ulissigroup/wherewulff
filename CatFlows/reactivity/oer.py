@@ -34,7 +34,7 @@ class OER_SingleSite(object):
 
         # We need to remove oxidation states
         self.slab_clean.remove_oxidation_states()
-        self.slab_cleab.oriented_unit_cell.remove_oxidation_states()
+        self.slab_clean.oriented_unit_cell.remove_oxidation_states()
 
         # Inspect slab site properties to determine termination (OH/Ox)
         (
