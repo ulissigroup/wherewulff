@@ -73,7 +73,21 @@ ref_dirs = {
     "CrRuO4-101-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuCrO4/RuCr_101_OH_3",
     "CrRuO4-101-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/RuCrO4/RuCr_101_OH_4",
     "CrRuO4-101-O_1": f"{os.environ['GITHUB_WORKSPACE']}/RuCrO4/RuCr_101_Ox_1",
-
+    # RuTiO4
+    "TiRuO4_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_bulk",
+    "TiRuO4_101 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_bulk",
+    "TiRuO4_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_slab",
+    "TiRuO4_101 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_slab",
+    "TiRuO4-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_OH_1",
+    "TiRuO4-110-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_OH_2",
+    "TiRuO4-110-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_OH_3",
+    "TiRuO4-110-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_OH_4",
+    "TiRuO4-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_110_Ox_1",
+    "TiRuO4-101-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_OH_1",
+    "TiRuO4-101-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_OH_2",
+    "TiRuO4-101-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_OH_3",
+    "TiRuO4-101-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_OH_4",
+    "TiRuO4-101-O_1": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_Ox_1",
 }
 
 
@@ -134,7 +148,7 @@ def Bulk_FW(
     )
     if run_fake:
         assert (
-            "RuO2" in name or "IrO2" in name or "CrRuO4" in name
+            "RuO2" in name or "IrO2" in name or "TiRuO4" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
@@ -216,7 +230,7 @@ def Slab_FW(
     )
     if run_fake:
         assert (
-            "RuO2" in name or "IrO2" in name or "CrRuO4" in name
+            "RuO2" in name or "IrO2" in name or "TiRuO4" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
@@ -312,7 +326,7 @@ def AdsSlab_FW(
     )
     if run_fake:
         assert (
-            "RuO2" in name or "IrO2" in name or "CrRuO4" in name
+            "RuO2" in name or "IrO2" in name or "TiRuO4" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
