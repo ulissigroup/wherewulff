@@ -169,19 +169,19 @@ def SurfacePBX_WF(
 
     # OER workflow
     oer_fw = OER_WF(
-    bulk_structure=bulk_structure,
-    miller_index=slab_miller_index,
-    slab_orig=slab_orig,
-    bulk_like_sites=bulk_like_shifted,
-    ads_dict_orig=ads_slab_orig,
-    metal_site=metal_site,
-    applied_potential=applied_potential,
-    applied_pH=applied_pH,
-    parents=[pbx_fw],
-    vasp_cmd=VASP_CMD,
-    db_file=DB_FILE,
-    surface_pbx_uuid=surface_pbx_uuid,
-)
+        bulk_structure=bulk_structure,
+        miller_index=slab_miller_index,
+        slab_orig=slab_orig,
+        bulk_like_sites=bulk_like_shifted,
+        ads_dict_orig=ads_slab_orig,
+        metal_site=metal_site,
+        applied_potential=applied_potential,
+        applied_pH=applied_pH,
+        parents=[pbx_fw],
+        vasp_cmd=VASP_CMD,
+        db_file=DB_FILE,
+        surface_pbx_uuid=surface_pbx_uuid,
+    )
 
     # Create the workflow
     all_fws = hkl_fws + [pbx_fw] + [oer_fw]
