@@ -26,7 +26,7 @@ from CatFlows.dft_settings.settings import (
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
 from CatFlows.workflows.wulff_shape import WulffShape_WF
 from CatFlows.workflows.slab_ads import SlabAds_WF
-from CatFlows.workflows.oer import OER_WF, OER_WF_new
+from CatFlows.workflows.oer import OER_WF
 from CatFlows.adsorption.adsorbate_configs import OH_Ox_list
 
 
@@ -284,20 +284,6 @@ class CatFlows:
         # convert fws list into wf
         wf_name = f"{self.bulk_structure.composition.reduced_formula}-{miller_index} OER Single Site WNA"
         oer_wf = self._convert_to_workflow(oer_fws, name=wf_name, parents=parents)
-        return oer_wf
-
-    def _get_oer_reactivity_new(self, parents=None):
-        """New OER but remove inner links"""
-        miller_index_list = [
-            "".join(list(map(str, hkl))) for hkl in self.miller_indices
-        ]
-        oer_wf = OER_WF_new(
-            bulk_structure=self.bulk_structure,
-            miller_index_list=miller_index_list,
-            parents=parents,
-            vasp_cmd=self.vasp_cmd,
-            db_file=self.db_file,
-        )
         return oer_wf
 
     def _get_parents(self, workflow_list):
