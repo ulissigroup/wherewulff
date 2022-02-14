@@ -39,9 +39,10 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "oriented_uuid",
-        #       "slab_hkl_uuid",
+        # "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
+        "surface_pbx_uuid",
     ]
     optional_params = ["to_db"]
 
@@ -57,6 +58,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # slab_hkl_uuid = self["slab_hkl_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
         orig_ads_slab_uuids = self["ads_slab_uuids"]
+        surface_pbx_uuid = self["surface_pbx_uuid"]
 
         # Get the dynamic adslab uuids from the fw_spec.
         # Note that this will be different from the orig_ads_slab_uuids
@@ -88,7 +90,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         self.reference_energies = {"H2O": -14.25994015, "H2": -6.77818501}
 
         # Surface PBX diagram uuid
-        surface_pbx_uuid = uuid.uuid4()
+        # surface_pbx_uuid = uuid.uuid4()
         summary_dict["surface_pbx_uuid"] = str(surface_pbx_uuid)
 
         # Connect to DB
@@ -146,6 +148,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                     dft_energy_oh_min = dft_energy_oh
                     # ads_task_label_oh_min = ads_task_label
                     ads_uuid_oh_min = ads_slab_uuid
+                    n_oh_rotation = adsorbate_label.split("_")[1]
 
             if "O_" in adsorbate_label:
                 dft_energy_ox = doc_ads["calcs_reversed"][-1]["output"]["energy"]
@@ -160,16 +163,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         #### FW collection to retrieve site properties
         fw_collection = mmdb.db["fireworks"]
         fw_doc_oh = fw_collection.find_one({"spec.uuid": str(ads_uuid_oh_min)})
-        fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
+        # fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
 
         # Retrieve OH/Ox input struct and sort
         struct_oh_input = Structure.from_dict(
             fw_doc_oh["spec"]["_tasks"][0]["structure"]
         )
         struct_oh_input.sort()
-        struct_ox_input = Structure.from_dict(
-            fw_doc_ox["spec"]["_tasks"][0]["structure"]
-        )
+        # struct_ox_input = Structure.from_dict(
+        #    fw_doc_ox["spec"]["_tasks"][0]["structure"]
+        # )
 
         # OH/Ox Structural info -> Compositions
         slab_oh = Structure.from_dict(
@@ -179,7 +182,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         # Appending site properties on slab_oh structure
-        slab_oh = self._add_site_properties(
+        slab_oh, slab_oh_orig = self._add_site_properties(
             slab_oh, mmdb, uuid_termination=ads_uuid_oh_min
         )
 
@@ -206,7 +209,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         # Appending site properties on slab_ox structure
-        slab_ox = self._add_site_properties(slab_ox, mmdb, uuid_termination=ads_uuid_ox)
+        slab_ox, slab_ox_orig = self._add_site_properties(
+            slab_ox, mmdb, uuid_termination=ads_uuid_ox
+        )
 
         slab_ox_obj = Slab(
             slab_ox.lattice,
@@ -226,7 +231,10 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         summary_dict["slab_clean"] = slab_clean_obj.as_dict()
         summary_dict["slab_oh"] = slab_oh_obj.as_dict()
+        summary_dict["slab_oh_orig"] = slab_oh_orig
+        summary_dict["n_oh_rotation"] = n_oh_rotation
         summary_dict["slab_ox"] = slab_ox_obj.as_dict()
+        summary_dict["slab_ox_orig"] = slab_ox_orig
 
         # Number of H2O and nH for PBX
         nH2O = slab_ox_composition["O"] - slab_clean_comp["O"]
@@ -336,7 +344,14 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         ]
 
         # Initialize from original magmoms
-        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["orig_inputs"]["incar"]["MAGMOM"]
+        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+            "orig_inputs"
+        ]["incar"]["MAGMOM"]
+
+        # Retrieve the original structure
+        struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["input"][
+            "structure"
+        ]
 
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
@@ -346,7 +361,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         struct.add_site_property("forces", forces)
         struct.add_site_property("magmom", orig_magmoms)
 
-        return struct
+        return struct, struct_orig
 
     def oer_potential_std(self):
         """

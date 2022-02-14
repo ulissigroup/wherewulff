@@ -16,6 +16,7 @@ def SurfacePBX_FW(
     ads_slab_uuids="",
     parents=None,
     db_file=DB_FILE,
+    surface_pbx_uuid="",
 ):
 
     # FW
@@ -28,6 +29,7 @@ def SurfacePBX_FW(
             ads_slab_uuids=ads_slab_uuids,
             db_file=db_file,
             to_db=True,
+            surface_pbx_uuid=surface_pbx_uuid,
         ),
         name=name,
         parents=parents,

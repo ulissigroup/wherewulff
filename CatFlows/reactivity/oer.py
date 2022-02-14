@@ -23,11 +23,27 @@ class OER_SingleSite(object):
         A dictionary of intermediates e.g. {"reference", "OH_0", "OH_1",...,"OOH_up_0",..., "OOH_down_0",...,}
     """
 
-    def __init__(self, slab, metal_site="", adsorbates=oer_adsorbates_dict, random_state=42):
+    def __init__(
+        self,
+        slab,
+        slab_orig,
+        slab_clean,
+        bulk_like_sites,
+        metal_site="",
+        adsorbates=oer_adsorbates_dict,
+        random_state=42,
+    ):
         self.slab = slab
+        self.slab_orig = slab_orig
+        self.slab_clean = slab_clean
+        self.bulk_like_sites = bulk_like_sites
         self.metal_site = metal_site
         self.adsorbates = adsorbates
         self.random_state = random_state
+
+        # We need to remove oxidation states
+        self.slab_clean.remove_oxidation_states()
+        self.slab_clean.oriented_unit_cell.remove_oxidation_states()
 
         # Inspect slab site properties to determine termination (OH/Ox)
         (
@@ -37,23 +53,27 @@ class OER_SingleSite(object):
             self.termination_info,
         ) = self._get_surface_termination()
 
+        # Cache all the idx
+        self.all_ads_indices = self.ads_indices.copy()
+
         # Select active site composition
         active_sites_dict = self._group_ads_sites_by_metal()
-        assert self.metal_site in active_sites_dict.keys(), f"There is no available {self.metal_site} on the surface"
+        assert (
+            self.metal_site in active_sites_dict.keys()
+        ), f"There is no available {self.metal_site} on the surface"
         self.ads_indices = active_sites_dict[self.metal_site]
 
         # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
-        self.mxidegen = self._mxidegen()
-        self.bulk_like_sites, _ = self.mxidegen.get_bulk_like_adsites()
 
-        # Select bulk-like site nearest to "removed" oxo site
-        if len(self.bulk_like_sites) > 1:
-            self.selected_site = self._find_nearest_bulk_like_site(
-                reactive_idx=self.reactive_idx
-            )
-        else:
-            self.selected_site = self.bulk_like_sites
+        # Mxide method
+        self.mxidegen = self._mxidegen()
+
+        # Shifted bulk_like_sites
+        self.bulk_like_dict = self._get_shifted_bulk_like_sites()
+
+        # Selected site
+        self.selected_site = self.bulk_like_dict[self.reactive_idx]
 
         # np seed
         np.random.seed(self.random_state)
@@ -63,7 +83,8 @@ class OER_SingleSite(object):
         termination_info = [
             [idx, site.specie, site.frac_coords]
             for idx, site in enumerate(self.slab.sites)
-            if "surface_properties" in site.properties and site.properties["surface_properties"] == "adsorbate"
+            if "surface_properties" in site.properties
+            and site.properties["surface_properties"] == "adsorbate"
         ]
 
         # Filter sites information
@@ -74,17 +95,17 @@ class OER_SingleSite(object):
         surface_coverage = ["oxo" if Element("H") not in ads_species else "oh"]
         return surface_coverage, ads_species, ads_indices, termination_info
 
-    def _find_nearest_bulk_like_site(self, reactive_idx):
+    def _find_nearest_bulk_like_site(self, bulk_like_sites, reactive_idx):
         """Find reactive site by min distance between bulk-like and selected reactive site"""
         ox_site = [site for idx, site in enumerate(self.slab) if idx == reactive_idx][0]
 
         min_dist = np.inf
-        for bulk_like_site in self.bulk_like_sites:
+        for bulk_like_site in bulk_like_sites:
             dist = np.linalg.norm(bulk_like_site - ox_site.coords)
             if dist <= min_dist:
                 min_dist = dist
                 nn_site = bulk_like_site
-        return [np.array(nn_site)]
+        return nn_site
 
     def _find_nearest_hydrogen(self, site_idx, search_list):
         """Depending on how the surface atoms are sorted we need to find the nearest H"""
@@ -100,7 +121,9 @@ class OER_SingleSite(object):
 
     def _find_nearest_metal(self, reactive_idx):
         """Find reactive site by min distance between any metal and oxygen"""
-        reactive_site = [site for idx, site in enumerate(self.slab) if idx == reactive_idx][0]
+        reactive_site = [
+            site for idx, site in enumerate(self.slab) if idx == reactive_idx
+        ][0]
 
         min_dist = np.inf
         for site in self.slab:
@@ -152,13 +175,78 @@ class OER_SingleSite(object):
     def _mxidegen(self, repeat=[1, 1, 1], verbose=False):
         """Returns the MXide Method for the ref_slab"""
         mxidegen = MXideAdsorbateGenerator(
-            self.ref_slab,
+            self.slab_clean,
             repeat=repeat,
             verbose=verbose,
             positions=["MX_adsites"],
             relax_tol=0.025,
         )
         return mxidegen
+
+    def _get_shifted_bulk_like_sites(self):
+        """Get Perturbed bulk-like sites"""
+        # Bondlength and X-specie from mxide method
+        bondlength, X = self.mxidegen.bondlength, self.mxidegen.X
+
+        # Perturb pristine bulk_like sites {idx: np.array([x,y,z])}
+        bulk_like_shifted_dict = self._bulk_like_adsites_perturbation_oxygens(
+            self.slab_orig, self.slab, bondlength=bondlength, X=X
+        )
+
+        return bulk_like_shifted_dict
+
+    def _bulk_like_adsites_perturbation(
+        self, slab_ref, slab, bulk_like_sites, bondlength, X
+    ):
+        """Let's perturb bulk_like_sites with delta (xyz)"""
+        slab_ref_coords = slab_ref.cart_coords
+        slab_coords = slab.cart_coords
+
+        delta_coords = slab_coords - slab_ref_coords
+
+        metal_idx = []
+        for bulk_like_site in bulk_like_sites:
+            for idx, site in enumerate(slab_ref):
+                if (
+                    site.specie != Element(X)
+                    and site.coords[2] > slab_ref.center_of_mass[2]
+                ):
+                    dist = np.linalg.norm(bulk_like_site - site.coords)
+                    if dist < bondlength:
+                        metal_idx.append(idx)
+
+        bulk_like_deltas = [delta_coords[i] for i in metal_idx]
+        return [n + m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
+
+    def _bulk_like_adsites_perturbation_oxygens(self, slab_ref, slab, bondlength, X):
+        """peturbation on oxygens"""
+        slab_ref_coords = slab_ref.cart_coords  # input
+        slab_coords = slab.cart_coords  # output
+
+        delta_coords = slab_coords - slab_ref_coords
+
+        ox_idx = []
+        for bulk_like_site in self.bulk_like_sites:
+            for idx, site in enumerate(slab_ref):
+                if (
+                    site.specie == Element(X)
+                    and site.coords[2] > slab_ref.center_of_mass[2]
+                ):
+                    dist = np.linalg.norm(bulk_like_site - site.coords)
+                    if dist < bondlength:
+                        ox_idx.append(idx)
+
+        bulk_like_deltas = [delta_coords[i] for i in ox_idx]
+        bulk_like_shifted = [
+            n + m for n, m in zip(self.bulk_like_sites, bulk_like_deltas)
+        ]
+        return {k: [v] for (k, v) in zip(ox_idx, bulk_like_shifted)}
+
+    def _get_clean_slab(self):
+        """Remove all the adsorbates"""
+        clean_slab = self.slab_orig.copy()
+        clean_slab.remove_sites(indices=self.all_ads_indices)
+        return clean_slab
 
     def _get_oer_intermediates(
         self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=4

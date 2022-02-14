@@ -26,7 +26,7 @@ from CatFlows.dft_settings.settings import (
 from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
 from CatFlows.workflows.wulff_shape import WulffShape_WF
 from CatFlows.workflows.slab_ads import SlabAds_WF
-from CatFlows.workflows.oer import OER_WF, OER_WF_new
+from CatFlows.workflows.oer import OER_WF
 from CatFlows.adsorption.adsorbate_configs import OH_Ox_list
 
 
@@ -200,7 +200,7 @@ class CatFlows:
             else:
                 all_slabs = slab_gen.get_slabs(symmetrize=False, ftol=ftol)
 
-            slab_candidates = [] 
+            slab_candidates = []
             for slab in all_slabs:
                 slab_formula = slab.composition.reduced_formula
                 if (
@@ -258,6 +258,9 @@ class CatFlows:
             parents=parents,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,
+            metal_site=self.metal_site,
+            applied_potential=self.applied_potential,
+            applied_pH=self.applied_pH,
         )
         return ads_slab_wfs, parents_fws
 
@@ -281,20 +284,6 @@ class CatFlows:
         # convert fws list into wf
         wf_name = f"{self.bulk_structure.composition.reduced_formula}-{miller_index} OER Single Site WNA"
         oer_wf = self._convert_to_workflow(oer_fws, name=wf_name, parents=parents)
-        return oer_wf
-
-    def _get_oer_reactivity_new(self, parents=None):
-        """New OER but remove inner links"""
-        miller_index_list = [
-            "".join(list(map(str, hkl))) for hkl in self.miller_indices
-        ]
-        oer_wf = OER_WF_new(
-            bulk_structure=self.bulk_structure,
-            miller_index_list=miller_index_list,
-            parents=parents,
-            vasp_cmd=self.vasp_cmd,
-            db_file=self.db_file,
-        )
         return oer_wf
 
     def _get_parents(self, workflow_list):
@@ -334,41 +323,18 @@ class CatFlows:
             launchpad.add_wf(wulff_wf)
 
         else:
-            # Wulff-shape Analysis
-            wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
+            # Add Wulff Analysis
+            if len(self.miller_indices) > 1:
+                wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
 
-            # Surface Pourbaix Diagram (OH/Ox)
-            ads_slab_wfs, ads_slab_fws = self._get_ads_slab_wfs(parents=wulff_parents)
+                # Surface Pourbaix Diagram (OH/Ox)
+                ads_slab_wf, ads_slab_fws = self._get_ads_slab_wfs(
+                    parents=wulff_parents
+                )
+            else:  # case where there is only one surface orientation
+                # skip the Wulff
+                ads_slab_wf, ads_slab_fws = self._get_ads_slab_wfs(parents=parents_list)
 
-            # Reactivity -> OER 
-            oer_wf = self._get_oer_reactivity(parents=ads_slab_fws)
-            launchpad.add_wf(oer_wf)
-
-            # Loop over OER
-            # for oer_wf in range(len(oer_wfs)):
-            #    launchpad.add_wf(oer_wfs[oer_wf])
-
-        return launchpad
-
-    def submit_local(self, reset=True):
-        """Submit Full Workflow to Launchpad !"""
-        launchpad = LaunchPad()
-
-        if reset:
-            launchpad.reset("", require_password=False)
-
-        parents_list = self._get_parents(self.workflows_list)
-
-        # Wulff shape analysis
-        if self.stop_at_wulff_analysis:
-            wulff_wf = self._get_wulff_analysis(parents=parents_list)
-            launchpad.add_wf(wulff_wf)
-
-        else:
-            wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
-
-            # Ads slab into the launchpad
-            ads_slab_wfs = self._get_ads_slab_wfs(parents=wulff_parents)
-            launchpad.add_wf(ads_slab_wfs)
+            launchpad.add_wf(ads_slab_wf)
 
         return launchpad

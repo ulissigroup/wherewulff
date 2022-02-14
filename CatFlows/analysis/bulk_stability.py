@@ -91,10 +91,10 @@ class BulkStabilityAnalysis(FiretaskBase):
             for sb_uuid in bulk_static_uuids
         ]
         # Get the doc with the lowest dft_energy
-        d = sorted(docs, key=lambda x: x['calcs_reversed'][-1]['output']['energy'])[0] 
+        d = sorted(docs, key=lambda x: x["calcs_reversed"][-1]["output"]["energy"])[0]
 
         # Collect data
-        mag_label = d['magnetic_ordering']
+        mag_label = d["magnetic_ordering"]
         logger.info(f"Selecting {mag_label} as the most stable!")
         structure_dict = d["calcs_reversed"][0]["output"]["structure"]
         dft_energy = d["calcs_reversed"][0]["output"]["energy"]

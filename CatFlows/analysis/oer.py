@@ -1,6 +1,7 @@
 import json
 import uuid
 
+import re
 import numpy as np
 
 from pymatgen.core import Structure
@@ -48,6 +49,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         "ads_slab_uuids",
         "surface_termination",
         "db_file",
+        "surface_pbx_uuid",
     ]
     optional_params = ["to_db"]
 
@@ -62,9 +64,10 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         slab_uuid = self["slab_uuid"]
         ads_slab_uuids = self["ads_slab_uuids"]
         surface_termination = self["surface_termination"]
+        surface_pbx_uuid = self["surface_pbx_uuid"]
 
-        parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
-        surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
+        # parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
+        # surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
 
         # Get the dynamic adslab uuids from the fw_spec.
         # Note that this will be different from the orig_ads_slab_uuids
@@ -116,7 +119,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         for n, ads_slab_uuid in enumerate(ads_slab_uuids):
             doc_oer = mmdb.collection.find_one({"uuid": ads_slab_uuid})
             oer_task_label = doc_oer["task_label"]
-            adsorbate_label = oer_task_label.split("-")[2]
+            adsorbate_label = oer_task_label.split("-")[3]
             # reference active site
             if "reference" in adsorbate_label:
                 dft_energy_reference = doc_oer["calcs_reversed"][-1]["output"]["energy"]
@@ -124,7 +127,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 oer_intermediates_uuid["reference"] = oer_uuid_reference
                 oer_intermediates_energy["reference"] = dft_energy_reference
             # select OH intermediate as min dft energy
-            if "OH_" in adsorbate_label:
+            if re.match("^OH_.*", adsorbate_label):
                 dft_energy_oh = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_oh <= dft_energy_oh_min:
                     dft_energy_oh_min = dft_energy_oh
@@ -138,7 +141,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 oer_intermediates_uuid["Ox"] = oer_uuid_ox
                 oer_intermediates_energy["Ox"] = dft_energy_oh
             # select OOH_up intermediate as min dft energy
-            if "OOH_up_" in adsorbate_label:
+            if re.match("^OOH_up_.*", adsorbate_label):
                 dft_energy_ooh_up = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_ooh_up <= dft_energy_ooh_up_min:
                     oer_uuid_ooh_up = adsorbate_label
@@ -146,11 +149,11 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_uuid["OOH_up"] = oer_uuid_ooh_up
                     oer_intermediates_energy["OOH_up"] = dft_energy_ooh_up_min
             # select OOH_down intermediate as min dft energy
-            if "OOH_down_" in adsorbate_label:
-                dft_energy_ooh_down = doc_oer["calcs"][-1]["output"]["energy"]
+            if re.match("^OOH_down_.*", adsorbate_label):
+                dft_energy_ooh_down = doc_oer["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_ooh_down <= dft_energy_ooh_down_min:
                     oer_uuid_ooh_down = adsorbate_label
-                    dft_energy_ooh_down = dft_energy_ooh_down
+                    dft_energy_ooh_down_min = dft_energy_ooh_down
                     oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
                     oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
 
@@ -222,7 +225,10 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         summary_dict["PDS"] = pds_step
 
         # Export to json file
-        with open(f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer.json", "w") as f:
+        with open(
+            f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer.json",
+            "w",
+        ) as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # To DB -> (This should be unique every time)
@@ -248,7 +254,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 }
             }
         )
-    
+
     # TODO: Abstract the min energy
     def _get_min_energy_intermediate(self):
         """Returns min DFT energy across same intermediate"""

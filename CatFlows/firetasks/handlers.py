@@ -81,10 +81,11 @@ class ContinueOptimizeFW(FiretaskBase):
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
 
-            # Slab object of parent
-            slab = Slab.from_dict(
-                db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
-            )
+            # Slab object of parent - Only needed if doing slab or adslab
+            if not fw_spec["is_bulk"]:
+                slab = Slab.from_dict(
+                    db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
+                )
 
             # Retriving magnetic moments from parent
             magmoms = structure.site_properties["magmom"]
@@ -149,7 +150,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
-            if counter > 0:
+            if counter > 0 and not fw_spec["is_bulk"]:
                 fw_new.tasks[5]["additional_fields"].update({"slab": slab})
 
             # Get the environment that the parent ran on (either laikapack or nersc for now) and enforce that
@@ -158,14 +159,14 @@ class ContinueOptimizeFW(FiretaskBase):
             import os
 
             if "nid" in os.environ["HOSTNAME"]:
-                fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
+                fw_new.tasks[3].update({"wall_time": fw_spec["wall_time"]})
                 host = (
                     "nersc"  # this needs to be in the fworker config as query on nersc
                 )
             elif "mo-wflow" in os.environ["HOSTNAME"]:
                 # Switch off wall-time handling in child
                 fw_new.spec["wall_time"] = None
-                fw_new.tasks[1].update({"wall_time": None})
+                fw_new.tasks[3].update({"wall_time": None})
                 host = "laikapack"  # should be in laikapack config
 
             # Pin the children down to the same filesystem as the root
