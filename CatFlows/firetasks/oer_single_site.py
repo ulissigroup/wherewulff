@@ -37,11 +37,15 @@ class OERSingleSiteFireTask(FiretaskBase):
     required_params = [
         "reduced_formula",
         "miller_index",
+        "slab_orig",
+        "bulk_like_sites",
+        "ads_dict_orig",
         "metal_site",
         "applied_potential",
         "applied_pH",
         "vasp_cmd",
         "db_file",
+        "surface_pbx_uuid",
     ]
     optional_params = []
 
@@ -50,11 +54,15 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
+        slab_orig = self["slab_orig"]
+        bulk_like_sites = self["bulk_like_sites"]
+        ads_dict_orig = self["ads_dict_orig"]
         metal_site = self["metal_site"]
         applied_potential = self["applied_potential"]
         applied_pH = self["applied_pH"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
+        surface_pbx_uuid = self["surface_pbx_uuid"]
 
         # User-defined parameters !
         # applied_potential = 1.60  # volts
@@ -83,8 +91,21 @@ class OERSingleSiteFireTask(FiretaskBase):
         clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
 
+        # Retrieve the surface termination as input
+        if surface_termination == "ox":
+            stable_surface_orig = ads_dict_orig["O_1"]
+        if surface_termination == "oh":
+            n_oh_rotation = pbx_doc["n_oh_rotation"]
+            stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
+
         # Generate OER single site intermediates (WNA)
-        oer_wna = OER_SingleSite(stable_surface, metal_site=metal_site, adsorbates=oer_adsorbates_dict)
+        oer_wna = OER_SingleSite(stable_surface, 
+                                slab_orig=stable_surface_orig, 
+                                slab_clean=clean_surface, 
+                                bulk_like_sites=bulk_like_sites, 
+                                metal_site=metal_site, 
+                                adsorbates=oer_adsorbates_dict)
+
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
@@ -102,6 +123,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             surface_termination=surface_termination,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
+            surface_pbx_uuid=surface_pbx_uuid,
         )
 
         return FWAction(detours=[oer_wf])
@@ -129,11 +151,11 @@ class OERSingleSiteFireTask(FiretaskBase):
         above_oh = is_above(user_point, oh_2_ox_origin, oh_2_ox_end)
 
         # decide
-        if above_clean == False:
+        if not above_clean:
             surface_termination = "clean"
-        elif above_clean == True and above_oh == False:
+        elif above_clean and not above_oh:
             surface_termination = "oh"
-        elif above_clean == True and above_oh == True:
+        elif above_clean and above_oh:
             surface_termination = "ox"
 
         return surface_termination
