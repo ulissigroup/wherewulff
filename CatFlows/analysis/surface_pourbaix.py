@@ -39,7 +39,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         "miller_index",
         "slab_uuid",
         "oriented_uuid",
-        #"slab_hkl_uuid",
+        # "slab_hkl_uuid",
         "ads_slab_uuids",
         "db_file",
         "surface_pbx_uuid",
@@ -163,16 +163,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         #### FW collection to retrieve site properties
         fw_collection = mmdb.db["fireworks"]
         fw_doc_oh = fw_collection.find_one({"spec.uuid": str(ads_uuid_oh_min)})
-        #fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
+        # fw_doc_ox = fw_collection.find_one({"spec.uuid": str(ads_uuid_ox)})
 
         # Retrieve OH/Ox input struct and sort
         struct_oh_input = Structure.from_dict(
             fw_doc_oh["spec"]["_tasks"][0]["structure"]
         )
         struct_oh_input.sort()
-        #struct_ox_input = Structure.from_dict(
+        # struct_ox_input = Structure.from_dict(
         #    fw_doc_ox["spec"]["_tasks"][0]["structure"]
-        #)
+        # )
 
         # OH/Ox Structural info -> Compositions
         slab_oh = Structure.from_dict(
@@ -209,7 +209,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         # Appending site properties on slab_ox structure
-        slab_ox, slab_ox_orig = self._add_site_properties(slab_ox, mmdb, uuid_termination=ads_uuid_ox)
+        slab_ox, slab_ox_orig = self._add_site_properties(
+            slab_ox, mmdb, uuid_termination=ads_uuid_ox
+        )
 
         slab_ox_obj = Slab(
             slab_ox.lattice,
@@ -342,10 +344,14 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         ]
 
         # Initialize from original magmoms
-        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["orig_inputs"]["incar"]["MAGMOM"]
+        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+            "orig_inputs"
+        ]["incar"]["MAGMOM"]
 
         # Retrieve the original structure
-        struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["input"]["structure"]
+        struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["input"][
+            "structure"
+        ]
 
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)

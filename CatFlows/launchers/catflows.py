@@ -200,7 +200,7 @@ class CatFlows:
             else:
                 all_slabs = slab_gen.get_slabs(symmetrize=False, ftol=ftol)
 
-            slab_candidates = [] 
+            slab_candidates = []
             for slab in all_slabs:
                 slab_formula = slab.composition.reduced_formula
                 if (
@@ -334,7 +334,6 @@ class CatFlows:
             else:  # case where there is only one surface orientation
                 # skip the Wulff
                 ads_slab_wf, ads_slab_fws = self._get_ads_slab_wfs(parents=parents_list)
-
 
             launchpad.add_wf(ads_slab_wf)
 

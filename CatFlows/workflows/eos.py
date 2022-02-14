@@ -55,7 +55,8 @@ def EOS_WF(
     # Deformations
     if not deformations:
         deformations = [
-            (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.157, 0.157, n_deformations)
+            (np.identity(3) * (1 + x)).tolist()
+            for x in np.linspace(-0.157, 0.157, n_deformations)
         ]
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     # breakpoint()

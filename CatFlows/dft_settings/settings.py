@@ -149,8 +149,7 @@ class MOSurfaceSet(MVLSlabSet):
             incar["MAGMOM"] = self.initial_magmoms
 
         if "LDAUPRINT" in incar.keys():
-            incar["LDAUPRINT"] = 0 # silent mode
-
+            incar["LDAUPRINT"] = 0  # silent mode
 
         # Incar Settings for optimization
         incar_config = {

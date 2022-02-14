@@ -66,8 +66,8 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         surface_termination = self["surface_termination"]
         surface_pbx_uuid = self["surface_pbx_uuid"]
 
-        #parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
-        #surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
+        # parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
+        # surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
 
         # Get the dynamic adslab uuids from the fw_spec.
         # Note that this will be different from the orig_ads_slab_uuids
@@ -225,7 +225,10 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         summary_dict["PDS"] = pds_step
 
         # Export to json file
-        with open(f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer.json", "w") as f:
+        with open(
+            f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer.json",
+            "w",
+        ) as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # To DB -> (This should be unique every time)
@@ -251,7 +254,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 }
             }
         )
-    
+
     # TODO: Abstract the min energy
     def _get_min_energy_intermediate(self):
         """Returns min DFT energy across same intermediate"""

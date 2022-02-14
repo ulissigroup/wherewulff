@@ -7,10 +7,10 @@ from CatFlows.firetasks.slab_ads import SlabAdsFireTask
 
 
 def SlabAds_WF(
-    bulk_structure, 
-    adsorbates, 
-    parents=None, 
-    vasp_cmd=VASP_CMD, 
+    bulk_structure,
+    adsorbates,
+    parents=None,
+    vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     metal_site="",
     applied_potential=1.60,

@@ -33,12 +33,11 @@ class SlabAdsFireTask(FiretaskBase):
 
     required_params = [
         "bulk_structure",
-        "reduced_formula", 
-        "slabs", 
-        "adsorbates", 
-        "vasp_cmd", 
-        "db_file"
-        "metal_site",
+        "reduced_formula",
+        "slabs",
+        "adsorbates",
+        "vasp_cmd",
+        "db_file" "metal_site",
         "applied_potential",
         "applied_pH",
     ]
@@ -47,7 +46,7 @@ class SlabAdsFireTask(FiretaskBase):
     def run_task(self, fw_spec):
 
         # Variables
-        bulk_structure = self["bulk_structure"] # already deserialized
+        bulk_structure = self["bulk_structure"]  # already deserialized
         reduced_formula = self["reduced_formula"]
         slabs = self["slabs"]
         adsorbates = self["adsorbates"]
@@ -227,4 +226,3 @@ class SlabAdsFireTask(FiretaskBase):
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 
         return FWAction(detours=hkl_pbx_wfs)
-        

@@ -99,12 +99,14 @@ class OERSingleSiteFireTask(FiretaskBase):
             stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
 
         # Generate OER single site intermediates (WNA)
-        oer_wna = OER_SingleSite(stable_surface, 
-                                slab_orig=stable_surface_orig, 
-                                slab_clean=clean_surface, 
-                                bulk_like_sites=bulk_like_sites, 
-                                metal_site=metal_site, 
-                                adsorbates=oer_adsorbates_dict)
+        oer_wna = OER_SingleSite(
+            stable_surface,
+            slab_orig=stable_surface_orig,
+            slab_clean=clean_surface,
+            bulk_like_sites=bulk_like_sites,
+            metal_site=metal_site,
+            adsorbates=oer_adsorbates_dict,
+        )
 
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 

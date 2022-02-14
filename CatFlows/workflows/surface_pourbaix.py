@@ -44,16 +44,22 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
     """We need to rush function..."""
     # This will be a inner method
     mxidegen = MXideAdsorbateGenerator(
-        slab_ref, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"], relax_tol=0.025
+        slab_ref,
+        repeat=[1, 1, 1],
+        verbose=False,
+        positions=["MX_adsites"],
+        relax_tol=0.025,
     )
 
     # Getting the bulk-like adsites on the original slab
     bulk_like, _ = mxidegen.get_bulk_like_adsites()
-    bulk_like_sites = mxidegen._filter_clashed_sites(bulk_like) # is needed?
+    bulk_like_sites = mxidegen._filter_clashed_sites(bulk_like)  # is needed?
 
     # Bondlength and X
     bondlength, X = mxidegen.bondlength, mxidegen.X
-    bulk_like_shifted = _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, bondlength=bondlength, X=X)
+    bulk_like_shifted = _bulk_like_adsites_perturbation(
+        slab_ref, slab, bulk_like_sites, bondlength=bondlength, X=X
+    )
 
     # set n_rotations to 1 if mono-atomic
     n = len(molecule[0]) if type(molecule).__name__ == "list" else len(molecule)
@@ -78,10 +84,11 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
         slab_ads = add_adsorbates(
             slab_ads, bulk_like_shifted, molecule_rotations[rot_idx]
         )
-        slab_ads.sort() # Sorting for input/output consistency
+        slab_ads.sort()  # Sorting for input/output consistency
         adslab_dict.update({"{}_{}".format(molecule_formula, rot_idx + 1): slab_ads})
 
     return adslab_dict, bulk_like_shifted
+
 
 def _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, bondlength, X):
     """Let's perturb bulk_like_sites with delta (x,y,z) comparing input and output"""
@@ -93,23 +100,26 @@ def _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, bondlength,
     metal_idx = []
     for bulk_like_site in bulk_like_sites:
         for idx, site in enumerate(slab_ref):
-            if site.specie != Element(X) and site.coords[2] > slab_ref.center_of_mass[2]:
+            if (
+                site.specie != Element(X)
+                and site.coords[2] > slab_ref.center_of_mass[2]
+            ):
                 dist = np.linalg.norm(bulk_like_site - site.coords)
                 if dist < bondlength:
                     metal_idx.append(idx)
 
     bulk_like_deltas = [delta_coords[i] for i in metal_idx]
-    return [n+m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
+    return [n + m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
 
 
 def SurfacePBX_WF(
     bulk_structure,
-    slab, 
-    slab_orig, 
-    slab_uuid, 
-    oriented_uuid, 
-    adsorbates, 
-    vasp_cmd=VASP_CMD, 
+    slab,
+    slab_orig,
+    slab_uuid,
+    oriented_uuid,
+    adsorbates,
+    vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     metal_site="",
     applied_potential=1.60,
@@ -165,7 +175,6 @@ def SurfacePBX_WF(
         parents=hkl_fws,
         surface_pbx_uuid=surface_pbx_uuid,
     )
-
 
     # OER workflow
     oer_fw = OER_WF(
