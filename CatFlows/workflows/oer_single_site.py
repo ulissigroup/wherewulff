@@ -20,6 +20,7 @@ def OERSingleSite_WF(
     surface_termination,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    surface_pbx_uuid="",
 ):
     """
     Wrap-up workflow for OER single site (wna) + Reactivity Analysis
@@ -64,6 +65,7 @@ def OERSingleSite_WF(
         surface_termination=surface_termination,
         parents=oer_fws,
         db_file=db_file,
+        surface_pbx_uuid=surface_pbx_uuid,
     )
 
     # Create the workflow
