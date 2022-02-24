@@ -230,6 +230,7 @@ class BulkFlows:
         """Once again"""
         eos_wf, fws_all = EOS_WF(
             self.bulk_structures_dict,
+            n_deformations=self.n_deformations,
             vasp_cmd=self.vasp_cmd,
             db_file=self.db_file,
         )
