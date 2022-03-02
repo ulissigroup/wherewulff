@@ -37,7 +37,8 @@ class SlabAdsFireTask(FiretaskBase):
         "slabs",
         "adsorbates",
         "vasp_cmd",
-        "db_file" "metal_site",
+        "db_file",
+        "metal_site",
         "applied_potential",
         "applied_pH",
     ]
