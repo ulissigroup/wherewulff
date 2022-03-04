@@ -60,7 +60,6 @@ class ContinueOptimizeFW(FiretaskBase):
         parent_dir_name = self.launchpad.launches.find_one({"launch_id": launch_id})[
             "launch_dir"
         ]
-
         # Check whether the FW hits a wall_time
         try:
             wall_time_reached_errors = [
@@ -76,15 +75,21 @@ class ContinueOptimizeFW(FiretaskBase):
 
         # Imtermediate nodes that mutate the workflow
         if counter < fw_spec["max_tries"] and any(wall_time_reached_errors):
-            # Retrieving structure from parent
+
+            if counter == 0:  # root node
+                uuid_lineage = []
+            else:
+                uuid_lineage = fw_spec["uuid_lineage"]  # inherit from parent
+
+            # Retrieving latest geometry from parent
             structure = Structure.from_dict(
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
-
             # Slab object of parent
-            slab = Slab.from_dict(
-                db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
-            )
+            if not fw_spec["is_bulk"]:
+                slab = Slab.from_dict(
+                    db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
+                )
 
             # Retriving magnetic moments from parent
             magmoms = structure.site_properties["magmom"]
@@ -100,7 +105,7 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Create a unique uuid for child
             fw_new_uuid = uuid.uuid4()
-
+            uuid_lineage.append(fw_spec["uuid"])  # UUID provenance for downstream nodes
             # OptimizeFW for child
             fw_new = OptimizeFW(
                 name=fw_spec["name"],
@@ -114,6 +119,7 @@ class ContinueOptimizeFW(FiretaskBase):
                     "counter": counter,
                     "_add_launchpad_and_fw_id": True,
                     "_pass_job_info": True,
+                    "uuid_lineage": uuid_lineage,
                     "uuid": fw_new_uuid,
                     "max_tries": fw_spec["max_tries"],
                     "name": fw_spec["name"],  # pass parent name to child
@@ -149,7 +155,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
-            if counter > 0:
+            if counter > 0 and not fw_spec["is_bulk"]:
                 fw_new.tasks[5]["additional_fields"].update({"slab": slab})
 
             # Get the environment that the parent ran on (either laikapack or nersc for now) and enforce that
