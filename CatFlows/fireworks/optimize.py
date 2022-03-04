@@ -14,10 +14,48 @@ from CatFlows.firetasks.handlers import ContinueOptimizeFW
 # in a container (/home/jovyan) with the files placed in the right folder.
 # Maps fw_name to the ref_dir
 ref_dirs = {
-    "RuO2_110 bulk optimization": "/home/jovyan/mo-wflow-new/RuO2_bulk_110",
-    "RuO2_101 bulk optimization": "/home/jovyan/mo-wflow-new/RuO2_bulk_101",
-    "RuO2_110 slab optimization": "/home/jovyan/mo-wflow-new/RuO2_slab_110",
-    "RuO2_101 slab optimization": "/home/jovyan/mo-wflow-new/RuO2_slab_101",
+    # RuO2
+    "RuO2_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_bulk_110",
+    "RuO2_101 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_bulk_101",
+    "RuO2_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_slab_110",
+    "RuO2_101 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_slab_101",
+    "RuO2-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_Ox_pbx_1",
+    "RuO2-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_pbx_1",
+    "RuO2-110-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_pbx_2",
+    "RuO2-110-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_pbx_3",
+    "RuO2-110-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_pbx_4",
+    "RuO2-101-O_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_Ox_pbx_1",
+    "RuO2-101-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_pbx_1",
+    "RuO2-101-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_pbx_2",
+    "RuO2-101-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_pbx_3",
+    "RuO2-101-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_pbx_4",
+    "RuO2-110-Ru-reference": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_reference",
+    "RuO2-110-Ru-OH_0": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_0",
+    "RuO2-110-Ru-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_1",
+    "RuO2-110-Ru-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_2",
+    "RuO2-110-Ru-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OH_3",
+    "RuO2-110-Ru-OOH_up_0": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_up_0",
+    "RuO2-110-Ru-OOH_up_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_up_1",
+    "RuO2-110-Ru-OOH_up_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_up_2",
+    "RuO2-110-Ru-OOH_up_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_up_3",
+    "RuO2-110-Ru-OOH_down_0": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_down_0",
+    "RuO2-110-Ru-OOH_down_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_down_1",
+    "RuO2-110-Ru-OOH_down_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_down_2",
+    "RuO2-110-Ru-OOH_down_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_110_OOH_down_3",
+    "RuO2-101-Ru-reference": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_reference",
+    "RuO2-101-Ru-OH_0": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_0",
+    "RuO2-101-Ru-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_1",
+    "RuO2-101-Ru-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_2",
+    "RuO2-101-Ru-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OH_3",
+    "RuO2-101-Ru-OOH_up_0": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_up_0",
+    "RuO2-101-Ru-OOH_up_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_up_1",
+    "RuO2-101-Ru-OOH_up_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_up_2",
+    "RuO2-101-Ru-OOH_up_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_up_3",
+    "RuO2-101-Ru-OOH_down_0": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_down_0",
+    "RuO2-101-Ru-OOH_down_1": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_down_1",
+    "RuO2-101-Ru-OOH_down_2": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_down_2",
+    "RuO2-101-Ru-OOH_down_3": f"{os.environ['GITHUB_WORKSPACE']}/RuO2_full_jh/RuO2_101_OOH_down_3",
+    # IrO2
     "IrO2_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_bulk_110",
     "IrO2_101 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_bulk_101",
     "IrO2_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/IrO2_full_jh/IrO2_slab_110",
@@ -138,6 +176,7 @@ def Bulk_FW(
         spec={
             "counter": 0,
             "_add_launchpad_and_fw_id": True,
+            "uuid_lineage": [],
             "_pass_job_info": True,
             "uuid": fw_bulk_uuid,
             "wall_time": wall_time,
@@ -220,6 +259,7 @@ def Slab_FW(
         spec={
             "counter": 0,
             "_add_launchpad_and_fw_id": True,
+            "uuid_lineage": [],
             "_pass_job_info": True,
             "uuid": fw_slab_uuid,
             "wall_time": wall_time,
@@ -314,6 +354,7 @@ def AdsSlab_FW(
             "_add_launchpad_and_fw_id": True,
             "_pass_job_info": True,
             "uuid": ads_slab_uuid,
+            "uuid_lineage": [],
             "wall_time": wall_time,
             "name": name,
             "max_tries": 5,
@@ -324,7 +365,7 @@ def AdsSlab_FW(
             "is_bulk": False,
         },
     )
-    if run_fake and not "-Ru-" in name:
+    if run_fake and "-Ru-" not in name:
         assert (
             "RuO2" in name or "IrO2" in name or "TiRuO4" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
