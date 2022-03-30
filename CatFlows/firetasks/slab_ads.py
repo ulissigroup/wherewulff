@@ -62,7 +62,6 @@ class SlabAdsFireTask(FiretaskBase):
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-
         # Slab_Ads
         if slabs is None:
             # Get wulff-shape collection from DB
@@ -85,7 +84,10 @@ class SlabAdsFireTask(FiretaskBase):
                 # This is the case where there is no Wulff shape because
                 # there is only one miller index
                 # Get the bulk_slab_key from the fw_spec
-                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}_" in k]
+                bulk_slab_keys = [
+                    k for k in fw_spec if f"{reduced_formula}_" in k
+                ]  # FIXME: Need bulk_reduced_formula
+                # and slab_reduced_formula to handle case where non-stoichiometric
                 filtered_slab_miller_indices = [
                     bsk.split("_")[1] for bsk in bulk_slab_keys
                 ]
@@ -122,7 +124,7 @@ class SlabAdsFireTask(FiretaskBase):
                 # in the spec of the terminal node
                 orig_slab_uuid = mmdb.db["fireworks"].find_one(
                     {"spec.uuid": slab_uuid}
-                )["uuid_lineage"][0]
+                )["spec"]["uuid_lineage"][0]
                 # Original Structure
                 slab_struct_orig = Structure.from_dict(
                     mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"][
