@@ -207,6 +207,9 @@ def Bulk_FW(
 
     # Add bulk_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_bulk_uuid})
+    fw.tasks[3].update(
+        {"defuse_unsuccessful": False}
+    )  # Continue with the workflow in the event an SCF has not converged
 
     return fw
 
@@ -289,6 +292,9 @@ def Slab_FW(
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
+    fw.tasks[3].update(
+        {"defuse_unsuccessful": False}
+    )  # Continue with the workflow in the event an SCF has not converged
 
     # Add slab metadata
     if add_slab_metadata:
@@ -386,6 +392,9 @@ def AdsSlab_FW(
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": ads_slab_uuid})
+    fw.tasks[3].update(
+        {"defuse_unsuccessful": False}
+    )  # Continue with the workflow in the event an SCF has not converged
 
     # Add slab metadata
     if add_slab_metadata:
