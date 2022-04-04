@@ -163,7 +163,7 @@ class ContinueOptimizeFW(FiretaskBase):
             # job triggered walltime handler, then the child can relinquish wall_time constraints
             import os
 
-            if "nid" in os.environ["HOSTNAME"]:
+            if "nid" in os.environ["HOSTNAME"] or "cori" in os.environ["HOSTNAME"]:
                 fw_new.tasks[1].update({"wall_time": fw_spec["wall_time"]})
                 host = (
                     "nersc"  # this needs to be in the fworker config as query on nersc
@@ -176,6 +176,10 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Pin the children down to the same filesystem as the root
             fw_new.spec["host"] = host
+
+            fw_new.tasks[5].update(
+                {"defuse_unsuccessful": False}
+            )  # Allow continuation in child job
 
             # Bulk Continuation
             if is_bulk:
