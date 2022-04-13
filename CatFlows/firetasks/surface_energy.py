@@ -221,7 +221,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
         corrections_dict = {
             METAL_BULK_ENERGIES[k] * excess_deficiency_factors_dict[k]
             for k in excess_deficiency_factors_dict
-            if excess_deficiency_factors_dict[k] != 0
+            if k != "O"
         }
 
         surface_energy = (
