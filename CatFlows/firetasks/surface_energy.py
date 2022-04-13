@@ -235,7 +235,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
 
         surface_energy = (
             slab_E
-            - slab_bulk_ratio * oriented_E
-            + sum(list(corrections_dict.values())) / (2 * slab_Area)
-        )
+            - (slab_bulk_ratio * oriented_E)
+            + sum(list(corrections_dict.values()))
+        ) / (2 * slab_Area)
         return surface_energy
