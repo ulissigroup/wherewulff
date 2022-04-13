@@ -15,7 +15,7 @@ from atomate.vasp.database import VaspCalcDb
 
 
 logger = get_logger(__name__)
-METAL_BULK_ENERGIES = {"Ti": None, "Cr": None, "Ru": None}
+METAL_BULK_ENERGIES = {"Ti": 0.0, "Cr": 0.0, "Ru": 0.0}
 
 
 @explicit_serialize
@@ -114,7 +114,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
         # Calc. surface energy - Assumes symmetric
         if (
             not slab_obj.is_polar()
-            and slab_obj.is_symmetric()
+            #    and slab_obj.is_symmetric()
             and self.slab_formula == self.oriented_formula
         ):
             surface_energy = self.get_surface_energy(
@@ -122,7 +122,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
             )
         elif (
             not slab_obj.is_polar()
-            and slab_obj.is_symmetric()
+            #    and slab_obj.is_symmetric()
             and (not self.slab_formula == self.oriented_formula)
         ):
             surface_energy = self.get_non_stoich_surface_energy(
