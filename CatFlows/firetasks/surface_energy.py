@@ -15,7 +15,7 @@ from atomate.vasp.database import VaspCalcDb
 
 
 logger = get_logger(__name__)
-METAL_BULK_ENERGIES = {"Ti": 0.0, "Cr": 0.0, "Ru": 0.0}
+METAL_BULK_ENERGIES = {"Ti": -7.8335, "Cr": -9.6530, "Ru": -9.2744}  # ev/Atom from MP?
 
 
 @explicit_serialize
