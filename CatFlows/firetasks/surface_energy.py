@@ -219,7 +219,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
             for k in slab_num_atoms_dict
         }
         corrections_dict = {
-            METAL_BULK_ENERGIES[k] * excess_deficiency_factors_dict[k]
+            k: METAL_BULK_ENERGIES[k] * excess_deficiency_factors_dict[k]
             for k in excess_deficiency_factors_dict
             if k != "O"
         }
