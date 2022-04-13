@@ -156,7 +156,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
         # Send the summary_dict to the child FW
         return FWAction(
             update_spec={
-                f"{self.bulk_formula}-{self.slab_formula}_{miller_index}": {
+                f"{self.oriented_formula}-{self.slab_formula}_{miller_index}": {
                     "oriented_uuid": oriented_uuid,
                     "slab_uuid": slab_uuid,
                 }
