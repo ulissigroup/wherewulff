@@ -110,26 +110,14 @@ class SurfaceEnergyFireTask(FiretaskBase):
         slab_bulk_ratio = slab_unit_form / bulk_unit_form
         self.oriented_struct = oriented_struct  # make the struct obj accessible to the non-stoichiometric method
         self.slab_struct = slab_struct  # make the struct obj accessible to the non-stoichiometric method
-
         # Calc. surface energy - Assumes symmetric
         if (
             not slab_obj.is_polar()
             #    and slab_obj.is_symmetric()
-            and self.slab_formula == self.oriented_formula
-        ):
-            surface_energy = self.get_surface_energy(
-                slab_E, oriented_E, slab_bulk_ratio, slab_Area
-            )
-        elif (
-            not slab_obj.is_polar()
-            #    and slab_obj.is_symmetric()
-            and (not self.slab_formula == self.oriented_formula)
         ):
             surface_energy = self.get_non_stoich_surface_energy(
                 slab_E, oriented_E, slab_Area
             )
-        else:
-            surface_energy = None
 
         # Summary dict
         summary_dict["oriented_struct"] = oriented_struct.as_dict()
@@ -219,18 +207,21 @@ class SurfaceEnergyFireTask(FiretaskBase):
             bulk_mole_fractions_dict["O"] * self.oriented_struct.composition.num_atoms
         )
         excess_deficiency_factors_dict = {
-            k: (
+            k: round(
                 (
-                    (bulk_mole_fractions_dict[k] * slab_num_atoms_dict["O"])
-                    / bulk_mole_fractions_dict["O"]
+                    (
+                        (bulk_mole_fractions_dict[k] * slab_num_atoms_dict["O"])
+                        / bulk_mole_fractions_dict["O"]
+                    )
+                    - slab_num_atoms_dict[k]
                 )
-                - slab_num_atoms_dict[k]
             )
             for k in slab_num_atoms_dict
         }
         corrections_dict = {
             METAL_BULK_ENERGIES[k] * excess_deficiency_factors_dict[k]
             for k in excess_deficiency_factors_dict
+            if excess_deficiency_factors_dict[k] != 0
         }
 
         surface_energy = (
