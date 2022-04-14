@@ -85,11 +85,11 @@ class SlabAdsFireTask(FiretaskBase):
                 # there is only one miller index
                 # Get the bulk_slab_key from the fw_spec
                 bulk_slab_keys = [
-                    k for k in fw_spec if f"{reduced_formula}_" in k
+                    k for k in fw_spec if f"{reduced_formula}" in k
                 ]  # FIXME: Need bulk_reduced_formula
                 # and slab_reduced_formula to handle case where non-stoichiometric
                 filtered_slab_miller_indices = [
-                    bsk.split("_")[1] for bsk in bulk_slab_keys
+                    bsk.split("_")[-1] for bsk in bulk_slab_keys
                 ]
 
             # Re-build PMG Slab object from optimized structures
