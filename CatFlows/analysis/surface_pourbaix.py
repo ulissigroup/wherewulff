@@ -211,7 +211,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         )
 
         # Appending site properties on slab_ox structure
-        slab_ox, slab_ox_orig = self._add_site_properties(slab_ox, mmdb, uuid_termination=ads_uuid_ox)
+        slab_ox, slab_ox_orig = self._add_site_properties(
+            slab_ox, mmdb, uuid_termination=ads_uuid_ox
+        )
 
         slab_ox_obj = Slab(
             slab_ox.lattice,
@@ -344,14 +346,20 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         ]
 
         # Initialize from original magmoms
+        # We need to use the uuid on the parent root node to get the input!!
         if not self.run_fake:
-            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
-                "orig_inputs"
-            ]["incar"]["MAGMOM"]
 
-            struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
-                "orig_inputs"
-            ]["structure"]
+            orig_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})[
+                "spec"
+            ]["uuid_lineage"][0]
+
+            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
+                "calcs_reversed"
+            ][-1]["input"]["incar"]["MAGMOM"]
+
+            struct_orig = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
+                "calcs_reversed"
+            ][-1]["input"]["structure"]
         else:
             orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
                 "input"
