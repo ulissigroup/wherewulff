@@ -15,7 +15,15 @@ from atomate.vasp.database import VaspCalcDb
 
 
 logger = get_logger(__name__)
-METAL_BULK_ENERGIES = {"Ti": -7.8335, "Cr": -9.6530, "Ru": -9.2744}  # ev/Atom from MP?
+METAL_BULK_ENERGIES = {
+    "Ti": -7.8335,
+    "Cr": -9.6530,
+    "Ru": -9.2744,
+    "O": -7.48175514 - 0.27,
+    "Ba": -1.9190,
+    "Sr": -1.6831,
+    "Co": -7.0922,
+}  # ev/Atom from MP?
 
 
 @explicit_serialize
@@ -197,31 +205,48 @@ class SurfaceEnergyFireTask(FiretaskBase):
             gamma_hkl: Surface Energy for symmetric and non-stoichiometric model
 
         """
+        # FIXME: Need to cycle through the potential references to see which one
+        # yields excess_deficiency_factors that are integers
+        # reference = "O"
         bulk_num_atoms_dict = self.oriented_struct.composition.get_el_amt_dict()
         slab_num_atoms_dict = self.slab_struct.composition.get_el_amt_dict()
-        bulk_mole_fractions_dict = {
-            k: bulk_num_atoms_dict[k] / self.oriented_struct.composition.num_atoms
-            for k in bulk_num_atoms_dict
-        }
-        slab_bulk_ratio = slab_num_atoms_dict["O"] / (
-            bulk_mole_fractions_dict["O"] * self.oriented_struct.composition.num_atoms
-        )
-        excess_deficiency_factors_dict = {
-            k: round(
-                (
-                    (
-                        (bulk_mole_fractions_dict[k] * slab_num_atoms_dict["O"])
-                        / bulk_mole_fractions_dict["O"]
-                    )
-                    - slab_num_atoms_dict[k]
-                )
+        for reference in bulk_num_atoms_dict:
+            bulk_mole_fractions_dict = {
+                k: bulk_num_atoms_dict[k] / self.oriented_struct.composition.num_atoms
+                for k in bulk_num_atoms_dict
+            }
+            slab_bulk_ratio = slab_num_atoms_dict[reference] / (
+                bulk_mole_fractions_dict[reference]
+                * self.oriented_struct.composition.num_atoms
             )
-            for k in slab_num_atoms_dict
-        }
+            excess_deficiency_factors_dict = {
+                k: round(
+                    (
+                        (
+                            (
+                                bulk_mole_fractions_dict[k]
+                                * slab_num_atoms_dict[reference]
+                            )
+                            / bulk_mole_fractions_dict[reference]
+                        )
+                        - slab_num_atoms_dict[k]
+                    ),
+                    2,
+                )
+                for k in slab_num_atoms_dict
+            }
+            # Check if the excess_deficiency factors are integers - if yes pass else continue until you find one
+            if all(
+                [v - int(v) == 0 for k, v in excess_deficiency_factors_dict.items()]
+            ):
+                break
+            else:
+                continue
+
         corrections_dict = {
             k: METAL_BULK_ENERGIES[k] * excess_deficiency_factors_dict[k]
             for k in excess_deficiency_factors_dict
-            if k != "O"
+            if k != reference
         }
 
         surface_energy = (

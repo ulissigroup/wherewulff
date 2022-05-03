@@ -102,6 +102,9 @@ class CatFlows:
         self.vasp_cmd = vasp_cmd
         self.db_file = db_file
 
+        # Reactivite site
+        self.metal_site = metal_site
+
         # General info
         self.bulk_formula = self._get_bulk_formula()
         self.miller_indices = self._get_miller_indices()
@@ -112,9 +115,6 @@ class CatFlows:
         # PBX conditions
         self.applied_potential = applied_potential
         self.applied_pH = applied_pH
-
-        # Reactivite site
-        self.metal_site = metal_site
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -172,7 +172,7 @@ class CatFlows:
             if site.frac_coords[2] > slab.center_of_mass[2]:
                 if self.metal_site in site.species_string:
                     cn = float("%.5f" % (round(v.get_cn(slab, i, use_weights=True), 5)))
-                    if cn < min(cn_dict[site.specie_string]):
+                    if cn < min(cn_dict[site.species_string]):
                         active_sites.append(site)
 
         # Min c parameter reference to bottom layer
@@ -187,7 +187,7 @@ class CatFlows:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=4,
+                min_slab_size=3,
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,
@@ -201,28 +201,27 @@ class CatFlows:
             else:
                 all_slabs = slab_gen.get_slabs(symmetrize=False, ftol=ftol)
 
-            slab_candidates = [] 
+            slab_candidates = []
             for slab in all_slabs:
-                slab_formula = slab.composition.reduced_formula
+                # slab_formula = slab.composition.reduced_formula
                 if (
                     not slab.is_polar()
                     and slab.is_symmetric()
-                    and slab_formula == self.bulk_formula
+                    #        and slab_formula == self.bulk_formula
                 ):
                     slab.make_supercell(self.slab_repeat)
                     slab_candidates.append(slab)
 
             # This is new!
-            if len(slab_candidates) > 1:
+            if len(slab_candidates) >= 1:
                 count_metal = 0
                 for slab_cand in slab_candidates:
                     count = self._count_surface_metals(slab_cand)
                     if count > count_metal:
                         count_metal = count
                         slab_list.append(slab_cand)
-            else:
-                slab_list.append(slab_candidates[0])
-
+            # breakpoint()
+            print(mi_index)
         return slab_list
 
     def _get_all_wfs(self):
