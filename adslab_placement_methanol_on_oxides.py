@@ -198,7 +198,8 @@ molecule_rotations = mxidegen.get_transformed_molecule_MXides(
 # placement
 adslab_dict = {}
 fws = []
-for coverage in range(len(bulk_like_shifted), len(bulk_like_shifted) + 1):
+# for coverage in range(len(bulk_like_shifted), len(bulk_like_shifted) + 1):
+for coverage in range(1, 2):
     # Mutate the bulk_like_sites based on the coverage
     #    indices_pick = []
     #    while len(indices_pick) < coverage:
@@ -208,7 +209,7 @@ for coverage in range(len(bulk_like_shifted), len(bulk_like_shifted) + 1):
     #            random_index = np.random.choice(np.arange(coverage))
     #        indices_pick.append(random_index)
     sites_pick = itertools.combinations(bulk_like_shifted, coverage)
-    for cov_idx, cov_bulk_like_sites in enumerate(sites_pick):
+    for cov_idx, cov_bulk_like_sites in enumerate(list(sites_pick)[:1]):
         # cov_bulk_like_sites = [bulk_like_shifted[i] for i in indices_pick]
         for rot_idx in range(len(molecule_rotations)):
             slab_ads = relaxed_slab.copy()
@@ -223,59 +224,65 @@ for coverage in range(len(bulk_like_shifted), len(bulk_like_shifted) + 1):
                 os.makedirs(dir_name)
             slab_ads.to(filename=f"./{dir_name}/POSCAR_{name}")
             # Send an OptimizeFW calc to the hosted MongoDB for execution
-#            launchpad = LaunchPad(host="localhost",
-#                      name="fw_oal",
-#                      port=27017,
-#                      username="fw_oal_admin",
-#                      password="gfde223223222rft3"
-#                      )
-#
-#            vasp_input_set = MOSurfaceSet(slab_ads, bulk=False)
-#            fw_slab_uuid = uuid.uuid4()
-#
-#            fw = OptimizeFW(
-#                name=name,
-#                structure=slab_ads,
-#                max_force_threshold=None,
-#                vasp_input_set=vasp_input_set,
-#                vasp_cmd=VASP_CMD,
-#                db_file=DB_FILE,
-#                parents=None,
-#                job_type="normal",
-#                spec={
-#                    "counter": 0,
-#                    "_add_launchpad_and_fw_id": True,
-#                    "_pass_job_info": True,
-#                    "uuid": fw_slab_uuid,
-#                    "wall_time": 7200,
-#                    "max_tries": 5,
-#                    "name": name,
-#                    "is_bulk": False,
-#                    "oriented_uuid": oriented_uuid,
-#                    "slab_uuid": slab_uuid,
-#                    "is_adslab": True,
-#                },
-#            )
-#            # Switch-off GzipDir for WAVECAR transferring
-#            fw.tasks[1].update({"gzip_output": False})
-#
-#            # Append Continue-optimizeFW for wall-time handling
-#            fw.tasks.append(
-#                ContinueOptimizeFW(is_bulk=False, counter=0, db_file=DB_FILE, vasp_cmd=VASP_CMD)
-#            )
-#
-#            # Add slab_uuid through VaspToDb
-#            fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
-#
-#            # Switch-on WalltimeHandler in RunVaspCustodian
-#            fw.tasks[1].update({"wall_time": 7200})
-#            parent_structure_metadata = get_meta_from_structure(relaxed_slab.oriented_unit_cell)
-#            fw.tasks[3]["additional_fields"].update(
-#                {
-#                    "slab": relaxed_slab,
-#                    "parent_structure": relaxed_slab.oriented_unit_cell,
-#                    "parent_structure_metadata": parent_structure_metadata,
-#                }
-#            )
-#            fws.append(fw)
+            #            launchpad = LaunchPad(host="localhost",
+            #                      name="fw_oal",
+            #                      port=27017,
+            #                      username="fw_oal_admin",
+            #                      password="gfde223223222rft3"
+            #                      )
+            #
+            vasp_input_set = MOSurfaceSet(
+                slab_ads, bulk=False, user_incar_settings={"LDAU": True}
+            )
+            fw_slab_uuid = uuid.uuid4()
+
+            fw = OptimizeFW(
+                name=name,
+                structure=slab_ads,
+                max_force_threshold=None,
+                vasp_input_set=vasp_input_set,
+                vasp_cmd=VASP_CMD,
+                db_file=DB_FILE,
+                parents=None,
+                job_type="normal",
+                spec={
+                    "counter": 0,
+                    "_add_launchpad_and_fw_id": True,
+                    "_pass_job_info": True,
+                    "uuid": fw_slab_uuid,
+                    "wall_time": 7200,
+                    "max_tries": 5,
+                    "name": name,
+                    "is_bulk": False,
+                    "oriented_uuid": oriented_uuid,
+                    "slab_uuid": slab_uuid,
+                    "is_adslab": True,
+                },
+            )
+            # Switch-off GzipDir for WAVECAR transferring
+            fw.tasks[1].update({"gzip_output": False})
+
+            # Append Continue-optimizeFW for wall-time handling
+            fw.tasks.append(
+                ContinueOptimizeFW(
+                    is_bulk=False, counter=0, db_file=DB_FILE, vasp_cmd=VASP_CMD
+                )
+            )
+
+            # Add slab_uuid through VaspToDb
+            fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
+
+            # Switch-on WalltimeHandler in RunVaspCustodian
+            fw.tasks[1].update({"wall_time": 7200})
+            parent_structure_metadata = get_meta_from_structure(
+                relaxed_slab.oriented_unit_cell
+            )
+            fw.tasks[3]["additional_fields"].update(
+                {
+                    "slab": relaxed_slab,
+                    "parent_structure": relaxed_slab.oriented_unit_cell,
+                    "parent_structure_metadata": parent_structure_metadata,
+                }
+            )
+            fws.append(fw)
 # launchpad.add_wf(Workflow(fws, name="IrO2_101_adslabs"))
