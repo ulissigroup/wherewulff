@@ -101,6 +101,10 @@ class MOSurfaceSet(MVLSlabSet):
         set_mix=False,
         auto_dipole=True,
         initial_magmoms=None,
+        apply_U=False,
+        UL=None,
+        UJ=None,
+        UU=None,
         **kwargs
     ):
 
@@ -108,6 +112,10 @@ class MOSurfaceSet(MVLSlabSet):
             structure, bulk=bulk, set_mix=False, **kwargs
         )
 
+        self.apply_U = apply_U
+        self.UL = UL
+        self.UJ = UJ
+        self.UU = UU
         # self.structure = structure
         self.psp_version = psp_version
         self.bulk = bulk
@@ -149,8 +157,14 @@ class MOSurfaceSet(MVLSlabSet):
             incar["MAGMOM"] = self.initial_magmoms
 
         if "LDAUPRINT" in incar.keys():
-            incar["LDAUPRINT"] = 0 # silent mode
+            incar["LDAUPRINT"] = 0  # silent mode
 
+        # Setting the Hubbard and Hund params if any
+        if self.apply_U:
+            incar["LDAU"] = True
+            incar["LDAUL"] = self.UL
+            incar["LDAUJ"] = self.UJ
+            incar["LDAUU"] = self.UU
 
         # Incar Settings for optimization
         incar_config = {
