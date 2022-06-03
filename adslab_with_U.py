@@ -10,6 +10,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
+from Catlfows.workflows.surface_pourbaix import get_clockwise_rotations
 
 
 @explicit_serialize
@@ -18,10 +19,19 @@ class OptimizeAdslabsWithU(FiretaskBase):
     starting point for the adslab relaxations, with rotational sweep at
     that same value of U"""
 
-    required_params = ["reduced_formula", "adsorbates", "db_file", "miller_index"]
+    required_params = [
+        "reduced_formula",
+        "adsorbates",
+        "db_file",
+        "miller_index",
+        "U_value",
+        "vis",
+    ]
 
     def run_task(self, fw_spec):
+        vis = self["vis"]
         adsorbates = self["adsorbates"]
+        U_value = self["U_value"]
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
         bulk_slab_key = "_".join([reduced_formula, miller_index])
@@ -124,3 +134,26 @@ class OptimizeAdslabsWithU(FiretaskBase):
             energy=0,
             site_properties=slab_struct_orig.site_properties,
         )
+
+        # Now we create the adslabs across all rotations of the adsorbate for a specific U value
+        adslab_fws = []
+        for adsorbate in adsorbates:
+            adslabs, bulk_like_shifted = get_clockwise_rotations(
+                original_slab, optimized_slab, adsorbate
+            )
+            for adslab_label, adslab in adslabs.items():
+                name = f"{optimized_slab.composition.reduced_formula}-{miller_index}-{adslab_label}"
+                ads_slab_uuid = str(uuid.uuid4())
+                ads_slab_fw = AdsSlab_FW(
+                    adslab,
+                    name=name,
+                    ads_slab_uuid=ads_slab_uuid,
+                    vasp_cmd=vasp_cmd,
+                    db_file=db_file,
+                    run_fake=False,
+                    vasp_input_set=vis,
+                )
+                adslab_fws.append(ads_slab_fw)
+
+        # Spawn the new adslab fws and the post-processing/analysis workflow through FWAction
+        # The post-processing task needs to be a child for all the adslab_fws as part of a workflow
