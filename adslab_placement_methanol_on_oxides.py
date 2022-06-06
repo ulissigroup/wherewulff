@@ -21,6 +21,8 @@ from atomate.utils.utils import get_meta_from_structure
 import itertools
 import json
 from CatFlows.adsorption.adsorbate_configs import OH
+from adslab_with_U import OptimizeAdslabsWithU
+from fireworks import Firework
 
 # Connect to the database
 client = MongoClient("mongodb://fw_oal_admin:gfde223223222rft3@localhost:27017/fw_oal")
@@ -258,6 +260,21 @@ for coverage in range(1, 2):
 
             # Root node is the Slab at a specific U value
             slab_fw = Slab_FW(pristine_slab, vasp_input_set=vasp_input_set)
+            # Create FW that will spawn the adslabs for across all the adsorbates
+            adslab_fw = Firework(
+                OptimizeAdslabsWithU(
+                    reduced_formula=vasp_input_set.structure.composition.reduced_formula,
+                    adsorbates=[molecule_rotations[0]],
+                    db_file=DB_FILE,
+                    miller_index="".join(
+                        map(str, vasp_input_set.structure.miller_index)
+                    ),
+                    U_value=U,
+                    vis=vasp_input_set,
+                ),
+                parents=[slab_fw],
+                name=f"Adslabs_{U}",
+            )
             #            fw_slab_uuid = uuid.uuid4()
             #
             #            fw = OptimizeFW(
@@ -309,4 +326,5 @@ for coverage in range(1, 2):
             #                }
             #            )
             fws.append(slab_fw)
+            fws.append(adslab_fw)
 launchpad.add_wf(Workflow(fws, name="Slabs with U range"))
