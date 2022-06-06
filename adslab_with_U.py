@@ -10,7 +10,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
-from Catlfows.workflows.surface_pourbaix import get_clockwise_rotations
+from CatFlows.workflows.surface_pourbaix import get_clockwise_rotations
 
 
 @explicit_serialize
