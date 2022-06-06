@@ -157,3 +157,6 @@ class OptimizeAdslabsWithU(FiretaskBase):
 
         # Spawn the new adslab fws and the post-processing/analysis workflow through FWAction
         # The post-processing task needs to be a child for all the adslab_fws as part of a workflow
+        # Then we trigger an action, which is to create the workflow
+        # TODO: Post-processing goes here
+        return FWAction(detours=adslab_fws)
