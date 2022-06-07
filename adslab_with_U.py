@@ -10,7 +10,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
-from Catlfows.workflows.surface_pourbaix import get_clockwise_rotations
+from CatFlows.workflows.surface_pourbaix import get_clockwise_rotations
 
 
 @explicit_serialize
@@ -157,3 +157,6 @@ class OptimizeAdslabsWithU(FiretaskBase):
 
         # Spawn the new adslab fws and the post-processing/analysis workflow through FWAction
         # The post-processing task needs to be a child for all the adslab_fws as part of a workflow
+        # Then we trigger an action, which is to create the workflow
+        # TODO: Post-processing goes here
+        return FWAction(detours=adslab_fws)
