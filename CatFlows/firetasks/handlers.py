@@ -211,7 +211,7 @@ class ContinueOptimizeFW(FiretaskBase):
             elif not is_bulk and not fw_spec.get("is_adslab"):
                 return FWAction(
                     update_spec={
-                        "oriented_uuid": fw_spec["oriented_uuid"],
+                        "oriented_uuid": fw_spec["oriented_uuid"] if "oriented_uuid" in fw_spec else None,
                         "slab_uuid": fw_spec["uuid"],
                     }
                 )
