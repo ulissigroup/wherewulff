@@ -122,23 +122,35 @@ class SlabAdsFireTask(FiretaskBase):
                 )
                 # Retrieve original structure from the root node via the uuid_lineage field
                 # in the spec of the terminal node
-                orig_slab_uuid = mmdb.db["fireworks"].find_one(
-                    {"spec.uuid": slab_uuid}
-                )["spec"]["uuid_lineage"][0]
+                if (
+                    not len(
+                        mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})["spec"][
+                            "uuid_lineage"
+                        ]
+                    )
+                    < 1
+                ):
+                    orig_slab_uuid = mmdb.db["fireworks"].find_one(
+                        {"spec.uuid": slab_uuid}
+                    )["spec"]["uuid_lineage"][0]
+                else:
+                    orig_slab_uuid = slab_uuid
                 # Original Structure
-                slab_struct_orig = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"][
-                        "structure"
-                    ]
+                slab_struct_orig = Slab.from_dict(
+                    mmdb.db["fireworks"].find_one({"spec.uuid": orig_slab_uuid})[
+                        "spec"
+                    ]["_tasks"][0]["structure"]
                 )
+                # Strip orig slab object of oxi states to accommodate MXide
+                slab_struct_orig.remove_oxidation_states()
+                slab_struct_orig.oriented_unit_cell.remove_oxidation_states()
+
                 try:
                     orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})[
                         "orig_inputs"
                     ]["incar"]["MAGMOM"]
                 except KeyError:  # Seems like the schema changes when fake_vasp on?
-                    orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})[
-                        "input"
-                    ]["incar"]["MAGMOM"]
+                    orig_magmoms = slab_struct_orig.site_properties["magmom"]
                 orig_site_properties = slab_struct.site_properties
                 # Replace the magmoms with the initial values
                 orig_site_properties["magmom"] = orig_magmoms
@@ -243,40 +255,3 @@ class SlabAdsFireTask(FiretaskBase):
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 
         return FWAction(detours=hkl_pbx_wfs)
-
-
-"""
-# Generate a set of OptimizeFW additions that will relax all the adslab in parallel
-ads_slab_fws = []
-for slab, oriented_uuid, slab_uuid in slab_candidates:
-    slab_miller_index = "".join(list(map(str, slab.miller_index)))
-    hkl_fws, hkl_uuids = [], []
-    for adsorbate in adsorbates:
-        adslabs = get_clockwise_rotations(slab, adsorbate)
-        for adslab_label, adslab in adslabs.items():
-            name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
-            ads_slab_uuid = uuid.uuid4()
-            ads_slab_fw = AdsSlab_FW(
-                adslab,
-                name=name,
-                oriented_uuid=oriented_uuid,
-                slab_uuid=slab_uuid,
-                ads_slab_uuid=ads_slab_uuid,
-                vasp_cmd=vasp_cmd,
-            )
-            ads_slab_fws.append(ads_slab_fw)
-            hkl_fws.append(ads_slab_fw)
-            hkl_uuids.append(ads_slab_uuid)
-
-    # Surface PBX Diagram for each surface orientation "independent"
-    pbx_name = f"Surface-PBX-{slab.composition.reduced_formula}-{slab_miller_index}"
-    pbx_fw = SurfacePBX_FW(
-        reduced_formula=reduced_formula,
-        name=pbx_name,
-        miller_index=slab_miller_index,
-        slab_uuid=slab_uuid,
-        ads_slab_uuids=hkl_uuids,
-        parents=hkl_fws,
-    )
-    ads_slab_fws.append(pbx_fw)
-"""
