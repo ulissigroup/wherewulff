@@ -48,7 +48,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
     optional_params = ["to_db"]
 
     def run_task(self, fw_spec):
-
+        breakpoint()
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
         to_db = self.get("to_db", True)
@@ -101,7 +101,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Find clean surface thru uuid
         doc_clean = mmdb.collection.find_one({"uuid": slab_uuid})
 
-        slab_clean_obj = Slab.from_dict(doc_clean["slab"])
+        slab_clean_obj_orig = Slab.from_dict(doc_clean["slab"])
 
         slab_clean = Structure.from_dict(
             doc_clean["calcs_reversed"][-1]["output"]["structure"]
@@ -183,6 +183,22 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             ]["structure"]
         )
 
+        slab_clean, slab_clean_orig = self._add_site_properties(
+            slab_clean, mmdb, uuid_termination=slab_uuid
+        )
+
+        slab_clean_obj = Slab(
+            slab_clean.lattice,
+            slab_clean.species,
+            slab_clean.frac_coords,
+            miller_index=self.miller_index,
+            oriented_unit_cell=oriented_struct,
+            shift=slab_clean_obj_orig.shift,
+            scale_factor=slab_clean_obj_orig.scale_factor,
+            energy=slab_clean_energy,
+            site_properties=slab_clean.site_properties,
+        )
+
         # Appending site properties on slab_oh structure
         slab_oh, slab_oh_orig = self._add_site_properties(
             slab_oh, mmdb, uuid_termination=ads_uuid_oh_min
@@ -231,7 +247,11 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             str(key): value for key, value in slab_ox.composition.items()
         }
 
-        summary_dict["slab_clean"] = slab_clean_obj.as_dict()
+        summary_dict[
+            "slab_clean"
+        ] = (
+            slab_clean_obj.as_dict()
+        )  # FIXME: You are not putting the relaxed slab since the structure is from the slab metadata
         summary_dict["slab_oh"] = slab_oh_obj.as_dict()
         summary_dict["slab_oh_orig"] = slab_oh_orig
         summary_dict["n_oh_rotation"] = n_oh_rotation
@@ -323,27 +343,47 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 "sites"
             ]
         ]
-
-        surface_properties = [
-            site["properties"]["surface_properties"]
-            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
-                "sites"
+        if (
+            "surface_properties"
+            in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"]["sites"][
+                0
+            ]["properties"]
+        ):  # for clean term
+            surface_properties = [
+                site["properties"]["surface_properties"]
+                for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                    "slab"
+                ]["sites"]
             ]
-        ]
+            struct.add_site_property("surface_properties", surface_properties)
 
-        binding_site = [
-            site["properties"]["binding_site"]
-            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
-                "sites"
+        if (
+            "binding_site"
+            in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"]["sites"][
+                0
+            ]["properties"]
+        ):  # for clean term
+            binding_site = [
+                site["properties"]["binding_site"]
+                for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                    "slab"
+                ]["sites"]
             ]
-        ]
+            struct.add_site_property("binding_site", binding_site)
 
-        forces = [
-            site["properties"]["forces"]
-            for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"][
-                "sites"
+        if (
+            "forces"
+            in mmdb.db["tasks"].find_one({"uuid": uuid_termination})["slab"]["sites"][
+                0
+            ]["properties"]
+        ):  # for clean term
+            forces = [
+                site["properties"]["forces"]
+                for site in mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+                    "slab"
+                ]["sites"]
             ]
-        ]
+            struct.add_site_property("forces", forces)
 
         # Initialize from original magmoms
         # We need to use the uuid on the parent root node to get the input!!
@@ -372,9 +412,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
         struct.add_site_property("bulk_equivalent", slab_equivalents)
-        struct.add_site_property("binding_site", binding_site)
-        struct.add_site_property("surface_properties", surface_properties)
-        struct.add_site_property("forces", forces)
         struct.add_site_property("magmom", orig_magmoms)
 
         return struct, struct_orig
