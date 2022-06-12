@@ -187,6 +187,10 @@ class OER_SingleSite(object):
 
         if self.surface_coverage[0] == "oxo":
             ref_slab = self.slab.copy()
+            # Orig magmoms for the adslabs
+            ref_slab.add_site_property(
+                "magmom", self.slab_orig.site_properties["magmom"]
+            )
             reactive_site = np.random.choice(self.ads_indices)
             ref_slab.remove_sites(indices=[reactive_site])
 
@@ -194,6 +198,10 @@ class OER_SingleSite(object):
 
         elif self.surface_coverage[0] == "oh":
             ref_slab = self.slab.copy()
+            # Orig magmoms for the adslabs
+            ref_slab.add_site_property(
+                "magmom", self.slab_orig.site_properties["magmom"]
+            )
             ads_indices_oxygen = [
                 site[0] for site in self.termination_info if site[1] == Element("O")
             ]
@@ -210,6 +218,10 @@ class OER_SingleSite(object):
             return ref_slab, reactive_site_oxygen
         else:  # clean termination?
             ref_slab = self.slab_clean.copy()
+            # Orig magmoms for the adslabs
+            ref_slab.add_site_property(
+                "magmom", self.slab_orig.site_properties["magmom"]
+            )
             reactive_site = np.random.choice([x[1] for x in self.ads_indices])
             return ref_slab, reactive_site
 
