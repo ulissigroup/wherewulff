@@ -11,6 +11,7 @@ from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from CatFlows.workflows.surface_pourbaix import get_clockwise_rotations
+from CatFlows.fireworks.optimize import AdsSlab_FW
 
 
 @explicit_serialize
@@ -24,19 +25,23 @@ class OptimizeAdslabsWithU(FiretaskBase):
         "adsorbates",
         "db_file",
         "miller_index",
-        "U_value",
+        "U_values",
         "vis",
     ]
 
     def run_task(self, fw_spec):
+        breakpoint()
         vis = self["vis"]
         adsorbates = self["adsorbates"]
-        U_value = self["U_value"]
+        db_file = env_chk(self["db_file"], fw_spec)
+        U_values = self[
+            "U_values"
+        ]  # FIXME: I think this needs to be a dictionary of element with values of +U
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
-        bulk_slab_key = "_".join([reduced_formula, miller_index])
+        #        bulk_slab_key = "_".join([reduced_formula, miller_index])
         # Get the slab uuid
-        slab_uuid = fw_spec.get(bulk_slab_key)["slab_uuid"]
+        slab_uuid = fw_spec.get("slab_uuid")
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         slab_wyckoffs = [
@@ -53,21 +58,40 @@ class OptimizeAdslabsWithU(FiretaskBase):
         )
         # Retrieve original structure from the root node via the uuid_lineage field
         # in the spec of the terminal node
-        orig_slab_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})[
-            "spec"
-        ]["uuid_lineage"][0]
+        if (
+            not len(
+                mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})["spec"][
+                    "uuid_lineage"
+                ]
+            )
+            < 1
+        ):
+            orig_slab_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})[
+                "spec"
+            ]["uuid_lineage"][
+                0
+            ]  # FIXME: Think it is better to get the orig input from the WriteIOSet task itself
+        else:
+            orig_slab_uuid = slab_uuid
         # Original Structure
-        slab_struct_orig = Structure.from_dict(
-            mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"]["structure"]
+        slab_struct_orig = Slab.from_dict(
+            mmdb.db["fireworks"].find_one({"spec.uuid": orig_slab_uuid})["spec"][
+                "_tasks"
+            ][0]["structure"]
         )
-        try:
-            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})[
-                "orig_inputs"
-            ]["incar"]["MAGMOM"]
-        except KeyError:  # Seems like the schema changes when fake_vasp on?
-            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"][
-                "incar"
-            ]["MAGMOM"]
+        # Strip orig slab object of oxi states to accommodate MXide
+        slab_struct_orig.remove_oxidation_states()
+        slab_struct_orig.oriented_unit_cell.remove_oxidation_states()
+
+        # try:
+        #    orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})[
+        #        "orig_inputs"
+        #    ]["incar"]["MAGMOM"]
+        # except KeyError:  # Seems like the schema changes when fake_vasp on?
+        #    orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"][
+        #        "incar"
+        #    ]["MAGMOM"]
+        orig_magmoms = slab_struct_orig.site_properties["magmom"]
         orig_site_properties = slab_struct.site_properties
         # Replace the magmoms with the initial values
         orig_site_properties["magmom"] = orig_magmoms
@@ -80,34 +104,32 @@ class OptimizeAdslabsWithU(FiretaskBase):
         slab_struct_orig.add_site_property("bulk_wyckoff", slab_wyckoffs)
         slab_struct_orig.add_site_property("bulk_equivalent", slab_equivalents)
 
-        # Oriented unit cell Structure output and input
-        orient_struct = Structure.from_dict(
-            mmdb.db["tasks"].find_one({"uuid": oriented_uuid})["output"]["structure"]
-        )
-        oriented_struct_orig = Structure.from_dict(
-            mmdb.db["tasks"].find_one({"uuid": oriented_uuid})["input"]["structure"]
+        # Because we are only interested in the surface, we don't need the relaxed
+        # OUC so we will just get it from the slab metadata from the slab_uuid
+        ouc = Structure.from_dict(
+            mmdb.db["tasks"].find_one({"uuid": slab_uuid})["slab"]["oriented_unit_cell"]
         )
 
-        # Oriented unit cell site properties
-        oriented_wyckoffs = [
-            site["properties"]["bulk_wyckoff"]
-            for site in mmdb.db["tasks"].find_one({"uuid": slab_uuid})["slab"][
-                "oriented_unit_cell"
-            ]["sites"]
-        ]
-        oriented_equivalents = [
-            site["properties"]["bulk_equivalent"]
-            for site in mmdb.db["tasks"].find_one({"uuid": slab_uuid})["slab"][
-                "oriented_unit_cell"
-            ]["sites"]
-        ]
+        # # Oriented unit cell site properties
+        # oriented_wyckoffs = [
+        #     site["properties"]["bulk_wyckoff"]
+        #     for site in mmdb.db["tasks"].find_one({"uuid": slab_uuid})["slab"][
+        #         "oriented_unit_cell"
+        #     ]["sites"]
+        # ]
+        # oriented_equivalents = [
+        #     site["properties"]["bulk_equivalent"]
+        #     for site in mmdb.db["tasks"].find_one({"uuid": slab_uuid})["slab"][
+        #         "oriented_unit_cell"
+        #     ]["sites"]
+        # ]
 
-        # Decorate oriented unit cell with site properties
-        orient_struct.add_site_property("bulk_wyckoff", oriented_wyckoffs)
-        orient_struct.add_site_property("bulk_equivalent", oriented_equivalents)
+        # # Decorate oriented unit cell with site properties
+        # ouc.add_site_property("bulk_wyckoff", oriented_wyckoffs)
+        # ouc.add_site_property("bulk_equivalent", oriented_equivalents)
 
-        oriented_struct_orig.add_site_property("bulk_wyckoff", oriented_wyckoffs)
-        oriented_struct_orig.add_site_property("bulk_equivalent", oriented_equivalents)
+        # oriented_struct_orig.add_site_property("bulk_wyckoff", oriented_wyckoffs)
+        # oriented_struct_orig.add_site_property("bulk_equivalent", oriented_equivalents)
 
         # Optimized Slab object
         # Output
@@ -116,7 +138,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
             slab_struct.species,
             slab_struct.frac_coords,
             miller_index=list(map(int, miller_index)),
-            oriented_unit_cell=orient_struct,
+            oriented_unit_cell=ouc,
             shift=0,
             scale_factor=0,
             energy=mmdb.db["tasks"].find_one({"uuid": slab_uuid})["output"]["energy"],
@@ -128,7 +150,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
             slab_struct_orig.species,
             slab_struct_orig.frac_coords,
             miller_index=list(map(int, miller_index)),
-            oriented_unit_cell=oriented_struct_orig,
+            oriented_unit_cell=ouc,
             shift=0,
             scale_factor=0,
             energy=0,
@@ -142,16 +164,23 @@ class OptimizeAdslabsWithU(FiretaskBase):
                 original_slab, optimized_slab, adsorbate
             )
             for adslab_label, adslab in adslabs.items():
+                elements = [el.name for el in adslab.composition.elements]
+                # Assume that the adsorbate will not require +U and get the values from the U_values dict
+                vis.incar["UU"] = [
+                    U_values[el] if el in U_values else 0 for el in elements
+                ]
+                vis.incar["UL"] = [2 if el in U_values else 0 for el in elements]
+                vis.incar["UJ"] = [0 for el in elements]
                 name = f"{optimized_slab.composition.reduced_formula}-{miller_index}-{adslab_label}"
                 ads_slab_uuid = str(uuid.uuid4())
                 ads_slab_fw = AdsSlab_FW(
                     adslab,
                     name=name,
                     ads_slab_uuid=ads_slab_uuid,
-                    vasp_cmd=vasp_cmd,
+                    vasp_cmd=VASP_CMD,
                     db_file=db_file,
                     run_fake=False,
-                    vasp_input_set=vis,
+                    vasp_input_set=vis,  # Need a different U setting to accommodate the adsorbate
                 )
                 adslab_fws.append(ads_slab_fw)
 

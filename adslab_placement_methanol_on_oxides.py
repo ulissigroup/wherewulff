@@ -237,12 +237,16 @@ for coverage in range(1, 2):
             #                os.makedirs(dir_name)
             #            slab_ads.to(filename=f"./{dir_name}/POSCAR_{name}")
             # Send an OptimizeFW calc to the hosted MongoDB for execution
+            breakpoint()
+            elements = [el.name for el in pristine_slab.composition.elements]
+            #            U_values = {el: U if el == "Ti" else 0 for el in elements}
+            U_values = {"Ti": U}
             vasp_input_set = MOSurfaceSet(
                 pristine_slab,
                 bulk=False,
-                UJ=[0, 0],
-                UU=[U, 0],
-                UL=[2, 0],
+                UJ=[0 for el in elements],
+                UU=[U_values[el] if el in U_values else 0 for el in elements],
+                UL=[2 if el in U_values else 0 for el in elements],
                 apply_U=True,
                 user_incar_settings={
                     #                    "LDAUJ": [0, 0],
@@ -269,7 +273,7 @@ for coverage in range(1, 2):
                     miller_index="".join(
                         map(str, vasp_input_set.structure.miller_index)
                     ),
-                    U_value=U,
+                    U_values=U_values,
                     vis=vasp_input_set,
                 ),
                 parents=[slab_fw],
