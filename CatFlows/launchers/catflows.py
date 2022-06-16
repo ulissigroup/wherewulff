@@ -103,7 +103,6 @@ class CatFlows:
         # General info
         self.bulk_formula = self._get_bulk_formula()
         self.miller_indices = self._get_miller_indices()
-        print(self.miller_indices)
         self.slab_structures = self._get_slab_structures()
         self.workflows_list = self._get_all_wfs()
         self.adsorbates = adsorbates
