@@ -24,7 +24,7 @@ METAL_BULK_ENERGIES = {
     "Ba": -1.9190,
     "Sr": -1.6831,
     "Co": -7.0922,
-} # ev/Atom from MP?
+}  # ev/Atom from MP?
 
 
 @explicit_serialize
@@ -117,8 +117,12 @@ class SurfaceEnergyFireTask(FiretaskBase):
         bulk_unit_form = sum(bulk_unit_form_dict.values())
         slab_unit_form = sum(slab_unit_form_dict.values())
         slab_bulk_ratio = slab_unit_form / bulk_unit_form
-        self.oriented_struct = oriented_struct # make the struct_obj accessible to the non-stoich method
-        self.slab_struct = slab_struct # make the struct_obj accessible to the non-stoich method
+        self.oriented_struct = (
+            oriented_struct  # make the struct_obj accessible to the non-stoich method
+        )
+        self.slab_struct = (
+            slab_struct  # make the struct_obj accessible to the non-stoich method
+        )
 
         # Calc. surface energy - Assumes symmetric
         if (
@@ -191,7 +195,6 @@ class SurfaceEnergyFireTask(FiretaskBase):
             2 * slab_Area
         )  # scaling for bulk!
         return gamma_hkl
-
 
     def get_non_stoich_surface_energy(self, slab_E, oriented_E, slab_Area):
         """
