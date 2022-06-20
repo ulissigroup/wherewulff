@@ -54,7 +54,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
-        slab_orig = self["slab_orig"]
+        # slab_orig = self["slab_orig"]
         bulk_like_sites = self["bulk_like_sites"]
         ads_dict_orig = self["ads_dict_orig"]
         metal_site = self["metal_site"]
@@ -94,9 +94,11 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Retrieve the surface termination as input
         if surface_termination == "ox":
             stable_surface_orig = ads_dict_orig["O_1"]
-        if surface_termination == "oh":
+        elif surface_termination == "oh":
             n_oh_rotation = pbx_doc["n_oh_rotation"]
             stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
+        else:
+            stable_surface_orig = clean_surface
 
         # Generate OER single site intermediates (WNA)
         oer_wna = OER_SingleSite(
