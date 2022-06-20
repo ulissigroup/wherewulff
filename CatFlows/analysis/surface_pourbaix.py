@@ -344,12 +344,15 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         ]
 
         # Initialize from original magmoms
-        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+        # We need to use the uuid on the parent root node to get the input
+        orig_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})["spec"]["uuid_lineage"][0]
+
+        orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
             "orig_inputs"
         ]["incar"]["MAGMOM"]
 
         # Retrieve the original structure
-        struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})["input"][
+        struct_orig = mmdb.db["tasks"].find_one({"uuid": orig_uuid})["input"][
             "structure"
         ]
 
