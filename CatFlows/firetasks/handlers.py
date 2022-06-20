@@ -78,10 +78,10 @@ class ContinueOptimizeFW(FiretaskBase):
         if counter < fw_spec["max_tries"] and any(wall_time_reached_errors):
             # Retrieving structure from parent
 
-            if counter == 0: # root node
+            if counter == 0:  # root node
                 uuid_lineage = []
             else:
-                uuid_lineage = fw_spec["uuid_lineage"] # inherit from parent
+                uuid_lineage = fw_spec["uuid_lineage"]  # inherit from parent
 
             # Retrieving lastest geometry from parent
             structure = Structure.from_dict(
@@ -214,7 +214,9 @@ class ContinueOptimizeFW(FiretaskBase):
             elif not is_bulk and not fw_spec.get("is_adslab"):
                 return FWAction(
                     update_spec={
-                        "oriented_uuid": fw_spec["oriented_uuid"] if "oriented_uuid" in fw_spec else None,
+                        "oriented_uuid": fw_spec["oriented_uuid"]
+                        if "oriented_uuid" in fw_spec
+                        else None,
                         "slab_uuid": fw_spec["uuid"],
                     }
                 )
