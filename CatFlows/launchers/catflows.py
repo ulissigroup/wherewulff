@@ -170,7 +170,7 @@ class CatFlows:
             if site.frac_coords[2] > slab.center_of_mass[2]:
                 if self.metal_site in site.species_string:
                     cn = float("%.5f" % (round(v.get_cn(slab, i, use_weights=True), 5)))
-                    if cn < min(cn_dict[site.specie_string]):
+                    if cn < min(cn_dict[site.species_string]):
                         active_sites.append(site)
 
         # Min c parameter reference to bottom layer
@@ -201,17 +201,17 @@ class CatFlows:
 
             slab_candidates = []
             for slab in all_slabs:
-                slab_formula = slab.composition.reduced_formula
+                # slab_formula = slab.composition.reduced_formula
                 if (
                     not slab.is_polar()
                     and slab.is_symmetric()
-                    and slab_formula == self.bulk_formula
+                    # and slab_formula == self.bulk_formula
                 ):
                     slab.make_supercell(self.slab_repeat)
                     slab_candidates.append(slab)
 
             # This is new!
-            if len(slab_candidates) > 1:
+            if len(slab_candidates) >= 1:
                 count_metal = 0
                 for slab_cand in slab_candidates:
                     count = self._count_surface_metals(slab_cand)
