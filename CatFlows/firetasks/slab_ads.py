@@ -83,9 +83,9 @@ class SlabAdsFireTask(FiretaskBase):
                 # This is the case where there is no Wulff shape because
                 # there is only one miller index
                 # Get the bulk_slab_key from the fw_spec
-                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}_" in k]
+                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}" in k]
                 filtered_slab_miller_indices = [
-                    bsk.split("_")[1] for bsk in bulk_slab_keys
+                    bsk.split("_")[-1] for bsk in bulk_slab_keys
                 ]
 
             # Re-build PMG Slab object from optimized structures
