@@ -118,7 +118,7 @@ class SlabAdsFireTask(FiretaskBase):
                 )
                 # Retrieve original structure from the root node via the uuid_lineage field
                 # in the spec of the terminal node
-                orig_slab_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})["uuid_lineage"][0]
+                orig_slab_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})["spec"]["uuid_lineage"][0]
 
                 # Original Structure
                 slab_struct_orig = Structure.from_dict(
