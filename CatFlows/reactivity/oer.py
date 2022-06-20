@@ -70,10 +70,10 @@ class OER_SingleSite(object):
         # Mxide method
         self.mxidegen = self._mxidegen()
         if not self.surface_coverage[0] == "clean":
-            
+
             # Shifted bulk_like_sites
             self.bulk_like_dict = self._get_shifted_bulk_like_sites()
-            
+
             # Selected site
             self.selected_site = self.bulk_like_dict[self.reactive_idx]
         else:
@@ -98,7 +98,7 @@ class OER_SingleSite(object):
         # OH or Ox coverage
         surface_coverage = ["oxo" if Element("H") not in ads_species else "oh"]
 
-        if len(termination_info) == 0: # clean termination
+        if len(termination_info) == 0:  # clean termination
             surface_coverage = ["clean"]
             return surface_coverage, ads_species, ads_indices, termination_info
 
