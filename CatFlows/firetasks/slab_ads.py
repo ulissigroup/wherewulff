@@ -116,12 +116,16 @@ class SlabAdsFireTask(FiretaskBase):
                         "structure"
                     ]
                 )
+                # Retrieve original structure from the root node via the uuid_lineage field
+                # in the spec of the terminal node
+                orig_slab_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})["uuid_lineage"][0]
+
                 # Original Structure
                 slab_struct_orig = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["input"]["structure"]
+                    mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"]["structure"]
                 )
                 # Initialize from original magmoms instead of output ones.
-                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
+                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})[
                     "orig_inputs"
                 ]["incar"]["MAGMOM"]
                 orig_site_properties = slab_struct.site_properties
