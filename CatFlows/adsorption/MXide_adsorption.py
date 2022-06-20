@@ -180,7 +180,9 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         [
                             nn
                             # for nn in self.bulk.get_neighbors(site, self.bondlength)
-                            for nn in self.bulk.get_neighbors(site, max(self.bondlengths_dict.values()))
+                            for nn in self.bulk.get_neighbors(
+                                site, max(self.bondlengths_dict.values())
+                            )
                             if nn.species_string != self.X
                         ]
                     )
@@ -189,7 +191,9 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         [
                             nn
                             # for nn in self.bulk.get_neighbors(site, self.bondlength)
-                            for nn in self.bulk_get_neighbors(site, max(self.bondlengths_dict.values()))
+                            for nn in self.bulk_get_neighbors(
+                                site, max(self.bondlengths_dict.values())
+                            )
                             if nn.species_string == self.X
                         ]
                     )
@@ -197,7 +201,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         if ads_dist:
             self.min_adsorbate_dist = ads_dist
         elif ads_dist_is_blength:
-            #self.min_adsorbate_dist = self.bondlength * 1.5
+            # self.min_adsorbate_dist = self.bondlength * 1.5
             self.min_adsorbate_dist = max(self.bondlengths_dict.values()) * 1.5
         else:
             self.min_adsorbate_dist = self.calculate_min_adsorbate_dist()
