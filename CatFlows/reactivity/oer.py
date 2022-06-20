@@ -186,11 +186,14 @@ class OER_SingleSite(object):
     def _get_shifted_bulk_like_sites(self):
         """Get Perturbed bulk-like sites"""
         # Bondlength and X-specie from mxide method
-        bondlength, X = self.mxidegen.bondlength, self.mxidegen.X
+        _, X = self.mxidegen.bondlength, self.mxidegen.X
 
         # Perturb pristine bulk_like sites {idx: np.array([x,y,z])}
+        # bulk_like_shifted_dict = self._bulk_like_adsites_perturbation_oxygens(
+        #    self.slab_orig, self.slab, bondlength=bondlength, X=X
+        # )
         bulk_like_shifted_dict = self._bulk_like_adsites_perturbation_oxygens(
-            self.slab_orig, self.slab, bondlength=bondlength, X=X
+            self.slab_orig, self.slab, X=X
         )
 
         return bulk_like_shifted_dict
@@ -218,28 +221,32 @@ class OER_SingleSite(object):
         bulk_like_deltas = [delta_coords[i] for i in metal_idx]
         return [n + m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
 
-    def _bulk_like_adsites_perturbation_oxygens(self, slab_ref, slab, bondlength, X):
+    def _bulk_like_adsites_perturbation_oxygens(self, slab_ref, slab, X):
         """peturbation on oxygens"""
         slab_ref_coords = slab_ref.cart_coords  # input
         slab_coords = slab.cart_coords  # output
+        end_idx = np.where(slab_ref.frac_coords[:, 2] >= slab_ref.center_of_mass[2])[0][-1]
 
         delta_coords = slab_coords - slab_ref_coords
 
         ox_idx = []
         for bulk_like_site in self.bulk_like_sites:
+            min_dist = np.inf # initialize the min_dist register
+            min_ox_idx = 0 # initialize the min_ox_idx
             for idx, site in enumerate(slab_ref):
                 if (
                     site.specie == Element(X)
                     and site.coords[2] > slab_ref.center_of_mass[2]
                 ):
                     dist = np.linalg.norm(bulk_like_site - site.coords)
-                    if dist < bondlength:
-                        ox_idx.append(idx)
+                    if dist < min_dist:
+                        min_dist = dist
+                        min_ox_idx = idx
+                if idx == end_idx:
+                    ox_idx.append(idx)
 
         bulk_like_deltas = [delta_coords[i] for i in ox_idx]
-        bulk_like_shifted = [
-            n + m for n, m in zip(self.bulk_like_sites, bulk_like_deltas)
-        ]
+        bulk_like_shifted = [n + m for n, m in zip(self.bulk_like_sites, bulk_like_deltas)]
         return {k: [v] for (k, v) in zip(ox_idx, bulk_like_shifted)}
 
     def _get_clean_slab(self):
