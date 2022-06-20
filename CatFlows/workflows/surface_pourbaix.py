@@ -61,7 +61,7 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
     #    slab_ref, slab, bulk_like_sites, bondlength=bondlength, X=X
     # )
 
-    _, X = mxidegen.bondlength, mxidegen.X
+    _, X = mxidegen.bondlengths_dict, mxidegen.X
     bulk_like_shifted = _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like, X=X)
 
     # set n_rotations to 1 if mono-atomic
