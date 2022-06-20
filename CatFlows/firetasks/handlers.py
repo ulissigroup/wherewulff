@@ -125,7 +125,7 @@ class ContinueOptimizeFW(FiretaskBase):
                     "counter": counter,
                     "_add_launchpad_and_fw_id": True,
                     "_pass_job_info": True,
-                    "uuid_lineage": uuid_lineage
+                    "uuid_lineage": uuid_lineage,
                     "uuid": fw_new_uuid,
                     "max_tries": fw_spec["max_tries"],
                     "name": fw_spec["name"],  # pass parent name to child
