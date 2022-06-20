@@ -93,7 +93,9 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
     return adslab_dict, bulk_like_shifted
 
 
-def _bulk_like_adsites_perturbation_bondlength(slab_ref, slab, bulk_like_sites, bondlength, X):
+def _bulk_like_adsites_perturbation_bondlength(
+    slab_ref, slab, bulk_like_sites, bondlength, X
+):
     """Let's perturb bulk_like_sites with delta (x,y,z) comparing input and output"""
     slab_ref_coords = slab_ref.cart_coords
     slab_coords = slab.cart_coords
@@ -114,6 +116,7 @@ def _bulk_like_adsites_perturbation_bondlength(slab_ref, slab, bulk_like_sites, 
     bulk_like_deltas = [delta_coords[i] for i in metal_idx]
     return [n + m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
 
+
 def _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, X):
     """Let's perturb bulk_like_sites with delta (x,y,z) comparing input and output"""
     slab_ref_coords = slab_ref.cart_coords
@@ -123,23 +126,25 @@ def _bulk_like_adsites_perturbation(slab_ref, slab, bulk_like_sites, X):
 
     metal_idx = []
     for bulk_like_site in bulk_like_sites:
-        min_dist = np.inf # intialize min_dist register
+        min_dist = np.inf  # intialize min_dist register
         min_metal_idx = 0
-        end_idx = np.where(slab_ref.frac_coords[:,2] >= slab_ref.center_of_mass[2])[0][-1]
+        end_idx = np.where(slab_ref.frac_coords[:, 2] >= slab_ref.center_of_mass[2])[0][
+            -1
+        ]
         # FIXME: I think we can make this faster by replacing with a while loop
         # and only looping over the top half
         for idx, site in enumerate(slab_ref):
             if (
                 site.specie != Element(X)
                 and site.frac_coords[2]
-                > slab_ref.center_of_mass[2] # go over the top half of slab
-                ):
+                > slab_ref.center_of_mass[2]  # go over the top half of slab
+            ):
                 dist = np.linalg.norm(bulk_like_site - site.coords)
-                
+
                 if dist < min_dist:
                     min_dist = dist
                     min_metal_idx = idx
-                    
+
             if idx == end_idx:
                 metal_idx.append(min_metal_idx)
 
