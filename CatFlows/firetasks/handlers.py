@@ -77,6 +77,13 @@ class ContinueOptimizeFW(FiretaskBase):
         # Imtermediate nodes that mutate the workflow
         if counter < fw_spec["max_tries"] and any(wall_time_reached_errors):
             # Retrieving structure from parent
+
+            if counter == 0: # root node
+                uuid_lineage = []
+            else:
+                uuid_lineage = fw_spec["uuid_lineage"] # inherit from parent
+
+            # Retrieving lastest geometry from parent
             structure = Structure.from_dict(
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
@@ -102,6 +109,9 @@ class ContinueOptimizeFW(FiretaskBase):
             # Create a unique uuid for child
             fw_new_uuid = uuid.uuid4()
 
+            # UUID provenance for downstream nodes
+            uuid_lineage.append(fw_spec["uuid"])
+
             # OptimizeFW for child
             fw_new = OptimizeFW(
                 name=fw_spec["name"],
@@ -115,6 +125,7 @@ class ContinueOptimizeFW(FiretaskBase):
                     "counter": counter,
                     "_add_launchpad_and_fw_id": True,
                     "_pass_job_info": True,
+                    "uuid_lineage": uuid_lineage
                     "uuid": fw_new_uuid,
                     "max_tries": fw_spec["max_tries"],
                     "name": fw_spec["name"],  # pass parent name to child
