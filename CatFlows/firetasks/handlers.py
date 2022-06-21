@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 import uuid
 
 from pydash.objects import has, get
@@ -77,6 +84,13 @@ class ContinueOptimizeFW(FiretaskBase):
         # Imtermediate nodes that mutate the workflow
         if counter < fw_spec["max_tries"] and any(wall_time_reached_errors):
             # Retrieving structure from parent
+
+            if counter == 0:  # root node
+                uuid_lineage = []
+            else:
+                uuid_lineage = fw_spec["uuid_lineage"]  # inherit from parent
+
+            # Retrieving lastest geometry from parent
             structure = Structure.from_dict(
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
@@ -102,6 +116,9 @@ class ContinueOptimizeFW(FiretaskBase):
             # Create a unique uuid for child
             fw_new_uuid = uuid.uuid4()
 
+            # UUID provenance for downstream nodes
+            uuid_lineage.append(fw_spec["uuid"])
+
             # OptimizeFW for child
             fw_new = OptimizeFW(
                 name=fw_spec["name"],
@@ -115,6 +132,7 @@ class ContinueOptimizeFW(FiretaskBase):
                     "counter": counter,
                     "_add_launchpad_and_fw_id": True,
                     "_pass_job_info": True,
+                    "uuid_lineage": uuid_lineage,
                     "uuid": fw_new_uuid,
                     "max_tries": fw_spec["max_tries"],
                     "name": fw_spec["name"],  # pass parent name to child
@@ -158,7 +176,7 @@ class ContinueOptimizeFW(FiretaskBase):
             # job triggered walltime handler, then the child can relinquish wall_time constraints
             import os
 
-            if "nid" in os.environ["HOSTNAME"]:
+            if "nid" in os.environ["HOSTNAME"] or "cori" in os.environ["HOSTNAME"]:
                 fw_new.tasks[3].update({"wall_time": fw_spec["wall_time"]})
                 host = (
                     "nersc"  # this needs to be in the fworker config as query on nersc
@@ -171,6 +189,7 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # Pin the children down to the same filesystem as the root
             fw_new.spec["host"] = host
+            fw_new.tasks[5].update({"defuse_unsuccesful": False})
 
             # Bulk Continuation
             if is_bulk:
@@ -202,7 +221,9 @@ class ContinueOptimizeFW(FiretaskBase):
             elif not is_bulk and not fw_spec.get("is_adslab"):
                 return FWAction(
                     update_spec={
-                        "oriented_uuid": fw_spec["oriented_uuid"],
+                        "oriented_uuid": fw_spec["oriented_uuid"]
+                        if "oriented_uuid" in fw_spec
+                        else None,
                         "slab_uuid": fw_spec["uuid"],
                     }
                 )

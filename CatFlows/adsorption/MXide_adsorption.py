@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core.periodic_table import Element
 import numpy as np
@@ -141,7 +148,8 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         self.relax_tol = relax_tol
         self.bulk = slab.oriented_unit_cell.copy()
-        self.bondlength = self.get_bond_length(max_r=max_r, tol=tol)
+        # self.bondlength = self.get_bond_length(max_r=max_r, tol=tol)
+        self.bondlengths_dict = self.get_bond_length(max_r=max_r, tol=tol)
 
         # Get surface metal sites
         self.surf_metal_sites = [
@@ -178,7 +186,10 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     bulk_wyckoff_cn[sym] = len(
                         [
                             nn
-                            for nn in self.bulk.get_neighbors(site, self.bondlength)
+                            # for nn in self.bulk.get_neighbors(site, self.bondlength)
+                            for nn in self.bulk.get_neighbors(
+                                site, max(self.bondlengths_dict.values())
+                            )
                             if nn.species_string != self.X
                         ]
                     )
@@ -186,7 +197,10 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     bulk_wyckoff_cn[sym] = len(
                         [
                             nn
-                            for nn in self.bulk.get_neighbors(site, self.bondlength)
+                            # for nn in self.bulk.get_neighbors(site, self.bondlength)
+                            for nn in self.bulk.get_neighbors(
+                                site, max(self.bondlengths_dict.values())
+                            )
                             if nn.species_string == self.X
                         ]
                     )
@@ -194,7 +208,8 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         if ads_dist:
             self.min_adsorbate_dist = ads_dist
         elif ads_dist_is_blength:
-            self.min_adsorbate_dist = self.bondlength * 1.5
+            # self.min_adsorbate_dist = self.bondlength * 1.5
+            self.min_adsorbate_dist = max(self.bondlengths_dict.values()) * 1.5
         else:
             self.min_adsorbate_dist = self.calculate_min_adsorbate_dist()
         self.sm = StructureMatcher()
@@ -212,6 +227,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         """
 
         min_dists = []
+        max_bond_lengths_dict = {}
         for site in self.bulk:
             if site.species_string != self.X:
                 dist = min(
@@ -221,9 +237,15 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         if nn.species_string == self.X
                     ]
                 )
-                min_dists.append(dist)
+                if (
+                    site.species_string in max_bond_lengths_dict
+                    and dist * tol > max_bond_lengths_dict[site.species_string]
+                ):
+                    max_bond_lengths_dict[site.species_string] = dist * tol
+                elif site.species_string not in max_bond_lengths_dict:
+                    max_bond_lengths_dict[site.species_string] = dist * tol
 
-        return min(min_dists) * tol
+        return max_bond_lengths_dict
 
     ########################## NEED A BETTER ALGO FOR ADSORBATE DISTANCES ##########################
 
@@ -515,7 +537,6 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         """
         Algorithm:
-
         Method to get bulk-like X-adsorbate positions in a MXide. Takes in
             slabs with Laue PG symmetry only. First we locate the equivalent
             M-sites on the bottom with the same orientation of its polyhedron
@@ -523,16 +544,13 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             atom at the bottom that is missing from the top is then translated
             to the top via a vector betweeen the top and equivalent bottom M-site.
             This is our bulk-like adsorbate position.
-
         Arg:
             init_slab (structure): A structure object representing a slab.
             X (Species str): Element bonded to the M site
             AdsorbateSiteFinder_args (dict): Arguments for AdsorbateSiteFinder class
             bondlength (float): Bondlength between M and X in the bulk
-
             NOTE: Future implementation should use a general bond_dict instead of X
                 and bondlength in case of ternary compositions made of more than one X
-
         Returns:
             (List) of bulk-like adsorption sites (cartesian) for X on the top surface
         """
@@ -545,49 +563,62 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             if site.surface_properties == "surface" and site.species_string == self.X
         ]
         for surfsite in self.slab:
-            if surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]:
-                surf_nn = self.slab.get_neighbors(surfsite, self.bondlength)
+            if (
+                surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]
+            ):  # and abs(sum(surfsite.coords - np.array([9.717,11.903,31.921]))) < 0.05:
+                surf_nn = self.slab.get_neighbors(
+                    surfsite, self.bondlengths_dict[surfsite.species_string]
+                )
                 for bulksite in self.bulk:
                     if (
                         bulksite.bulk_wyckoff == surfsite.bulk_wyckoff
                         and bulksite.species_string == surfsite.species_string
                     ):
-                        cn = len(self.bulk.get_neighbors(bulksite, self.bondlength))
+                        cn = len(
+                            self.bulk.get_neighbors(
+                                bulksite, self.bondlengths_dict[bulksite.species_string]
+                            )
+                        )
                         break
                 if len(surf_nn) == cn:
                     continue
                 for site in self.slab:
-                    bulk_frac_coords = [
-                        nn.frac_coords
-                        for nn in self.slab.get_neighbors(site, self.bondlength)
-                    ]
-                    if len(bulk_frac_coords) == cn:
-                        translate = surfsite.frac_coords - site.frac_coords
-                        if all(
-                            [
-                                in_coord_list_pbc(
-                                    bulk_frac_coords,
-                                    surfsite.frac_coords - translate,
-                                    atol=self.relax_tol,
-                                )
-                                for surfsite in surf_nn
-                            ]
-                        ):
-                            for fcoords in bulk_frac_coords:
+                    if site.species_string != self.X:
+                        bulk_frac_coords = [
+                            nn.frac_coords
+                            for nn in self.slab.get_neighbors(
+                                site, self.bondlengths_dict[site.species_string]
+                            )
+                        ]
+                        if len(bulk_frac_coords) == cn and (
+                            surfsite.species_string == site.species_string
+                        ):  # constrain to be same specie not only same CN
+                            translate = surfsite.frac_coords - site.frac_coords
+                            if all(
+                                [
+                                    in_coord_list_pbc(
+                                        bulk_frac_coords,
+                                        surfsite.frac_coords - translate,
+                                        atol=self.relax_tol,
+                                    )
+                                    for surfsite in surf_nn
+                                ]
+                            ):
+                                for fcoords in bulk_frac_coords:
 
-                                transcoord = fcoords + translate
-                                if (
-                                    not in_coord_list_pbc(
-                                        adsites, transcoord, atol=self.relax_tol
-                                    )
-                                    and fcoords[2] > site.frac_coords[2]
-                                    and not in_coord_list_pbc(
-                                        surfX, transcoord, atol=self.relax_tol
-                                    )
-                                ):
-                                    adsites.append(transcoord)
-                                    partitions.append(surfsite.supercell)
-                            break
+                                    transcoord = fcoords + translate
+                                    if (
+                                        not in_coord_list_pbc(
+                                            adsites, transcoord, atol=self.relax_tol
+                                        )
+                                        and fcoords[2] > site.frac_coords[2]
+                                        and not in_coord_list_pbc(
+                                            surfX, transcoord, atol=self.relax_tol
+                                        )
+                                    ):
+                                        adsites.append(transcoord)
+                                        partitions.append(surfsite.supercell)
+                                break
 
         return [
             self.slab.lattice.get_cartesian_coords(fcoord) for fcoord in adsites

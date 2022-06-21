@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 import json
 
 from pydash.objects import has, get
@@ -15,6 +22,16 @@ from atomate.vasp.database import VaspCalcDb
 
 
 logger = get_logger(__name__)
+
+METAL_BULK_ENERGIES = {
+    "Ti": -7.8335,
+    "Cr": -9.6530,
+    "Ru": -9.2744,
+    "O": -7.48175514 - 0.27,
+    "Ba": -1.9190,
+    "Sr": -1.6831,
+    "Co": -7.0922,
+}  # ev/Atom from MP?
 
 
 @explicit_serialize
@@ -90,8 +107,8 @@ class SurfaceEnergyFireTask(FiretaskBase):
         slab_Area = slab_obj.surface_area
 
         # Formulas
-        oriented_formula = oriented_struct.composition.reduced_formula
-        slab_formula = slab_struct.composition.reduced_formula
+        self.oriented_formula = oriented_struct.composition.reduced_formula
+        self.slab_formula = slab_struct.composition.reduced_formula
 
         # Compositions
         bulk_comp = oriented_struct.composition.as_dict()
@@ -107,24 +124,21 @@ class SurfaceEnergyFireTask(FiretaskBase):
         bulk_unit_form = sum(bulk_unit_form_dict.values())
         slab_unit_form = sum(slab_unit_form_dict.values())
         slab_bulk_ratio = slab_unit_form / bulk_unit_form
-
-        # Calc. surface energy - Assumes symmetric
-        surface_energy = self.get_surface_energy(
-            slab_E, oriented_E, slab_bulk_ratio, slab_Area
+        self.oriented_struct = (
+            oriented_struct  # make the struct_obj accessible to the non-stoich method
+        )
+        self.slab_struct = (
+            slab_struct  # make the struct_obj accessible to the non-stoich method
         )
 
-        # Surface energy for non-dipolar, symmetric and stoichiometric
-        #       if (
-        #           not slab_obj.is_polar()
-        #           and slab_obj.is_symmetric()
-        #           and slab_formula == oriented_formula
-        #       ):
-        #           surface_energy = self.get_surface_energy(
-        #               slab_E, oriented_E, slab_bulk_ratio, slab_Area
-        #           )
-
-        #       else:
-        #           surface_energy = None
+        # Calc. surface energy - Assumes symmetric
+        if (
+            not slab_obj.is_polar()
+            #    and slab_obj.is_symmetric()
+        ):
+            surface_energy = self.get_non_stoich_surface_energy(
+                slab_E, oriented_E, slab_Area
+            )
 
         # Summary dict
         summary_dict["oriented_struct"] = oriented_struct.as_dict()
@@ -134,7 +148,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
         summary_dict["slab_Area"] = slab_Area
         summary_dict["is_polar"] = str(slab_obj.is_polar())
         summary_dict["is_symmetric"] = str(slab_obj.is_symmetric())
-        if slab_formula == oriented_formula:
+        if self.slab_formula == self.oriented_formula:
             summary_dict["is_stoichiometric"] = str(True)
         else:
             summary_dict["is_stoichiometric"] = str(False)
@@ -149,21 +163,21 @@ class SurfaceEnergyFireTask(FiretaskBase):
 
         else:
             with open(
-                "{}_{}_surface_energy.json".format(slab_formula, miller_index), "w"
+                "{}_{}_surface_energy.json".format(self.slab_formula, miller_index), "w"
             ) as f:
                 f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # Logger
         logger.info(
             "{}_{} Surface Energy: {} [eV/A**2]".format(
-                slab_formula, miller_index, surface_energy
+                self.slab_formula, miller_index, surface_energy
             )
         )
 
         # Send the summary_dict to the child FW
         return FWAction(
             update_spec={
-                f"{slab_formula}_{miller_index}": {
+                f"{self.oriented_formula}_{miller_index}": {
                     "oriented_uuid": oriented_uuid,
                     "slab_uuid": slab_uuid,
                 }
@@ -188,3 +202,68 @@ class SurfaceEnergyFireTask(FiretaskBase):
             2 * slab_Area
         )  # scaling for bulk!
         return gamma_hkl
+
+    def get_non_stoich_surface_energy(self, slab_E, oriented_E, slab_Area):
+        """
+        Surface energy that relaxes the non-stoichiometric assumption. Assumes that the
+        deltamu(T,p) for bringing the specie from 0K to standard temperature is negligible
+        for solids, using only the bulk energies of the metals to correct for the excess
+        or deficiency. We pick the oxygen as the reference and correct for the metals.
+        FIXME: Need to make this more general for intermetallics, which will not have oxygen
+        Args:
+            slab_E: DFT energy from slab optimization [eV]
+            oriented_E: DFT energy from oriented bulk optimization [eV]
+            slab_Area: Area from the slab model XY plae [A**2], still assumes symmetric
+        Return:
+            gamma_hkl: Surface Energy for symmetric and non-stoichiometric model
+        """
+        # FIXME: Need to cycle through the potential references to see which one
+        # yields excess_deficiency_factors that are integers
+        # reference = "O"
+        bulk_num_atoms_dict = self.oriented_struct.composition.get_el_amt_dict()
+        slab_num_atoms_dict = self.slab_struct.composition.get_el_amt_dict()
+        for reference in bulk_num_atoms_dict:
+            bulk_mole_fractions_dict = {
+                k: bulk_num_atoms_dict[k] / self.oriented_struct.composition.num_atoms
+                for k in bulk_num_atoms_dict
+            }
+            slab_bulk_ratio = slab_num_atoms_dict[reference] / (
+                bulk_mole_fractions_dict[reference]
+                * self.oriented_struct.composition.num_atoms
+            )
+            excess_deficiency_factors_dict = {
+                k: round(
+                    (
+                        (
+                            (
+                                bulk_mole_fractions_dict[k]
+                                * slab_num_atoms_dict[reference]
+                            )
+                            / bulk_mole_fractions_dict[reference]
+                        )
+                        - slab_num_atoms_dict[k]
+                    ),
+                    2,
+                )
+                for k in slab_num_atoms_dict
+            }
+            # Check if the excess_deficiency factors are integers - if yes pass else continue until you find one
+            if all(
+                [v - int(v) == 0 for k, v in excess_deficiency_factors_dict.items()]
+            ):
+                break
+            else:
+                continue
+
+        corrections_dict = {
+            k: METAL_BULK_ENERGIES[k] * excess_deficiency_factors_dict[k]
+            for k in excess_deficiency_factors_dict
+            if k != reference
+        }
+
+        surface_energy = (
+            slab_E
+            - (slab_bulk_ratio * oriented_E)
+            + sum(list(corrections_dict.values()))
+        ) / (2 * slab_Area)
+        return surface_energy

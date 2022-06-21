@@ -1,11 +1,13 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 import numpy as np
 from pymatgen.core.structure import Molecule
 
-
-"""
-Quick manuel enumeration of a few basic molecules for
-OER. Rotational degree of freedom handled by function.
-"""
 
 # Molecules
 

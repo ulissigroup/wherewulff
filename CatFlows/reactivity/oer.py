@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 import numpy as np
 
 from pymatgen.core.structure import Structure, Molecule
@@ -54,7 +61,8 @@ class OER_SingleSite(object):
         ) = self._get_surface_termination()
 
         # Cache all the idx
-        self.all_ads_indices = self.ads_indices.copy()
+        if not self.surface_coverage[0] == "clean":
+            self.all_ads_indices = self.ads_indices.copy()
 
         # Select active site composition
         active_sites_dict = self._group_ads_sites_by_metal()
@@ -68,12 +76,15 @@ class OER_SingleSite(object):
 
         # Mxide method
         self.mxidegen = self._mxidegen()
+        if not self.surface_coverage[0] == "clean":
 
-        # Shifted bulk_like_sites
-        self.bulk_like_dict = self._get_shifted_bulk_like_sites()
+            # Shifted bulk_like_sites
+            self.bulk_like_dict = self._get_shifted_bulk_like_sites()
 
-        # Selected site
-        self.selected_site = self.bulk_like_dict[self.reactive_idx]
+            # Selected site
+            self.selected_site = self.bulk_like_dict[self.reactive_idx]
+        else:
+            self.selected_site = [self.bulk_like_sites[self.reactive_idx]]
 
         # np seed
         np.random.seed(self.random_state)
@@ -93,6 +104,11 @@ class OER_SingleSite(object):
 
         # OH or Ox coverage
         surface_coverage = ["oxo" if Element("H") not in ads_species else "oh"]
+
+        if len(termination_info) == 0:  # clean termination
+            surface_coverage = ["clean"]
+            return surface_coverage, ads_species, ads_indices, termination_info
+
         return surface_coverage, ads_species, ads_indices, termination_info
 
     def _find_nearest_bulk_like_site(self, bulk_like_sites, reactive_idx):
@@ -143,6 +159,34 @@ class OER_SingleSite(object):
                 sites_by_metal.update({str(close_site.specie): [ads_idx]})
             elif str(close_site.specie) in sites_by_metal.keys():
                 sites_by_metal[str(close_site.specie)].append(ads_idx)
+        if self.surface_coverage[0] == "clean":
+            end_idx = np.where(
+                self.slab_clean.frac_coords[:, 2] >= self.slab_clean.center_of_mass[2]
+            )[0][-1]
+            metal_idx = []
+            for bulk_idx, bulk_like_site in enumerate(self.bulk_like_sites):
+                min_dist = np.inf  # initialize the min_dist register
+                min_metal_idx = 0  # initialize the min_ox_idx
+                for idx, site in enumerate(self.slab_clean):
+                    if (
+                        site.species_string != "O"  # FIXME
+                        and site.frac_coords[2] > self.slab_clean.center_of_mass[2]
+                    ):  # metal
+                        dist = np.linalg.norm(bulk_like_site - site.coords)
+                        if dist < min_dist:
+                            min_dist = dist  # update the dist register
+                            min_metal_idx = idx  # update the idx register
+                            min_specie = site.species_string
+                    if (
+                        idx == end_idx
+                    ):  # make sure that len(bulk_like_sites) == len(ox_idx)
+                        metal_idx.append(min_metal_idx)
+                        if min_specie not in sites_by_metal:
+                            sites_by_metal[min_specie] = []
+                            sites_by_metal[min_specie].append((min_metal_idx, bulk_idx))
+                        else:
+                            sites_by_metal[min_specie].append((min_metal_idx, bulk_idx))
+
         return sites_by_metal
 
     def _get_reference_slab(self):
@@ -150,6 +194,10 @@ class OER_SingleSite(object):
 
         if self.surface_coverage[0] == "oxo":
             ref_slab = self.slab.copy()
+            # Orig magmoms for the adslabs
+            ref_slab.add_site_property(
+                "magmom", self.slab_orig.site_properties["magmom"]
+            )
             reactive_site = np.random.choice(self.ads_indices)
             ref_slab.remove_sites(indices=[reactive_site])
 
@@ -157,6 +205,10 @@ class OER_SingleSite(object):
 
         elif self.surface_coverage[0] == "oh":
             ref_slab = self.slab.copy()
+            # Orig magmoms for the adslabs
+            ref_slab.add_site_property(
+                "magmom", self.slab_orig.site_properties["magmom"]
+            )
             ads_indices_oxygen = [
                 site[0] for site in self.termination_info if site[1] == Element("O")
             ]
@@ -171,6 +223,14 @@ class OER_SingleSite(object):
             ref_slab.remove_sites(indices=reactive_site)
 
             return ref_slab, reactive_site_oxygen
+        else:  # clean termination?
+            ref_slab = self.slab_clean.copy()
+            # Orig magmoms for the adslabs
+            ref_slab.add_site_property(
+                "magmom", self.slab_orig.site_properties["magmom"]
+            )
+            reactive_site = np.random.choice([x[1] for x in self.ads_indices])
+            return ref_slab, reactive_site
 
     def _mxidegen(self, repeat=[1, 1, 1], verbose=False):
         """Returns the MXide Method for the ref_slab"""
@@ -186,11 +246,11 @@ class OER_SingleSite(object):
     def _get_shifted_bulk_like_sites(self):
         """Get Perturbed bulk-like sites"""
         # Bondlength and X-specie from mxide method
-        bondlength, X = self.mxidegen.bondlength, self.mxidegen.X
+        _, X = self.mxidegen.bondlengths_dict, self.mxidegen.X
 
         # Perturb pristine bulk_like sites {idx: np.array([x,y,z])}
         bulk_like_shifted_dict = self._bulk_like_adsites_perturbation_oxygens(
-            self.slab_orig, self.slab, bondlength=bondlength, X=X
+            self.slab_orig, self.slab, X=X
         )
 
         return bulk_like_shifted_dict
@@ -218,23 +278,31 @@ class OER_SingleSite(object):
         bulk_like_deltas = [delta_coords[i] for i in metal_idx]
         return [n + m for n, m in zip(bulk_like_sites, bulk_like_deltas)]
 
-    def _bulk_like_adsites_perturbation_oxygens(self, slab_ref, slab, bondlength, X):
+    def _bulk_like_adsites_perturbation_oxygens(self, slab_ref, slab, X):
         """peturbation on oxygens"""
         slab_ref_coords = slab_ref.cart_coords  # input
         slab_coords = slab.cart_coords  # output
+        end_idx = np.where(slab_ref.frac_coords[:, 2] >= slab_ref.center_of_mass[2])[0][
+            -1
+        ]
 
         delta_coords = slab_coords - slab_ref_coords
 
         ox_idx = []
         for bulk_like_site in self.bulk_like_sites:
+            min_dist = np.inf  # initialize the min_dist register
+            min_ox_idx = 0  # initialize the min_ox_idx
             for idx, site in enumerate(slab_ref):
                 if (
                     site.specie == Element(X)
-                    and site.coords[2] > slab_ref.center_of_mass[2]
+                    and site.frac_coords[2] > slab_ref.center_of_mass[2]
                 ):
                     dist = np.linalg.norm(bulk_like_site - site.coords)
-                    if dist < bondlength:
-                        ox_idx.append(idx)
+                    if dist < min_dist:
+                        min_dist = dist  # update the dist register
+                        min_ox_idx = idx  # update the idx register
+                if idx == end_idx:  # make sure that len(bulk_like_sites) == len(ox_idx)
+                    ox_idx.append(min_ox_idx)
 
         bulk_like_deltas = [delta_coords[i] for i in ox_idx]
         bulk_like_shifted = [
@@ -334,4 +402,21 @@ class OER_SingleSite(object):
                 **ooh_up,
                 **ooh_down,
             }
-            return oer_intermediates
+        else:  # clean termination
+            ox_intermediates = self._get_oer_intermediates(
+                self.adsorbates["Ox"], n_rotations=1
+            )
+            oh_intermediates = self._get_oer_intermediates(self.adsorbates["OH"])
+            ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
+            ooh_down = self._get_oer_intermediates(
+                self.adsorbates["OOH_down"], suffix="down"
+            )
+            oer_intermediates = {
+                **reference_dict,
+                **ox_intermediates,
+                **oh_intermediates,
+                **ooh_up,
+                **ooh_down,
+            }
+
+        return oer_intermediates

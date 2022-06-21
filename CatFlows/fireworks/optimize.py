@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 from typing import Counter
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
@@ -54,6 +61,7 @@ def Bulk_FW(
             "counter": 0,
             "_add_launchpad_and_fw_id": True,
             "_pass_job_info": True,
+            "uuid_lineage": [],
             "uuid": fw_bulk_uuid,
             "wall_time": wall_time,
             "max_tries": 5,
@@ -71,6 +79,7 @@ def Bulk_FW(
 
     # Add bulk_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_bulk_uuid})
+    fw.tasks[3].update({"defuse_unsuccessful": False})
 
     # Switch-on WalltimeHandler in RunVaspCustodian
     if wall_time is not None:
@@ -127,6 +136,7 @@ def Slab_FW(
             "counter": 0,
             "_add_launchpad_and_fw_id": True,
             "_pass_job_info": True,
+            "uuid_lineage": [],
             "uuid": fw_slab_uuid,
             "wall_time": wall_time,
             "max_tries": 5,
@@ -144,6 +154,7 @@ def Slab_FW(
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
+    fw.tasks[3].update({"defuse_unsuccesful": False})
 
     # Switch-on WalltimeHandler in RunVaspCustodian
     if wall_time is not None:
@@ -211,6 +222,7 @@ def AdsSlab_FW(
             "counter": 0,
             "_add_launchpad_and_fw_id": True,
             "_pass_job_info": True,
+            "uuid_lineage": [],
             "uuid": ads_slab_uuid,
             "wall_time": wall_time,
             "name": name,
@@ -231,6 +243,7 @@ def AdsSlab_FW(
 
     # Add slab_uuid through VaspToDb
     fw.tasks[3]["additional_fields"].update({"uuid": ads_slab_uuid})
+    fw.tasks[3].update({"defuse_unsuccesful": False})
 
     # Switch-on WalltimeHandler in RunVaspCustodian
     if wall_time is not None:

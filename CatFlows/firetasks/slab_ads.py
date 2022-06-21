@@ -1,3 +1,10 @@
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
 import uuid
 import numpy as np
 from pydash.objects import has, get
@@ -37,7 +44,8 @@ class SlabAdsFireTask(FiretaskBase):
         "slabs",
         "adsorbates",
         "vasp_cmd",
-        "db_file" "metal_site",
+        "db_file",
+        "metal_site",
         "applied_potential",
         "applied_pH",
     ]
@@ -82,9 +90,9 @@ class SlabAdsFireTask(FiretaskBase):
                 # This is the case where there is no Wulff shape because
                 # there is only one miller index
                 # Get the bulk_slab_key from the fw_spec
-                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}_" in k]
+                bulk_slab_keys = [k for k in fw_spec if f"{reduced_formula}" in k]
                 filtered_slab_miller_indices = [
-                    bsk.split("_")[1] for bsk in bulk_slab_keys
+                    bsk.split("_")[-1] for bsk in bulk_slab_keys
                 ]
 
             # Re-build PMG Slab object from optimized structures
@@ -115,12 +123,20 @@ class SlabAdsFireTask(FiretaskBase):
                         "structure"
                     ]
                 )
+                # Retrieve original structure from the root node via the uuid_lineage field
+                # in the spec of the terminal node
+                orig_slab_uuid = mmdb.db["fireworks"].find_one(
+                    {"spec.uuid": slab_uuid}
+                )["spec"]["uuid_lineage"][0]
+
                 # Original Structure
                 slab_struct_orig = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["input"]["structure"]
+                    mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})["input"][
+                        "structure"
+                    ]
                 )
                 # Initialize from original magmoms instead of output ones.
-                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
+                orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_slab_uuid})[
                     "orig_inputs"
                 ]["incar"]["MAGMOM"]
                 orig_site_properties = slab_struct.site_properties
