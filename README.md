@@ -66,7 +66,7 @@ The following example is how to load the Bulk Workflow to the launchpad and then
 ```python
 from CatFlows.launchers.bulkflows import BulkFlows
 
-# Import CIF file
+# CIF file pathway
 cif_file = "<<YOUR_CIF_FILE>>"
 
 # BulkFlow method and config
@@ -102,7 +102,7 @@ The surface chemistry workflow is called through the CatFlows method which is ab
 ```python
 from CatFlows.launchers.catflows import CatFlows
 
-# Import CIF file
+# CIF file pathway
 cif_file = "<<YOUR_CIF_FILE>>"
 
 # CatFlows method and config
