@@ -9,7 +9,7 @@
 `WhereWulff` couples deep expertise in Quantum Chemistry and Catalysis with that in workflow engineering, an approach that is slowly gaining traction in the science community.
 
 <figure align="center">
-	<img src="img/wherewulff_img.png" width=25% height=25%>
+	<img src="img/wherewulff_img.png" width=80% height=80%>
 	<figcaption>
 		<p><b>Figure 1.</b> WhereWulff general schema that consists in the bulk workflow to get the
 		equilibrium bulk structure with the most stable magnetic configuration as NM, AFM or FM (Left), and the reactivity workflow that analyzes Wulff Construction, Surface Pourbaix diagram and OER Reactivity for a given material (Right).
