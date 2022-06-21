@@ -52,7 +52,7 @@ pmg potcar -s H -f PBE_54
 
 Don't forget to include your `PMG_MAPI_KEY` to be able to run the Stability Analysis at the end of the Bulk Workflow.
 
-Your .pmgrc.yml file should look like:
+Your `.pmgrc.yml` file should look like:
 ```bash
 PMG_DEFAULT_FUNCTIONAL: PBE_54
 PMG_MAPI_KEY: "YOUR_API_TOKEN"
