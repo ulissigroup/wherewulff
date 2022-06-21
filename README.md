@@ -139,7 +139,7 @@ We acknowledge NRC, CMU, UofT and NERSC?
 @article{wherewulff2022,
 	title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electocatalysis},
 	author = {Rohan Yuri Sanspeur, Javier Heras-Domingo and Zachary Ulissi},
-	journal = {To be submitted},
+	journal = {in preparation},
 	year = {2022},
 }
 ```
