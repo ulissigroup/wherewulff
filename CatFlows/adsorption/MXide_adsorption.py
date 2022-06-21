@@ -198,7 +198,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         [
                             nn
                             # for nn in self.bulk.get_neighbors(site, self.bondlength)
-                            for nn in self.bulk_get_neighbors(
+                            for nn in self.bulk.get_neighbors(
                                 site, max(self.bondlengths_dict.values())
                             )
                             if nn.species_string == self.X
