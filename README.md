@@ -135,6 +135,9 @@ We acknowledge NRC, CMU, UofT and NERSC?
 `WhereWulff` is released under the [MIT](https://github.com/ulissigroup/mo-wulff-workflow/blob/main/LICENSE.md)
 
 ## Citing `WhereWulff`
+
+If you use this codebase in your work, please consider citing:
+
 ```bibtex
 @article{wherewulff2022,
 	title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electocatalysis},
