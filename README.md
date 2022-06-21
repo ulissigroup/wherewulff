@@ -71,9 +71,9 @@ cif_file = "<<YOUR_CIF_FILE>>"
 
 # BulkFlow method and config
 bulk_flow = BulkFlows(bulk_structure=cif_file,
-				n_deformations=21,
-				nm_magmom_buffer=0.6,
-				conventional_standard=True)
+		n_deformations=21,
+		nm_magmom_buffer=0.6,
+		conventional_standard=True)
 
 # Get Launchpad
 launchpad = bulk_flow.submit(
