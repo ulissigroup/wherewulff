@@ -5,7 +5,7 @@
 
 ## Introduction
 
-`WhereWulff` couples deep expertise in Quantum Chemistry and Catalysis with that in workflow engineering, an approach that is slowly gaining traction in the science community.
+`WhereWulff` couples deep expertise in Quantum Chemistry and Catalysis with that in workflow engineering, an approach that is slowly gaining traction in the science community [[1]](#1).
 
 <figure align="center">
 	<img src="img/wherewulff_img.png">
@@ -146,3 +146,16 @@ If you use this codebase in your work, please consider citing:
 	year = {2022},
 }
 ```
+
+## References
+<a id="1">[1]</a> 
+Joerg Schaarschmidt, Jie Yuan, Timo Strunk, Ivan Kondov, Sebastiaan P. Huber, Giovanni
+Pizzi, Leonid Kahle, Felix T. Bolle, Ivano E. Castelli, Tejs Vegge, Felix Hanke, Tilmann Hickel,
+Jorg Neugebauer, Celso R. C. Rego, and Wolfgang Wenzel. Workflow engineering in materials design 
+within the battery 2030+project. Advanced Energy Materials, page 2102638, 2021. [doi:10.1002/aenm.202102638](doi:10.1002/aenm.202102638).
+URL http://infoscience.epfl.ch/record/291028.
+
+
+
+
+
