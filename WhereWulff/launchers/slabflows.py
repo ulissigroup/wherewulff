@@ -25,22 +25,22 @@ from pymatgen.transformations.standard_transformations import (
 from fireworks import LaunchPad, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.dft_settings.settings import (
+from WhereWulff.dft_settings.settings import (
     set_bulk_magmoms,
     SelectiveDynamics,
 )
 
-from CatFlows.workflows.surface_energy import SurfaceEnergy_WF
-from CatFlows.workflows.wulff_shape import WulffShape_WF
-from CatFlows.workflows.slab_ads import SlabAds_WF
-from CatFlows.workflows.oer import OER_WF
-from CatFlows.adsorption.adsorbate_configs import OH_Ox_list
+from WhereWulff.workflows.surface_energy import SurfaceEnergy_WF
+from WhereWulff.workflows.wulff_shape import WulffShape_WF
+from WhereWulff.workflows.slab_ads import SlabAds_WF
+from WhereWulff.workflows.oer import OER_WF
+from WhereWulff.adsorption.adsorbate_configs import OH_Ox_list
 
 
-# CatFlows Workflow method
-class CatFlows:
+# Surface Workflow method
+class SlabFlows:
     """
-    CatFlows is a general method to automatize DFT Workflows for Surface Chemistry and Catalysis.
+    SlabFlows is a general method to automatize DFT Workflows for Surface Chemistry and Catalysis.
 
     Args:
         bulk_structure                          : CIF file path.

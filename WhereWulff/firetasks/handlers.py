@@ -22,8 +22,8 @@ from atomate.common.firetasks.glue_tasks import (
     GzipDir,
 )
 
-from CatFlows.dft_settings.settings import MOSurfaceSet
-from CatFlows.common.glue_tasks import GzipPrevDir
+from WhereWulff.dft_settings.settings import MOSurfaceSet
+from WhereWulff.common.glue_tasks import GzipPrevDir
 
 
 @explicit_serialize

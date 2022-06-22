@@ -18,9 +18,9 @@ from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.reactivity.oer import OER_SingleSite
-from CatFlows.adsorption.adsorbate_configs import oer_adsorbates_dict
-from CatFlows.workflows.oer_single_site import OERSingleSite_WF
+from WhereWulff.reactivity.oer import OER_SingleSite
+from WhereWulff.adsorption.adsorbate_configs import oer_adsorbates_dict
+from WhereWulff.workflows.oer_single_site import OERSingleSite_WF
 
 logger = get_logger(__name__)
 

@@ -18,7 +18,7 @@ from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.workflows.surface_pourbaix import SurfacePBX_WF
+from WhereWulff.workflows.surface_pourbaix import SurfacePBX_WF
 
 
 @explicit_serialize

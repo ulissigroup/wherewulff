@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from fireworks import Firework, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.analysis.wulff_shape import WulffShapeFW
+from WhereWulff.analysis.wulff_shape import WulffShapeFW
 
 
 def WulffShape_WF(bulk_structure, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE):

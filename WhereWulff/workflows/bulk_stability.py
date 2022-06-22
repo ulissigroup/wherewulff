@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from fireworks import Firework, Workflow
 from atomate.vasp.config import DB_FILE
 
-from CatFlows.analysis.bulk_stability import BulkStabilityAnalysis
+from WhereWulff.analysis.bulk_stability import BulkStabilityAnalysis
 
 
 def StabilityBulk_WF(bulk_structure, parents=None, db_file=DB_FILE):

@@ -14,8 +14,8 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from pymatgen.core.surface import Slab
 
-from CatFlows.fireworks.optimize import AdsSlab_FW
-from CatFlows.fireworks.oer_single_site import OER_SingleSiteAnalyzer_FW
+from WhereWulff.fireworks.optimize import AdsSlab_FW
+from WhereWulff.fireworks.oer_single_site import OER_SingleSiteAnalyzer_FW
 
 
 def OERSingleSite_WF(

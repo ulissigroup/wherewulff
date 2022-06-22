@@ -10,8 +10,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from fireworks import Firework, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.firetasks.static_bulk import StaticBulkFireTask
-from CatFlows.analysis.bulk_stability import BulkStabilityAnalysis
+from WhereWulff.firetasks.static_bulk import StaticBulkFireTask
+from WhereWulff.analysis.bulk_stability import BulkStabilityAnalysis
 
 
 def StaticBulk_WF(bulk_structure, parents=None, vasp_cmd=VASP_CMD, db_file=DB_FILE):

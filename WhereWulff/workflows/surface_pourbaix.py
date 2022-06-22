@@ -14,11 +14,10 @@ from pymatgen.core.periodic_table import Element
 from fireworks import Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.fireworks.optimize import AdsSlab_FW
-from CatFlows.fireworks.surface_pourbaix import SurfacePBX_FW
-from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
-
-from CatFlows.workflows.oer import OER_WF
+from WhereWulff.fireworks.optimize import AdsSlab_FW
+from WhereWulff.fireworks.surface_pourbaix import SurfacePBX_FW
+from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
+from WhereWulff.workflows.oer import OER_WF
 
 
 # Angles list

@@ -16,9 +16,9 @@ from fireworks import Firework, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.vasp.fireworks.core import TransmuterFW
 
-from CatFlows.dft_settings.settings import MOSurfaceSet
-from CatFlows.fireworks.optimize import Bulk_FW
-from CatFlows.analysis.equation_of_states import FitEquationOfStateFW
+from WhereWulff.dft_settings.settings import MOSurfaceSet
+from WhereWulff.fireworks.optimize import Bulk_FW
+from WhereWulff.analysis.equation_of_states import FitEquationOfStateFW
 import uuid
 
 
