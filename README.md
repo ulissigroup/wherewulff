@@ -22,6 +22,8 @@ but don’t have the formal theoretical and computational training to do it from
 	</figcaption>
 </figure>
 
+As is common practice in the software realm, we leverage pre-existing open-source software packages with the most noteworthy ones being [Atomate](#2), [FireWorks](#3), [Custodian](#4) and [Pymatgen](#4) in order to deliver our `WhereWulff`, which is itself open-sourced. This workflow conducts Density Functional Theory (DFT) calculations using the `Vienna Ab-initio Simulation Package` ([VASP](#5)).
+
 ## Installation
 
 After installing [conda](http://conda.pydata.org/), run the following commands to create a new [environment](https://conda.io/docs/user-guide/tasks/manage-environments.html) named wherewulff and install dependencies.
@@ -161,6 +163,24 @@ Jorg Neugebauer, Celso R. C. Rego, and Wolfgang Wenzel. Workflow engineering in 
 within the battery 2030+project. Advanced Energy Materials, page 2102638, 2021. [doi:10.1002/aenm.202102638](doi:10.1002/aenm.202102638).
 URL http://infoscience.epfl.ch/record/291028.
 
+<a id="2">[2]</a>
+Mathew, K., Montoya, J. H., Faghaninia, A., Dwarakanath, S., Aykol, M., Tang, H., Chu, I., Smidt, T., Bocklund, B., Horton, M., Dagdelen, J.,
+Wood, B., Liu, Z.-K., Neaton, J., Ong, S. P., Persson, K., Jain, A., Atomate: A high-level interface to generate, execute, and analyze
+computational materials science workflows. Comput. Mater. Sci. 139, 140–152 (2017). [https://doi.org/10.1016/j.commatsci.2017.07.030](https://doi.org/10.1016/j.commatsci.2017.07.030)
+
+<a id="3">[3]</a> 
+Jain, Anubhav and Ong, Shyue Ping and Chen, Wei and Medasani, Bharat and Qu, Xiaohui and Kocher, Michael and Brafman, Miriam and Petretto, Guido and Rignanese, Gian-Marco and Hautier, Geoffroy and Gunter, Daniel and Persson, Kristin A., FireWorks: a dynamic workflow system designed for high-throughput applications, Concurrency and Computation: Practice and Experience, (2015) [http://dx.doi.org/10.1002/cpe.3505](http://dx.doi.org/10.1002/cpe.3505)
+
+<a id="4">[4]</a> 
+Shyue Ping Ong, William Davidson Richards, Anubhav Jain, Geoffroy Hautier,
+Michael Kocher, Shreyas Cholia, Dan Gunter, Vincent Chevrier, Kristin A.
+Persson, Gerbrand Ceder. *Python Materials Genomics (pymatgen) : A Robust,
+Open-Source Python Library for Materials Analysis.* Computational
+Materials Science, 2013, 68, 314–319. [doi:10.1016/j.commatsci.2012.10.028](doi:10.1016/j.commatsci.2012.10.028)
+
+<a id="5">[5]</a> 
+Kresse, Georg and Furthmüller, Jürgen
+Efficient iterative schemes for ab initio total-energy calculations using a plane-wave basis set, Physical review B, (1996), [https://journals.aps.org/prb/abstract/10.1103/PhysRevB.54.11169](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.54.11169)
 
 
 
