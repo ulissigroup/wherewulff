@@ -180,8 +180,3 @@ Materials Science, 2013, 68, 314–319. [URL](https://www.sciencedirect.com/scie
 <a id="5">[5]</a> 
 Kresse, Georg and Furthmüller, Jürgen
 Efficient iterative schemes for ab initio total-energy calculations using a plane-wave basis set, Physical review B, (1996), [URL](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.54.11169)
-
-
-
-
->>>>>>> refactor
