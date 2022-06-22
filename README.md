@@ -8,7 +8,7 @@
 `WhereWulff` couples deep expertise in Quantum Chemistry and Catalysis with that in workflow engineering, an approach that is slowly gaining traction in the science community [[1]](#1). While the advent of massively parallel computing clusters has given rise to a novel way of
 searching chemical space in a high-throughput manner, we argue that as long as scientists are not
 equipped with proper software best practices, self-actualization, even when coupled with years of
-chemical intuition and compute, is limited. In addition to tackling scientific challenges, we expect our open-source
+chemical intuition and heavy compute, is limited. In addition to tackling scientific challenges, we expect our open-source
 workflow to serve a didactic purpose, democratizing access to complex material science pipelines
 for those in the likes of experimentalists, who would like to corroborate or guide their endeavors
 but don’t have the formal theoretical and computational training to do it from scratch. Finally we encourage the scientific community to tap into `WhereWulff`'s modularity in order to plug in other reactivities they might have domain expertise or interest in.
