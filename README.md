@@ -72,7 +72,7 @@ PMG_VASP_PSP_DIR: "POTCAR_DIR"
 The following example is how to load the Bulk Workflow to the launchpad and then submitting how to submit it through the FireWorks command line:
 
 ```python
-from CatFlows.launchers.bulkflows import BulkFlows
+from WhereWulff.launchers.bulkflows import BulkFlows
 
 # CIF file pathway
 cif_file = "<<YOUR_CIF_FILE>>"
@@ -108,13 +108,13 @@ qlaunch rapidfire -m 5
 The surface chemistry workflow is called through the CatFlows method which is able to submit the whole worklfow to the launchpad for a given `CIF` file consisting in a bulk structure.
 
 ```python
-from CatFlows.launchers.catflows import CatFlows
+from WhereWulff.launchers.slabflows import SlabFlows
 
 # CIF file pathway
 cif_file = "<<YOUR_CIF_FILE>>"
 
 # CatFlows method and config
-cat_flows = CatFlows(cif_file, exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)])
+cat_flows = SlabFlows(cif_file, exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)])
 
 # Get Launchpad
 launchpad = cat_flows.submit(
