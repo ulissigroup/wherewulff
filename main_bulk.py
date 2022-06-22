@@ -1,9 +1,16 @@
-from CatFlows.launchers.bulkflows import BulkFlows
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
+from WhereWulff.launchers.bulkflows import BulkFlows
 
 from fireworks.core.rocket_launcher import rapidfire
 
 # Import CIF file
-cif_file = "/home/jovyan/BaSnTi2Co6_bulk_stability/Template_BaSnTiO6.cif"
+cif_file = "path_to_cif"
 
 # BulkFlow method and config
 bulk_flow = BulkFlows(cif_file)

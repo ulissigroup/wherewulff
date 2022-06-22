@@ -1,32 +1,28 @@
-from CatFlows.launchers.catflows import CatFlows
+"""
+Copyright (c) 2022 Carnegie Mellon University.
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+"""
 
-from fireworks.core.rocket_launcher import rapidfire
+
+from WhereWulff.launchers.slabflows import SlabFlows
 
 # Import CIF file
-# cif_file = "/home/jovyan/BaSrCoO6_bulk_stability/Relaxed_FM_bulk_BaSrCo2O6.cif"
-# cif_file = "/home/jovyan/Downloads/hongliang_bulk.cif"
-# cif_file = "/home/jovyan/4770/RuTiCrOx_7_relaxed.cif"
-cif_file = "/home/jovyan/BaSnTi2Co6_bulk_stability/Template_BaSnTiO6.cif"
+cif_file = "./benchmark/mp_oxide_cifs/IrO2_136.cif"
 
-# CatFlows method and config
-cat_flows = CatFlows(
+# WhereWulff method and config
+cat_flows = SlabFlows(
     cif_file,
-    #    symmetrize=True,
-    #    stop_at_wulff_analysis=True,
-    slab_repeat=[2, 1, 1],
+    exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)],  # only 110 and 101
     run_fake=True,
-    #    conventional_standard=False,
-    #    exclude_hkl=[],
-    #    #    exclude_hkl=[(1,1,1),(1,1,0),(1,0,1)],
-    exclude_hkl=[(1, 1, 1), (1, 0, 1), (1, 0, 0), (0, 1, 0), (0, 1, 1), (0, 0, 1)],
-    metal_site="Ti",
+    metal_site="Ir",
 )
 
 # Get Launchpad
 launchpad = cat_flows.submit(
     hostname="localhost",
-    db_name="fw_oal",
+    db_name="fireworks",
     port=27017,
-    username="fw_oal_admin",
-    password="gfde223223222rft3",
+    username="",
+    password="",
 )
