@@ -148,7 +148,7 @@ If you use this codebase in your work, please consider citing:
 
 ```bibtex
 @article{wherewulff2022,
-title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electocatalysis},
+title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electrocatalysis},
 author = {Rohan Yuri Sanspeur, Javier Heras-Domingo and Zachary Ulissi},
 journal = {in preparation},
 year = {2022},
