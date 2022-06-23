@@ -136,7 +136,7 @@ qlaunch rapidfire -m 5
 
 ## Acknowledgements
 
-We acknowledge NRC, CMU, UofT and NERSC?
+This work was supported by the National Research Council (NRC) and the Army Research Office (ARO). The authors acknowledge CMU and UofT. This research also used resources of the National Energy Research Scientific Computing Center (NERSC), a U.S. Department of Energy Office of Science User Facility located at Lawrence Berkeley National Laboratory.
 
 ## License
 
@@ -148,7 +148,7 @@ If you use this codebase in your work, please consider citing:
 
 ```bibtex
 @article{wherewulff2022,
-title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electocatalysis},
+title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electrocatalysis},
 author = {Rohan Yuri Sanspeur, Javier Heras-Domingo and Zachary Ulissi},
 journal = {in preparation},
 year = {2022},
