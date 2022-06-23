@@ -12,7 +12,7 @@ from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure
 
-from CatFlows.analysis.oer import OER_SingleSiteAnalyzer
+from WhereWulff.analysis.oer import OER_SingleSiteAnalyzer
 
 
 def OER_SingleSiteAnalyzer_FW(

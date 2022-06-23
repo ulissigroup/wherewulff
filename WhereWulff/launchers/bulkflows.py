@@ -27,14 +27,14 @@ from pymatgen.transformations.standard_transformations import (
 from fireworks import LaunchPad
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.dft_settings.settings import (
+from WhereWulff.dft_settings.settings import (
     set_bulk_magmoms,
 )
-from CatFlows.workflows.eos import BulkOptimize_WF, EOS_WF
-from CatFlows.workflows.static_bulk import StaticBulk_WF
-from CatFlows.workflows.bulk_stability import StabilityBulk_WF
-import warnings
+from WhereWulff.workflows.eos import BulkOptimize_WF, EOS_WF
+from WhereWulff.workflows.static_bulk import StaticBulk_WF
+from WhereWulff.workflows.bulk_stability import StabilityBulk_WF
 
+import warnings
 warnings.filterwarnings("ignore")
 
 

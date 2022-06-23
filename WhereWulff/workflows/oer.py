@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from fireworks import Firework, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.firetasks.oer_single_site import OERSingleSiteFireTask
+from WhereWulff.firetasks.oer_single_site import OERSingleSiteFireTask
 
 
 def OER_WF(

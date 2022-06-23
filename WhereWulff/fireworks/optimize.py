@@ -10,8 +10,8 @@ from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure
 
-from CatFlows.dft_settings.settings import MOSurfaceSet
-from CatFlows.firetasks.handlers import ContinueOptimizeFW
+from WhereWulff.dft_settings.settings import MOSurfaceSet
+from WhereWulff.firetasks.handlers import ContinueOptimizeFW
 
 
 def Bulk_FW(

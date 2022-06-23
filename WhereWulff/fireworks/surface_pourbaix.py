@@ -11,7 +11,7 @@ from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure
 
-from CatFlows.analysis.surface_pourbaix import SurfacePourbaixDiagramAnalyzer
+from WhereWulff.analysis.surface_pourbaix import SurfacePourbaixDiagramAnalyzer
 
 
 def SurfacePBX_FW(

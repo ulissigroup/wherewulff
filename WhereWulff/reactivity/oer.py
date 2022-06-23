@@ -11,8 +11,8 @@ from pymatgen.core.structure import Structure, Molecule
 from pymatgen.core.periodic_table import Element
 
 
-from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
-from CatFlows.adsorption.adsorbate_configs import oer_adsorbates_dict
+from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
+from WhereWulff.adsorption.adsorbate_configs import oer_adsorbates_dict
 
 
 class OER_SingleSite(object):

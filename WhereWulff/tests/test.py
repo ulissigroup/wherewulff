@@ -14,7 +14,7 @@ import unittest
 import numpy as np
 
 from pymatgen.core.structure import Structure
-from CatFlows.workflows.catflows import CatFlows
+from WhereWulff.workflows.catflows import CatFlows
 
 warnings.filterwarnings("ignore")
 

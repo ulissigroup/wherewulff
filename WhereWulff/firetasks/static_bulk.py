@@ -16,7 +16,7 @@ from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.fireworks.core import StaticFW
 
-from CatFlows.dft_settings.settings import MOSurfaceSet
+from WhereWulff.dft_settings.settings import MOSurfaceSet
 
 
 @explicit_serialize

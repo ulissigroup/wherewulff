@@ -12,9 +12,9 @@ from pymatgen.core.surface import Slab
 from fireworks import Firework, Workflow
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from CatFlows.dft_settings.settings import MOSurfaceSet
-from CatFlows.firetasks.surface_energy import SurfaceEnergyFireTask
-from CatFlows.fireworks.optimize import Bulk_FW, Slab_FW
+from WhereWulff.dft_settings.settings import MOSurfaceSet
+from WhereWulff.firetasks.surface_energy import SurfaceEnergyFireTask
+from WhereWulff.fireworks.optimize import Bulk_FW, Slab_FW
 
 
 def SurfaceEnergy_WF(
