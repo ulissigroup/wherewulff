@@ -8,6 +8,7 @@ from CatFlows.workflows.surface_pourbaix import (
     get_clockwise_rotations,
     _bulk_like_adsites_perturbation,
 )
+from u_effect import analyzeUEffect
 from CatFlows.dft_settings.settings import MOSurfaceSet
 import numpy as np
 import os
@@ -224,6 +225,7 @@ for coverage in range(1, 2):
     for cov_idx, cov_bulk_like_sites in enumerate(list(sites_pick)[:1]):
         # cov_bulk_like_sites = [bulk_like_shifted[i] for i in indices_pick]
         #        for rot_idx in range(len(molecule_rotations)):
+        adslab_fws = []
         for U in Us:
             #            slab_ads = relaxed_slab.copy()
             #            slab_ads = add_adsorbates(
@@ -237,7 +239,6 @@ for coverage in range(1, 2):
             #                os.makedirs(dir_name)
             #            slab_ads.to(filename=f"./{dir_name}/POSCAR_{name}")
             # Send an OptimizeFW calc to the hosted MongoDB for execution
-            breakpoint()
             elements = [el.name for el in pristine_slab.composition.elements]
             #            U_values = {el: U if el == "Ti" else 0 for el in elements}
             U_values = {"Ti": U}
@@ -330,5 +331,9 @@ for coverage in range(1, 2):
             #                }
             #            )
             fws.append(slab_fw)
-            fws.append(adslab_fw)
+            adslab_fws.append(adslab_fw)
+        # Define the analysis FW - for now as a placeholder that just ingests the slab_uuid and adslab_uuid
+        analysis_fw = Firework(analyzeUEffect(), parents=adslab_fws)
+        fws.extend(adslab_fws)
+        fws.append(analysis_fw)
 launchpad.add_wf(Workflow(fws, name="Slabs with U range"))
