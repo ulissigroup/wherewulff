@@ -1,6 +1,14 @@
 import uuid
 import numpy as np
+from CatFlows.dft_settings.settings import MOSurfaceSet
 from pydash.objects import has, get
+from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
+from CatFlows.workflows.surface_pourbaix import (
+    add_adsorbates,
+    get_angles,
+    get_clockwise_rotations,
+    _bulk_like_adsites_perturbation,
+)
 
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
@@ -10,7 +18,6 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.config import VASP_CMD, DB_FILE
-from CatFlows.workflows.surface_pourbaix import get_clockwise_rotations
 from CatFlows.fireworks.optimize import AdsSlab_FW
 
 
@@ -30,7 +37,6 @@ class OptimizeAdslabsWithU(FiretaskBase):
     ]
 
     def run_task(self, fw_spec):
-        breakpoint()
         vis = self["vis"]
         adsorbates = self["adsorbates"]
         db_file = env_chk(self["db_file"], fw_spec)
@@ -79,6 +85,8 @@ class OptimizeAdslabsWithU(FiretaskBase):
                 "_tasks"
             ][0]["structure"]
         )
+        # Sort
+        slab_struct_orig.sort()
         # Strip orig slab object of oxi states to accommodate MXide
         slab_struct_orig.remove_oxidation_states()
         slab_struct_orig.oriented_unit_cell.remove_oxidation_states()
@@ -160,29 +168,50 @@ class OptimizeAdslabsWithU(FiretaskBase):
         # Now we create the adslabs across all rotations of the adsorbate for a specific U value
         adslab_fws = []
         for adsorbate in adsorbates:
-            adslabs, bulk_like_shifted = get_clockwise_rotations(
-                original_slab, optimized_slab, adsorbate
+
+            # Place a single adsorbate using MXide
+
+            mxidegen = MXideAdsorbateGenerator(
+                original_slab,
+                repeat=[1, 1, 1],
+                verbose=False,
+                positions=["MX_adsites"],  # tol=1.59,# relax_tol=0.025
             )
-            for adslab_label, adslab in adslabs.items():
-                elements = [el.name for el in adslab.composition.elements]
-                # Assume that the adsorbate will not require +U and get the values from the U_values dict
-                vis.incar["UU"] = [
-                    U_values[el] if el in U_values else 0 for el in elements
-                ]
-                vis.incar["UL"] = [2 if el in U_values else 0 for el in elements]
-                vis.incar["UJ"] = [0 for el in elements]
-                name = f"{optimized_slab.composition.reduced_formula}-{miller_index}-{adslab_label}"
-                ads_slab_uuid = str(uuid.uuid4())
-                ads_slab_fw = AdsSlab_FW(
-                    adslab,
-                    name=name,
-                    ads_slab_uuid=ads_slab_uuid,
-                    vasp_cmd=VASP_CMD,
-                    db_file=db_file,
-                    run_fake=False,
-                    vasp_input_set=vis,  # Need a different U setting to accommodate the adsorbate
-                )
-                adslab_fws.append(ads_slab_fw)
+            bulk_like, _ = mxidegen.get_bulk_like_adsites()
+            #            adslabs, bulk_like_shifted = get_clockwise_rotations(
+            #                original_slab, optimized_slab, adsorbate
+            #            )
+            # Bondlength and X
+            _, X = mxidegen.bondlengths_dict, mxidegen.X
+            bulk_like_shifted = _bulk_like_adsites_perturbation(
+                original_slab, optimized_slab, bulk_like, X=X
+            )
+            # Choose random site
+            breakpoint()
+            bulk_like_site_index = np.random.choice(np.arange(len(bulk_like_shifted)))
+            bulk_like_site = bulk_like_shifted[bulk_like_site_index]
+            adslab = add_adsorbates(optimized_slab, [bulk_like_site], adsorbate)
+            adslab.sort()
+            elements = [el.name for el in adslab.composition.elements]
+            # Assume that the adsorbate will not require +U and get the values from the U_values dict
+            UU = [U_values[el] if el in U_values else 0 for el in elements]
+            UL = [2 if el in U_values else 0 for el in elements]
+            UJ = [0 for el in elements]
+            ads_vis = MOSurfaceSet(adslab, UU=UU, UJ=UJ, UL=UL, apply_U=True)
+            breakpoint()
+            name = f"{adslab.composition.reduced_formula}-{miller_index}"
+            ads_slab_uuid = str(uuid.uuid4())
+            ads_slab_fw = AdsSlab_FW(
+                adslab,
+                name=name,
+                slab_uuid=slab_uuid,
+                ads_slab_uuid=ads_slab_uuid,
+                vasp_cmd=VASP_CMD,
+                db_file=db_file,
+                run_fake=False,
+                vasp_input_set=ads_vis,  # Need a different U setting to accommodate the adsorbate
+            )
+            adslab_fws.append(ads_slab_fw)
 
         # Spawn the new adslab fws and the post-processing/analysis workflow through FWAction
         # The post-processing task needs to be a child for all the adslab_fws as part of a workflow
