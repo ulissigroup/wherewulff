@@ -35,9 +35,11 @@ class OptimizeAdslabsWithU(FiretaskBase):
         "U_values",
         "vis",
     ]
+    optional_params = ["adsite_index"]
 
     def run_task(self, fw_spec):
         vis = self["vis"]
+        adsite_index = self["adsite_index"]
         adsorbates = self["adsorbates"]
         db_file = env_chk(self["db_file"], fw_spec)
         U_values = self[
@@ -187,7 +189,12 @@ class OptimizeAdslabsWithU(FiretaskBase):
                 original_slab, optimized_slab, bulk_like, X=X
             )
             # Choose random site
-            bulk_like_site_index = np.random.choice(np.arange(len(bulk_like_shifted)))
+            if adsite_index is None:
+                bulk_like_site_index = np.random.choice(
+                    np.arange(len(bulk_like_shifted))
+                )
+            else:
+                bulk_like_site_index = adsite_index
             bulk_like_site = bulk_like_shifted[bulk_like_site_index]
             adslab = add_adsorbates(optimized_slab, [bulk_like_site], adsorbate)
             adslab.sort()
