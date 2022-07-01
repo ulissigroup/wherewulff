@@ -169,7 +169,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
 
         # Now we create the adslabs across all rotations of the adsorbate for a specific U value
         adslab_fws = []
-        for adsorbate in adsorbates:
+        for rot_idx, adsorbate in enumerate(adsorbates):
 
             # Place a single adsorbate using MXide
 
@@ -204,7 +204,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
             UL = [2 if el in U_values else 0 for el in elements]
             UJ = [0 for el in elements]
             ads_vis = MOSurfaceSet(adslab, UU=UU, UJ=UJ, UL=UL, apply_U=True)
-            name = f"{adslab.composition.reduced_formula}-{miller_index}_{UU}"
+            name = f"{adslab.composition.reduced_formula}_{rot_idx}-{miller_index}_{UU}"
             ads_slab_uuid = str(uuid.uuid4())
             ads_slab_fw = AdsSlab_FW(
                 adslab,
