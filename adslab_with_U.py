@@ -196,7 +196,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
             else:
                 bulk_like_site_index = adsite_index
             bulk_like_site = bulk_like_shifted[bulk_like_site_index]
-            adslab = add_adsorbates(optimized_slab, [bulk_like_site], adsorbate)
+            adslab = add_adsorbates(optimized_slab.copy(), [bulk_like_site], adsorbate)
             adslab.sort()
             elements = [el.name for el in adslab.composition.elements]
             # Assume that the adsorbate will not require +U and get the values from the U_values dict
