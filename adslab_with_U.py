@@ -187,7 +187,6 @@ class OptimizeAdslabsWithU(FiretaskBase):
                 original_slab, optimized_slab, bulk_like, X=X
             )
             # Choose random site
-            breakpoint()
             bulk_like_site_index = np.random.choice(np.arange(len(bulk_like_shifted)))
             bulk_like_site = bulk_like_shifted[bulk_like_site_index]
             adslab = add_adsorbates(optimized_slab, [bulk_like_site], adsorbate)
@@ -198,8 +197,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
             UL = [2 if el in U_values else 0 for el in elements]
             UJ = [0 for el in elements]
             ads_vis = MOSurfaceSet(adslab, UU=UU, UJ=UJ, UL=UL, apply_U=True)
-            breakpoint()
-            name = f"{adslab.composition.reduced_formula}-{miller_index}"
+            name = f"{adslab.composition.reduced_formula}-{miller_index}_{UU}"
             ads_slab_uuid = str(uuid.uuid4())
             ads_slab_fw = AdsSlab_FW(
                 adslab,
