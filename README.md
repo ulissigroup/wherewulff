@@ -105,7 +105,7 @@ We encourage the user to use `Fireworks webgui` to make sure the workflow is pro
 qlaunch rapidfire -m 5
 ```
 
-The surface chemistry workflow is called through the CatFlows method which is able to submit the whole worklfow to the launchpad for a given `CIF` file consisting in a bulk structure.
+The surface chemistry workflow is called through the SlabFlows method which is able to submit the whole worklfow to the launchpad for a given `CIF` file consisting in a bulk structure.
 
 ```python
 from WhereWulff.launchers.slabflows import SlabFlows
@@ -113,11 +113,11 @@ from WhereWulff.launchers.slabflows import SlabFlows
 # CIF file pathway
 cif_file = "<<YOUR_CIF_FILE>>"
 
-# CatFlows method and config
-cat_flows = SlabFlows(cif_file, exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)])
+# slabFlows method and config
+slab_flows = SlabFlows(cif_file, exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)])
 
 # Get Launchpad
-launchpad = cat_flows.submit(
+launchpad = slab_flows.submit(
     hostname="localhost",
     db_name="<<DB-NAME>>",
     port="<<DB-PORT>>",
@@ -126,7 +126,7 @@ launchpad = cat_flows.submit(
 )
 ```
 
-The user needs to provide a `CIF` file pathway, preferably as a result of running the bulk workflow beforehand so then the bulk structure will be with the equilibrium cell parameters and with the magnetic configuration well defined. CatFlows can be extensibly configured depending to the user needs see [documentation](https://github.com/ulissigroup/mo-wulff-workflow/blob/main/CatFlows/launchers/catflows.py). The submit function inside CatFlows works in the same way as BulkFlows by providing the required information to being able to connect to the MongoDB database and the launchpad.
+The user needs to provide a `CIF` file pathway, preferably as a result of running the bulk workflow beforehand so then the bulk structure will be with the equilibrium cell parameters and with the magnetic configuration well defined. SlabFlows can be extensibly configured depending to the user needs see [documentation](https://github.com/ulissigroup/wherewulff/blob/main/WhereWulff/launchers/slabflows.py). The submit function inside SlabFlows works in the same way as BulkFlows by providing the required information to being able to connect to the MongoDB database and the launchpad.
 
 Finally, submitting the workflow must be done through the same command as the previous examples:
 
