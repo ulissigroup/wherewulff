@@ -11,7 +11,8 @@ setup(
     name="wherewulff",
     version="0.0.1",
     description="WhereWulff: An Automated Workflow to Democratize and Scale Complex Material Discovery for Electrocatalysis.",
-    url="https://github.com/ulissigroup/mo-wulff-workflow",
+    url="https://github.com/ulissigroup/wherewulff",
     packages=find_packages(),
     include_package_data=True,
+    license="MIT",
 )
