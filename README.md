@@ -22,7 +22,7 @@ but don’t have the formal theoretical and computational training to do it from
 	</figcaption>
 </figure>
 
-As is common practice in the software realm, we leverage pre-existing open-source software packages with the most noteworthy ones being [Atomate](#2), [FireWorks](#3), [Custodian](#4) and [Pymatgen](#4) in order to deliver our `WhereWulff`, which is itself open-sourced. This workflow conducts Density Functional Theory (DFT) calculations using the `Vienna Ab-initio Simulation Package` ([VASP](#5)).
+As is common practice in the software realm, we leverage pre-existing open-source software packages with the most noteworthy ones being [Atomate](#2), [FireWorks](#3), [Custodian](#4) and [Pymatgen](#4) in order to deliver `WhereWulff`, which is itself open-sourced. This workflow conducts Density Functional Theory (DFT) calculations using the `Vienna Ab-initio Simulation Package` ([VASP](#5)).
 
 ## Installation
 
