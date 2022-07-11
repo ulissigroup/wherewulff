@@ -122,11 +122,10 @@ class FitEquationOfStateFW(FiretaskBase):
         if to_db:
             mmdb.collection = mmdb.db[f"{pretty_formula}_eos"]
             mmdb.collection.insert_one(summary_dict)
-        else:
-            with open(
-                f"{pretty_formula}_{magnetic_ordering}_eos_analysis.json", "w"
-            ) as f:
-                f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+        
+        # Export json file
+        with open(f"{pretty_formula}_{magnetic_ordering}_eos_analysis.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # Export plot
         if plot:
