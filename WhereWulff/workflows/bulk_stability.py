@@ -18,8 +18,13 @@ def StabilityBulk_WF(bulk_structure, parents=None, db_file=DB_FILE):
     Wrap-up workflow to do the Stability Analysis for each magnetic ordering.
 
     Args:
+        bulk_structure           : PMG structure object from EOS fitting, transformation and static calc.
+        parents (default: None)  : Previous tasks or worklfows.
+        db_file                  : Connects directly to db.json file. 
 
     Returns:
+        Workflow as terminal node for bulk stability after EOS transformation
+        and the single point calc.
 
     """
     # Bulk structure formula
