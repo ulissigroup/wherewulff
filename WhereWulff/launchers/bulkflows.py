@@ -45,11 +45,15 @@ class BulkFlows:
     Structure with the right magnetic moments and Ordering.
 
     Args:
-        bulk_structure
-        conventional_standard
+        bulk_structure                          : CIF file path.
+        n_deformations          (default: 21)   : Number of volume deformations for the EOS fitting.
+        nm_magmom_buffer        (default: 0.6)  : VASP needs a MAGMOM buffer even if should be 0. 
+        conventional_standard   (default: True) : To select if bulk structure should be conventional standard.
+        vasp_cmd                                : VASP execution command (configured in my_fworkers.py file).
+        db_file                                 : Directs to db.json file for mongodb database configuration.
 
     Returns:
-        The launchpad ready for execution!
+        Submits the BulkFlow workflow to the launchpad and ready for execution!
     """
 
     def __init__(
