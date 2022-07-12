@@ -57,6 +57,7 @@ class SlabFlows:
         adsorbates_list       (default: List)   : List of adsorbates as Molecule PMG objects (OH/Ox)
         applied_potential     (default: 1.60)   : Applied potential to determine the most stable termination at given voltage.
         applied_pH            (default: 0.0)    : Applied pH to determine the most stable termination at give pH.
+        metal_site            (default: "")     : Metal site where the reactivity should be explored (e.g. IrO2 --> Ir)
         vasp_input_set        (default: None)   : To select DFT method for surface optimizations.
         vasp_cmd                                : VASP execution command (configured in my_fworker.py file)
         db_file                                 : Directs to db.json file for mongodb database configuration.
