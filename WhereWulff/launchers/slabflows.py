@@ -105,6 +105,8 @@ class SlabFlows:
         self.selective_dynamics = selective_dynamics
         self.stop_at_wulff_analysis = stop_at_wulff_analysis
         self.exclude_hkl = exclude_hkl
+
+        # Reactive site
         self.metal_site = metal_site
 
         # DFT method and vasp_cmd and db_file
@@ -122,9 +124,6 @@ class SlabFlows:
         # PBX conditions
         self.applied_potential = applied_potential
         self.applied_pH = applied_pH
-
-        # Reactivite site
-        #self.metal_site = metal_site
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
