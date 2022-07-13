@@ -201,7 +201,8 @@ class OptimizeAdslabsWithU(FiretaskBase):
             elements = [el.name for el in adslab.composition.elements]
             # Assume that the adsorbate will not require +U and get the values from the U_values dict
             UU = [U_values[el] if el in U_values else 0 for el in elements]
-            UL = [2 if el in U_values else 0 for el in elements]
+            UL = [2 if el in U_values else 0 for el in elements] #FIXME: Need to make this block dependent based 
+            # on which block the element to apply the on site potential to finds itself.
             UJ = [0 for el in elements]
             ads_vis = MOSurfaceSet(adslab, UU=UU, UJ=UJ, UL=UL, apply_U=True)
             name = f"{adslab.composition.reduced_formula}_{rot_idx}-{miller_index}_{UU}"
