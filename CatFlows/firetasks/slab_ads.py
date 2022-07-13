@@ -76,10 +76,11 @@ class SlabAdsFireTask(FiretaskBase):
                     k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
                 ]
                 # Create the set of reduced_formulas
-                bulk_slab_keys = [
-                    "_".join([reduced_formula, miller_index])
-                    for miller_index in filtered_slab_miller_indices
-                ]
+                bulk_slab_keys = [k
+                    for k in fw_spec
+                    if "-" in k
+                    and "_" in k
+                    and k.split("_")[-1] in filtered_slab_miller_indices]
             else:
                 # This is the case where there is no Wulff shape because
                 # there is only one miller index
