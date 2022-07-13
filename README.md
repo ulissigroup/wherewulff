@@ -11,7 +11,7 @@ equipped with proper software best practices, self-actualization, even when coup
 chemical intuition and heavy compute, is limited. In addition to tackling scientific challenges, we expect our open-source
 workflow to serve a didactic purpose, democratizing access to complex material science pipelines
 for those in the likes of experimentalists, who would like to corroborate or guide their endeavors
-but don’t have the formal theoretical and computational training to do it from scratch. Finally, we encourage the scientific community to tap into `WhereWulff`'s modularity in order to plug in other reactivities they might have domain expertise or interest in.
+but don’t have the formal theoretical and computational training to do it from scratch. Finally, we encourage the scientific community to tap into `WhereWulff's` modularity in order to plug in other reactivities they might have domain expertise or interest in.
 
 <figure align="center">
 	<img src="img/wherewulff_img.png">

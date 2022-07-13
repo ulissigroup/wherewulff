@@ -49,6 +49,7 @@ class SlabFlows:
         include_bulk_opt      (default: True)   : To select if oriented bulk should be optimized (required for surface energy analysis).
         max_index             (default: 1)      : Maximum number for (h,k,l) miller indexes.
         symmetrize            (default: True)   : To enforce that top/bottom layers are symmetrized while slicing the slab model.
+        non_stoichiometric    (default: False)  : To consider non-stoichiometric surfaces or not.
         slab_repeat           (default: [2,2,1]): Slab model supercell in the xy plane.
         selective_dynamics    (default: False)  : Contraint bottom-half of the slab model.
         wulff_analysis        (default: True)   : Add Wulff shape Analysis in the workflow (To prioritize surfaces).
@@ -57,6 +58,7 @@ class SlabFlows:
         adsorbates_list       (default: List)   : List of adsorbates as Molecule PMG objects (OH/Ox)
         applied_potential     (default: 1.60)   : Applied potential to determine the most stable termination at given voltage.
         applied_pH            (default: 0.0)    : Applied pH to determine the most stable termination at give pH.
+        metal_site            (default: "")     : Metal site where the reactivity should be explored (e.g. IrO2 --> Ir)
         vasp_input_set        (default: None)   : To select DFT method for surface optimizations.
         vasp_cmd                                : VASP execution command (configured in my_fworker.py file)
         db_file                                 : Directs to db.json file for mongodb database configuration.
@@ -73,6 +75,7 @@ class SlabFlows:
         include_bulk_opt=True,
         max_index=1,
         symmetrize=True,
+        non_stoichiometric=False,
         slab_repeat=[2, 2, 1],
         selective_dynamics=False,
         exclude_hkl=None,
@@ -97,10 +100,14 @@ class SlabFlows:
         self.include_bulk_opt = include_bulk_opt
         self.max_index = max_index
         self.symmetrize = symmetrize
+        self.non_stoichiometric = non_stoichiometric
         self.slab_repeat = slab_repeat
         self.selective_dynamics = selective_dynamics
         self.stop_at_wulff_analysis = stop_at_wulff_analysis
         self.exclude_hkl = exclude_hkl
+
+        # Reactive site
+        self.metal_site = metal_site
 
         # DFT method and vasp_cmd and db_file
         self.vasp_input_set = vasp_input_set
@@ -117,9 +124,6 @@ class SlabFlows:
         # PBX conditions
         self.applied_potential = applied_potential
         self.applied_pH = applied_pH
-
-        # Reactivite site
-        self.metal_site = metal_site
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -208,14 +212,15 @@ class SlabFlows:
 
             slab_candidates = []
             for slab in all_slabs:
-                # slab_formula = slab.composition.reduced_formula
-                if (
-                    not slab.is_polar()
-                    and slab.is_symmetric()
-                    # and slab_formula == self.bulk_formula
-                ):
-                    slab.make_supercell(self.slab_repeat)
-                    slab_candidates.append(slab)
+                slab_formula = slab.composition.reduced_formula
+                if (not slab.is_polar() and slab.is_symmetric):
+                    if self.non_stoichiometric:
+                        slab.make_supercell(self.slab_repeat)
+                        slab_candidates.append(slab)
+                    else:
+                        if slab_formula == self.bulk_formula:
+                            slab.make_supercell(self.slab_repeat)
+                            slab_candidates.append(slab)
 
             # This is new!
             if len(slab_candidates) >= 1:

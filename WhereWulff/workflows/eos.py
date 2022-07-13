@@ -25,7 +25,7 @@ import uuid
 def EOS_WF(
     bulk_structures_dict,
     deformations=None,
-    n_deformations=6,
+    n_deformations=21,
     vasp_input_set=None,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
@@ -34,10 +34,15 @@ def EOS_WF(
     Equation of state workflow that handles optimization + Deformation + EOS_FIT
 
     Args:
-
+        bulk_structures_dict                 : Dictionary of PMG structure objects as dict.
+        deformations         (default: None) : Specific way to build the deformations, if none linspace of 15%.
+        n_deformations       (default: 21)   : Number of deformations per magnetic configuration.
+        vasp_input_set       (default: None) : To add specific vasp inputs.
+        vasp_cmd                             : VASP execution command (configured in my_fworker.py file)
+        db_file                              : Directs to db.json file for mongodb database configuration.
 
     Return:
-        Workflow, which consist in opt + deformations + EOS_FIT
+        Workflow, which consist in optimization + deformations + EOS_FIT
     """
     fws, fws_all = [], []
 

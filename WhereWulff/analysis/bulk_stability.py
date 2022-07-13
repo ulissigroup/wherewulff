@@ -211,7 +211,7 @@ class BulkStabilityAnalysis(FiretaskBase):
             )  # FIXME: Think this should be mag_label
 
         # Export json file
-        with open(f"{bulk_formula}_{mag_label}_stability_analys.json", "w") as f:
+        with open(f"{bulk_formula}_{mag_label}_stability_analysis.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         # To_DB

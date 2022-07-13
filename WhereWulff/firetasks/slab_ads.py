@@ -27,11 +27,15 @@ class SlabAdsFireTask(FiretaskBase):
     Slab_Ads OptimizeFW.
 
     Args:
-        reduced_formula:
-        slabs          :
-        adsorbates     :
-        db_file        :
-        vasp_cmd       :
+        bulk_structure   : PMG structure object (already deserialized).
+        reduced_formula  : Slab reduced formula.
+        slabs            : PMG Slab object.
+        adsorbates       : List of adsorbates as PMG molecule objects
+        metal_site       : Active site for reactivity
+        applied_potential: Applied potential for surface pourbaix diagram 
+        applied_pH       : Applied pH for surface pourbaix diagram
+        db_file          : Directs for db.json file.
+        vasp_cmd         : VASP command.
 
     Returns:
         SLAB_ADS Firetasks.
@@ -54,7 +58,7 @@ class SlabAdsFireTask(FiretaskBase):
     def run_task(self, fw_spec):
 
         # Variables
-        bulk_structure = self["bulk_structure"]  # already deserialized
+        bulk_structure = self["bulk_structure"]
         reduced_formula = self["reduced_formula"]
         slabs = self["slabs"]
         adsorbates = self["adsorbates"]
@@ -125,9 +129,20 @@ class SlabAdsFireTask(FiretaskBase):
                 )
                 # Retrieve original structure from the root node via the uuid_lineage field
                 # in the spec of the terminal node
-                orig_slab_uuid = mmdb.db["fireworks"].find_one(
-                    {"spec.uuid": slab_uuid}
-                )["spec"]["uuid_lineage"][0]
+                if (
+                    not len(
+                        mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})["spec"][
+                            "uuid_lineage"
+                        ]
+                    )
+                    < 1
+                ):
+                    orig_slab_uuid = mmdb.db["fireworks"].find_one(
+                        {"spec.uuid": slab_uuid}
+                    )["spec"]["uuid_lineage"][0]
+
+                else:
+                    orig_slab_uuid = slab_uuid
 
                 # Original Structure
                 slab_struct_orig = Structure.from_dict(
