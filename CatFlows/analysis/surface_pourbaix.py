@@ -387,10 +387,22 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Initialize from original magmoms
         # We need to use the uuid on the parent root node to get the input!!
         if not self.run_fake:
+            if (
+                not len(
+                    mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})[
+                        "spec"
+                    ]["uuid_lineage"]
+                )
+                < 1
+            ):
+                orig_uuid = mmdb.db["fireworks"].find_one(
+                    {"spec.uuid": uuid_termination}
+                )["spec"]["uuid_lineage"][0]
 
-            orig_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})[
-                "spec"
-            ]["uuid_lineage"][0]
+            else:
+                orig_uuid = mmdb.db["fireworks"].find_one(
+                    {"spec.uuid": uuid_termination}
+                )["spec"]["uuid"]
 
             orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
                 "calcs_reversed"
@@ -407,7 +419,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
                 "input"
             ]["structure"]
-
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
         struct.add_site_property("bulk_equivalent", slab_equivalents)
