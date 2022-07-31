@@ -47,6 +47,7 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
         verbose=False,
         positions=["MX_adsites"],
         relax_tol=0.025,
+        tol=1.2,
     )
 
     # Getting the bulk-like adsites on the original slab
@@ -73,6 +74,8 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
         molecule, axis=[0, 0, 1], angles_list=angles
     )
 
+    # random_index = np.random.randint(len(bulk_like_shifted) - 1)
+    # bulk_like_shifted = [bulk_like_shifted[random_index]]
     # placement
     adslab_dict = {}
     for rot_idx in range(len(molecule_rotations)):

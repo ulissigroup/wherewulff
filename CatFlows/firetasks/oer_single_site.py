@@ -66,6 +66,8 @@ class OERSingleSiteFireTask(FiretaskBase):
         run_fake = self.get("run_fake", False)
         surface_pbx_uuid = self["surface_pbx_uuid"]
 
+        breakpoint()
+
         # User-defined parameters !
         # applied_potential = 1.60  # volts
         # applied_pH = 0  # pH conditions
@@ -100,8 +102,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             n_oh_rotation = pbx_doc["n_oh_rotation"]
             stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
         else:
-            stable_surface_orig = clean_surface
-
+            stable_surface_orig = self["slab_orig"]  # Original pristine surface
         # Generate OER single site intermediates (WNA)
         oer_wna = OER_SingleSite(
             stable_surface,

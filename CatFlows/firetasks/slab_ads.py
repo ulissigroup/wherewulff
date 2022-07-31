@@ -46,7 +46,6 @@ class SlabAdsFireTask(FiretaskBase):
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
-
         # Variables
         bulk_structure = self["bulk_structure"]  # already deserialized
         reduced_formula = self["reduced_formula"]
@@ -76,17 +75,23 @@ class SlabAdsFireTask(FiretaskBase):
                     k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
                 ]
                 # Create the set of reduced_formulas
-                bulk_slab_keys = [k
+                # bulk_slab_keys = [
+                #    "_".join([reduced_formula, miller_index])
+                #    for miller_index in filtered_slab_miller_indices
+                # ]
+                bulk_slab_keys = [
+                    k
                     for k in fw_spec
                     if "-" in k
                     and "_" in k
-                    and k.split("_")[-1] in filtered_slab_miller_indices]
+                    and k.split("_")[-1] in filtered_slab_miller_indices
+                ]
             else:
                 # This is the case where there is no Wulff shape because
                 # there is only one miller index
                 # Get the bulk_slab_key from the fw_spec
                 bulk_slab_keys = [
-                    k for k in fw_spec if f"{reduced_formula}" in k
+                    k for k in fw_spec if "-" in k and "_" in k
                 ]  # FIXME: Need bulk_reduced_formula
                 # and slab_reduced_formula to handle case where non-stoichiometric
                 filtered_slab_miller_indices = [
@@ -95,6 +100,7 @@ class SlabAdsFireTask(FiretaskBase):
 
             # Re-build PMG Slab object from optimized structures
             slab_candidates = []
+            breakpoint()
             for miller_index, bulk_slab_key in zip(
                 filtered_slab_miller_indices, bulk_slab_keys
             ):
@@ -142,7 +148,9 @@ class SlabAdsFireTask(FiretaskBase):
                         "spec"
                     ]["_tasks"][0]["structure"]
                 )
+                slab_struct_orig.sort()  # So we can rely on order to do perturbation corrections
                 # Strip orig slab object of oxi states to accommodate MXide
+                breakpoint()
                 slab_struct_orig.remove_oxidation_states()
                 slab_struct_orig.oriented_unit_cell.remove_oxidation_states()
 

@@ -82,15 +82,25 @@ class WulffShapeFW(FiretaskBase):
         # Surface energy and structures dictionary
         surface_energies_dict = {}
         structures_dict = {}
-        for d in docs:
+        for (
+            d
+        ) in (
+            docs
+        ):  # FIXME: We need to update the dict with the lowest energy facet if there are multiple terminations
             slab_struct = d["slab_struct"]  # as dict
             miller_index = tuple(map(int, d["miller_index"]))
-            surface_energy = abs(
-                round(d["surface_energy"] * Ev2Joule, 4)
-            )  # Round to 4 decimals
-            surface_energies_dict.update({miller_index: surface_energy})
-            structures_dict.update({d["miller_index"]: slab_struct})
+            # Round to 4 decimals
+            surface_energy = round(d["surface_energy"] * Ev2Joule, 4)
+            if surface_energy < 0:
+                continue  # skip negative surface_energies
+            if (
+                miller_index not in surface_energies_dict
+                or surface_energy < surface_energies_dict[miller_index]
+            ):
+                surface_energies_dict.update({miller_index: surface_energy})
+                structures_dict.update({d["miller_index"]: slab_struct})
 
+        breakpoint()
         # Wulff Analysis
         wulffshape_obj, wulff_info, area_frac_dict = self.get_wulff_analysis(
             bulk_structure, surface_energies_dict
@@ -104,6 +114,8 @@ class WulffShapeFW(FiretaskBase):
         summary_dict["wulff_info"] = wulff_info
         summary_dict["area_fractions"] = area_frac_dict
         summary_dict["slab_structures"] = structures_dict
+
+        breakpoint()
 
         # Plot
         if wulff_plot:

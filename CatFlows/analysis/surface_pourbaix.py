@@ -181,7 +181,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 "output"
             ]["structure"]
         )
-
+        breakpoint()
         slab_clean, slab_clean_orig = self._add_site_properties(
             slab_clean, mmdb, uuid_termination=slab_uuid
         )
@@ -246,16 +246,12 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             str(key): value for key, value in slab_ox.composition.items()
         }
 
-        summary_dict[
-            "slab_clean"
-        ] = (
-            slab_clean_obj.as_dict()
-        )  # FIXME: You are not putting the relaxed slab since the structure is from the slab metadata
+        summary_dict["slab_clean"] = slab_clean_obj.as_dict()
         summary_dict["slab_oh"] = slab_oh_obj.as_dict()
-        summary_dict["slab_oh_orig"] = slab_oh_orig
+        summary_dict["slab_oh_orig"] = slab_oh_orig.as_dict()
         summary_dict["n_oh_rotation"] = n_oh_rotation
         summary_dict["slab_ox"] = slab_ox_obj.as_dict()
-        summary_dict["slab_ox_orig"] = slab_ox_orig
+        summary_dict["slab_ox_orig"] = slab_ox_orig.as_dict()
 
         # Number of H2O and nH for PBX
         nH2O = slab_ox_composition["O"] - slab_clean_comp["O"]
@@ -386,39 +382,46 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
 
         # Initialize from original magmoms
         # We need to use the uuid on the parent root node to get the input!!
-        if not self.run_fake:
-            if (
-                not len(
-                    mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})[
-                        "spec"
-                    ]["uuid_lineage"]
-                )
-                < 1
-            ):
-                orig_uuid = mmdb.db["fireworks"].find_one(
-                    {"spec.uuid": uuid_termination}
-                )["spec"]["uuid_lineage"][0]
-
-            else:
-                orig_uuid = mmdb.db["fireworks"].find_one(
-                    {"spec.uuid": uuid_termination}
-                )["spec"]["uuid"]
-
-            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
-                "calcs_reversed"
-            ][-1]["input"]["incar"]["MAGMOM"]
-
-            struct_orig = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
-                "calcs_reversed"
-            ][-1]["input"]["structure"]
+        if (
+            not len(
+                mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})["spec"][
+                    "uuid_lineage"
+                ]
+            )
+            < 1
+        ):
+            orig_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": uuid_termination})[
+                "spec"
+            ]["uuid_lineage"][0]
         else:
-            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
-                "input"
-            ]["incar"]["MAGMOM"]
+            orig_uuid = uuid_termination
+        # Orig structure and magmoms
 
-            struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
-                "input"
+        struct_orig = Slab.from_dict(
+            mmdb.db["fireworks"].find_one({"spec.uuid": orig_uuid})["spec"]["_tasks"][
+                0
             ]["structure"]
+        )
+        struct_orig.sort()  # So we can rely on order to do perturbation corrections
+        orig_magmoms = struct_orig.site_properties["magmom"]
+        #        if not self.run_fake:
+
+        #            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
+        #                "calcs_reversed"
+        #            ][-1]["input"]["incar"]["MAGMOM"]
+        #
+        #            struct_orig = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[
+        #                "calcs_reversed"
+        #            ][-1]["input"]["structure"]
+        #        else:  # run FakeVasp
+        #            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+        #                "input"
+        #            ]["incar"]["MAGMOM"]
+        #
+        #            struct_orig = mmdb.db["tasks"].find_one({"uuid": uuid_termination})[
+        #                "input"
+        #            ]["structure"]
+
         # Appending surface properties for slab object
         struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
         struct.add_site_property("bulk_equivalent", slab_equivalents)

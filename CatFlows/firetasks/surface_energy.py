@@ -16,13 +16,17 @@ from atomate.vasp.database import VaspCalcDb
 
 logger = get_logger(__name__)
 METAL_BULK_ENERGIES = {
-    "Ti": -7.8335,
+    "Ti": -18.17,  # obtained from bulk Ti2O4 - 4*chempot(O)
     "Cr": -9.6530,
     "Ru": -9.2744,
-    "O": -7.48175514 - 0.27,
+    #    "O": -7.48175514 - 0.27,
+    "O": -4.28,  # taken from Theoretical Investigation of the Activity of Cobalt Oxides for the
+    # Electrochemical Oxidation of Water
     "Ba": -1.9190,
     "Sr": -1.6831,
-    "Co": -7.0922,
+    #    "Co": -7.0922,
+    "Co": -8.48,  # Corrected for +U and DFT settings
+    "Sn": -3.9923,
 }  # ev/Atom from MP?
 
 
@@ -45,7 +49,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
     optional_params = ["to_db"]
 
     def run_task(self, fw_spec):
-
+        breakpoint()
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
         slab_formula = self["slab_formula"]
@@ -208,6 +212,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
         # FIXME: Need to cycle through the potential references to see which one
         # yields excess_deficiency_factors that are integers
         # reference = "O"
+        breakpoint()
         bulk_num_atoms_dict = self.oriented_struct.composition.get_el_amt_dict()
         slab_num_atoms_dict = self.slab_struct.composition.get_el_amt_dict()
         for reference in bulk_num_atoms_dict:

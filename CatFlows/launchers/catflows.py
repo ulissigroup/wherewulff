@@ -65,8 +65,8 @@ class CatFlows:
         add_magmoms=True,
         include_bulk_opt=True,
         max_index=1,
-        symmetrize=True,
         slab_repeat=[2, 2, 1],
+        symmetrize=True,
         selective_dynamics=False,
         exclude_hkl=None,
         stop_at_wulff_analysis=False,
@@ -187,7 +187,7 @@ class CatFlows:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=4,
+                min_slab_size=3,
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,
@@ -203,15 +203,14 @@ class CatFlows:
 
             slab_candidates = []
             for slab in all_slabs:
-                slab_formula = slab.composition.reduced_formula
+                #                slab_formula = slab.composition.reduced_formula
                 if (
                     not slab.is_polar()
                     and slab.is_symmetric()
-                    and slab_formula == self.bulk_formula
+                    #                    and slab_formula == self.bulk_formula
                 ):
                     slab.make_supercell(self.slab_repeat)
                     slab_candidates.append(slab)
-
             # This is new!
             if len(slab_candidates) >= 1:
                 count_metal = 0
@@ -220,8 +219,8 @@ class CatFlows:
                     if count > count_metal:
                         count_metal = count
                         slab_list.append(slab_cand)
-            # breakpoint()
             print(mi_index)
+        breakpoint()
         return slab_list
 
     def _get_all_wfs(self):

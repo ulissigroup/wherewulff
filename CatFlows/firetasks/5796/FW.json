@@ -1,0 +1,1514 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "bulk_structure": {
+                    "@module": "pymatgen.core.structure",
+                    "@class": "Structure",
+                    "charge": null,
+                    "lattice": {
+                        "matrix": [
+                            [
+                                9.24950161687568,
+                                0.0,
+                                0.0056294844595985195
+                            ],
+                            [
+                                -0.13859581574742602,
+                                9.246563497714998,
+                                0.005304246153904377
+                            ],
+                            [
+                                0.0,
+                                0.0,
+                                5.9706732
+                            ]
+                        ],
+                        "a": 9.249503330000001,
+                        "b": 9.24760366,
+                        "c": 5.9706732,
+                        "alpha": 89.96713625,
+                        "beta": 89.96512832,
+                        "gamma": 90.8587161,
+                        "volume": 510.6484171884994
+                    },
+                    "sites": [
+                        {
+                            "species": [
+                                {
+                                    "element": "Ti",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.250123,
+                                0.249998,
+                                0.749948
+                            ],
+                            "xyz": [
+                                2.2788644161725706,
+                                2.311622381301754,
+                                4.480428539465072
+                            ],
+                            "label": "Ti4+",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "d",
+                                "bulk_equivalent": 0
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ti",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.249962,
+                                0.750078,
+                                0.749993
+                            ],
+                            "xyz": [
+                                2.2080662508732805,
+                                6.9356438552390705,
+                                4.483348860828718
+                            ],
+                            "label": "Ti4+",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "f",
+                                "bulk_equivalent": 1
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ti",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.750024,
+                                0.249926,
+                                0.749993
+                            ],
+                            "xyz": [
+                                6.902709502849074,
+                                2.310956628729919,
+                                4.483511022764186
+                            ],
+                            "label": "Ti4+",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "f",
+                                "bulk_equivalent": 1
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ti",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.750054,
+                                0.74995,
+                                0.250171
+                            ],
+                            "xyz": [
+                                6.833685753724289,
+                                6.9344602951113625,
+                                1.5018896218571802
+                            ],
+                            "label": "Ti4+",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "b",
+                                "bulk_equivalent": 3
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Cr",
+                                    "oxidation_state": 3,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.249929,
+                                0.250016,
+                                0.250013
+                            ],
+                            "xyz": [
+                                2.2770675181342135,
+                                2.311788819444713,
+                                1.4954790365795174
+                            ],
+                            "label": "Cr3+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "a",
+                                "bulk_equivalent": 4
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Cr",
+                                    "oxidation_state": 3,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.249965,
+                                0.749991,
+                                0.249997
+                            ],
+                            "xyz": [
+                                2.2081060572141014,
+                                6.9348394042147685,
+                                1.4980356989405565
+                            ],
+                            "label": "Cr3+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "e",
+                                "bulk_equivalent": 5
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Cr",
+                                    "oxidation_state": 3,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.750027,
+                                0.250013,
+                                0.249997
+                            ],
+                            "xyz": [
+                                6.902725193517954,
+                                2.31176107975422,
+                                1.4981987838148554
+                            ],
+                            "label": "Cr3+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "e",
+                                "bulk_equivalent": 5
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Cr",
+                                    "oxidation_state": 3,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.749947,
+                                0.750057,
+                                0.750008
+                            ],
+                            "xyz": [
+                                6.832681227298998,
+                                6.935449677405618,
+                                4.486252967325082
+                            ],
+                            "label": "Cr3+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "c",
+                                "bulk_equivalent": 7
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 5,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.000206,
+                                0.000197,
+                                0.007891
+                            ],
+                            "xyz": [
+                                0.001878093957374147,
+                                0.0018215730090498546,
+                                0.047116786831491
+                            ],
+                            "label": "Ru5+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 8
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 5,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.000233,
+                                0.000227,
+                                0.492126
+                            ],
+                            "xyz": [
+                                0.0021236726265573677,
+                                0.0020989699139813043,
+                                2.938326034956956
+                            ],
+                            "label": "Ru5+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 8
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.999448,
+                                0.500556,
+                                0.992763
+                            ],
+                            "xyz": [
+                                9.175020924835895,
+                                4.628422838162229,
+                                5.93574488727359
+                            ],
+                            "label": "Ru4+",
+                            "properties": {
+                                "magmom": 2.4,
+                                "bulk_wyckoff": "n",
+                                "bulk_equivalent": 10
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.999479,
+                                0.500571,
+                                0.507261
+                            ],
+                            "xyz": [
+                                9.175305580448784,
+                                4.628561536614694,
+                                3.0369713614049014
+                            ],
+                            "label": "Ru4+",
+                            "properties": {
+                                "magmom": 2.4,
+                                "bulk_wyckoff": "n",
+                                "bulk_equivalent": 10
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.500519,
+                                0.999425,
+                                0.992849
+                            ],
+                            "xyz": [
+                                4.491035176623628,
+                                9.241246723703812,
+                                5.9360957760914
+                            ],
+                            "label": "Ru4+",
+                            "properties": {
+                                "magmom": 2.4,
+                                "bulk_wyckoff": "n",
+                                "bulk_equivalent": 10
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 4,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.500561,
+                                0.999429,
+                                0.507124
+                            ],
+                            "xyz": [
+                                4.491423101308274,
+                                9.241283709957804,
+                                3.035990793676732
+                            ],
+                            "label": "Ru4+",
+                            "properties": {
+                                "magmom": 2.4,
+                                "bulk_wyckoff": "n",
+                                "bulk_equivalent": 10
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 5,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.499778,
+                                0.499804,
+                                0.007911
+                            ],
+                            "xyz": [
+                                4.553426675985067,
+                                4.6214694224119475,
+                                0.052698571614155254
+                            ],
+                            "label": "Ru5+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 8
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "Ru",
+                                    "oxidation_state": 5,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.499787,
+                                0.499808,
+                                0.492166
+                            ],
+                            "xyz": [
+                                4.553509367116355,
+                                4.621506408665938,
+                                2.9440269939625003
+                            ],
+                            "label": "Ru5+",
+                            "properties": {
+                                "magmom": 3.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 8
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.407104,
+                                0.092887,
+                                0.249976
+                            ],
+                            "xyz": [
+                                3.752635356699226,
+                                0.858885543612253,
+                                1.4953094849971382
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "i",
+                                "bulk_equivalent": 16
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.399025,
+                                0.101003,
+                                0.750036
+                            ],
+                            "xyz": [
+                                3.676783789495881,
+                                0.9339306529597079,
+                                4.481001894045974
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "j",
+                                "bulk_equivalent": 17
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.39797,
+                                0.598782,
+                                0.249821
+                            ],
+                            "xyz": [
+                                3.598035478723139,
+                                5.536675784288782,
+                                1.4970160025481136
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "p",
+                                "bulk_equivalent": 18
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.409798,
+                                0.59254,
+                                0.750191
+                            ],
+                            "xyz": [
+                                3.70830369892944,
+                                5.478958734936045,
+                                4.48459522806981
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "q",
+                                "bulk_equivalent": 19
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.901291,
+                                0.10203,
+                                0.250034
+                            ],
+                            "xyz": [
+                                8.322351630694788,
+                                0.9434268736718612,
+                                1.4984862988019587
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "p",
+                                "bulk_equivalent": 18
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.907483,
+                                0.090314,
+                                0.75001
+                            ],
+                            "xyz": [
+                                8.38124833328378,
+                                0.8350941357326324,
+                                4.483652315864993
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "q",
+                                "bulk_equivalent": 19
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.906297,
+                                0.593809,
+                                0.249999
+                            ],
+                            "xyz": [
+                                8.300496124116416,
+                                5.490692624014645,
+                                1.5009140233084846
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "i",
+                                "bulk_equivalent": 22
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.898501,
+                                0.601584,
+                                0.750009
+                            ],
+                            "xyz": [
+                                8.227309427043815,
+                                5.562584655209379,
+                                4.486307683093484
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "j",
+                                "bulk_equivalent": 23
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.092803,
+                                0.407136,
+                                0.250026
+                            ],
+                            "xyz": [
+                                0.8019541525107697,
+                                3.7646088762056933,
+                                1.4955055201116203
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "i",
+                                "bulk_equivalent": 16
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.100979,
+                                0.398961,
+                                0.749993
+                            ],
+                            "xyz": [
+                                0.8787110985240804,
+                                3.6890182196118735,
+                                4.480647752348654
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "j",
+                                "bulk_equivalent": 17
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.101966,
+                                0.90125,
+                                0.250033
+                            ],
+                            "xyz": [
+                                0.8182252029239778,
+                                8.333465352315642,
+                                1.4982198000742137
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "p",
+                                "bulk_equivalent": 18
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.090261,
+                                0.907426,
+                                0.749987
+                            ],
+                            "xyz": [
+                                0.7091038187403919,
+                                8.39057212847753,
+                                4.48324861501566
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "q",
+                                "bulk_equivalent": 19
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.598775,
+                                0.397959,
+                                0.249824
+                            ],
+                            "xyz": [
+                                5.483214878405704,
+                                3.679753162987163,
+                                1.4970991285692579
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "p",
+                                "bulk_equivalent": 18
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.592439,
+                                0.409711,
+                                0.750161
+                            ],
+                            "xyz": [
+                                5.422981258134517,
+                                3.7884187772123097,
+                                4.484474512524923
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "q",
+                                "bulk_equivalent": 19
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.593782,
+                                0.906163,
+                                0.249976
+                            ],
+                            "xyz": [
+                                5.366597168886541,
+                                8.378893718779917,
+                                1.50067420199215
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "i",
+                                "bulk_equivalent": 22
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.60149,
+                                0.898464,
+                                0.750007
+                            ],
+                            "xyz": [
+                                5.438959376534857,
+                                8.307704426411009,
+                                4.486198447536426
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "j",
+                                "bulk_equivalent": 23
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.348781,
+                                0.348809,
+                                0.99722
+                            ],
+                            "xyz": [
+                                3.1777069555404727,
+                                3.2252845670744708,
+                                5.957888354520001
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 32
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.348677,
+                                0.348709,
+                                0.502598
+                            ],
+                            "xyz": [
+                                3.176758866953892,
+                                3.2243599107246994,
+                                3.004660919098601
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 32
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.348647,
+                                0.84871,
+                                0.991323
+                            ],
+                            "xyz": [
+                                3.1071833354358573,
+                                7.847650906145696,
+                                5.9253301382652666
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.348675,
+                                0.848691,
+                                0.508474
+                            ],
+                            "xyz": [
+                                3.107444954801629,
+                                7.84747522143924,
+                                3.042396611163354
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.848608,
+                                0.34874,
+                                0.991199
+                            ],
+                            "xyz": [
+                                7.80086716330988,
+                                3.2246465541931286,
+                                5.9247523335188035
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.848639,
+                                0.348733,
+                                0.508599
+                            ],
+                            "xyz": [
+                                7.8011548680307135,
+                                3.2245818282486445,
+                                3.043305584583099
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.848703,
+                                0.848795,
+                                0.008545
+                            ],
+                            "xyz": [
+                                7.732440335319904,
+                                7.848436864043002,
+                                0.06029938045751791
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 38
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.848792,
+                                0.848831,
+                                0.491096
+                            ],
+                            "xyz": [
+                                7.733258551514439,
+                                7.84876974032892,
+                                2.941454395767696
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 38
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.151242,
+                                0.151206,
+                                0.997309
+                            ],
+                            "xyz": [
+                                1.377956604623606,
+                                1.3981358802354942,
+                                5.9562595667513865
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 32
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.151199,
+                                0.151164,
+                                0.5028
+                            ],
+                            "xyz": [
+                                1.3775646970783422,
+                                1.39774752456859,
+                                3.0037074684464162
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 32
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.151354,
+                                0.651283,
+                                0.9914
+                            ],
+                            "xyz": [
+                                1.3096839690531705,
+                                6.022129614482317,
+                                5.923632020818752
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.151394,
+                                0.651267,
+                                0.508785
+                            ],
+                            "xyz": [
+                                1.3100561666508979,
+                                6.021981669466354,
+                                3.042095714712192
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.65132,
+                                0.151282,
+                                0.99152
+                            ],
+                            "xyz": [
+                                6.003418340905566,
+                                1.3988386190613205,
+                                5.924510924048881
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.651356,
+                                0.151288,
+                                0.508663
+                            ],
+                            "xyz": [
+                                6.003750491388879,
+                                1.3988940984423066,
+                                3.041529809203398
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "r",
+                                "bulk_equivalent": 34
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.651234,
+                                0.65117,
+                                0.00889
+                            ],
+                            "xyz": [
+                                5.933340498624165,
+                                6.0210847528070754,
+                                0.060199362398600104
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 38
+                            }
+                        },
+                        {
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "oxidation_state": -2,
+                                    "occu": 1.0
+                                }
+                            ],
+                            "abc": [
+                                0.65137,
+                                0.651256,
+                                0.491286
+                            ],
+                            "xyz": [
+                                5.934586511603905,
+                                6.0218799572678785,
+                                2.940429453160856
+                            ],
+                            "label": "O2-",
+                            "properties": {
+                                "magmom": 0.6,
+                                "bulk_wyckoff": "o",
+                                "bulk_equivalent": 38
+                            }
+                        }
+                    ]
+                },
+                "reduced_formula": "TiCr(RuO4)2",
+                "adsorbates": [
+                    {
+                        "@module": "pymatgen.core.structure",
+                        "@class": "Molecule",
+                        "charge": 0.0,
+                        "spin_multiplicity": 2,
+                        "sites": [
+                            {
+                                "name": "O",
+                                "species": [
+                                    {
+                                        "element": "O",
+                                        "occu": 1
+                                    }
+                                ],
+                                "xyz": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "properties": {
+                                    "magmom": 0.6,
+                                    "binding_site": true
+                                }
+                            },
+                            {
+                                "name": "H",
+                                "species": [
+                                    {
+                                        "element": "H",
+                                        "occu": 1
+                                    }
+                                ],
+                                "xyz": [
+                                    -1.0,
+                                    0.0,
+                                    0.422
+                                ],
+                                "properties": {
+                                    "magmom": 0.1,
+                                    "binding_site": false
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "@module": "pymatgen.core.structure",
+                        "@class": "Molecule",
+                        "charge": 0.0,
+                        "spin_multiplicity": 1,
+                        "sites": [
+                            {
+                                "name": "O",
+                                "species": [
+                                    {
+                                        "element": "O",
+                                        "occu": 1
+                                    }
+                                ],
+                                "xyz": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "properties": {
+                                    "magmom": 0.6,
+                                    "binding_site": true
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "slabs": null,
+                "db_file": ">>db_file<<",
+                "vasp_cmd": ">>vasp_cmd<<",
+                "run_fake": false,
+                "metal_site": "Ru",
+                "applied_potential": 1.6,
+                "applied_pH": 0,
+                "_fw_name": "{{CatFlows.firetasks.slab_ads.SlabAdsFireTask}}"
+            }
+        ],
+        "oriented_uuid": "a6c070d0-bd87-4249-89ce-016a839411ed",
+        "calc_locs": [
+            {
+                "name": "TiCr(RuO4)2_101 bulk optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-17-15-14-01-840292"
+            },
+            {
+                "name": "TiCr(RuO4)2_101 bulk optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-17-15-14-01-840292"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-19-21-56-12-330993"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-20-16-03-50-162489"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-21-22-02-31-325023"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-23-05-00-11-931895"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/mo-wulff-workflow/block_2021-10-06-16-06-40-344645/launcher_2022-03-24-16-30-52-816427"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-24-18-07-51-016885/launcher_2022-03-26-07-11-16-099518"
+            },
+            {
+                "name": "Ti13Cr15(RuO4)28_101 slab optimization",
+                "filesystem": null,
+                "path": "/global/cscratch1/sd/rsanspeu/block_2022-03-24-18-07-51-016885/launcher_2022-03-28-17-24-02-688772"
+            }
+        ],
+        "_job_info": [
+            {
+                "fw_id": 5799,
+                "name": "TiCr(RuO4)2-TiCr(RuO4)2_101 bulk optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-17-15-14-01-840292",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5799,
+                "name": "TiCr(RuO4)2-TiCr(RuO4)2_101 bulk optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-17-15-14-01-840292",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5798,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-19-21-56-12-330993",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5809,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-20-16-03-50-162489",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5811,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-21-22-02-31-325023",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5833,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-14-03-45-49-090931/launcher_2022-03-23-05-00-11-931895",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5837,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/mo-wulff-workflow/block_2021-10-06-16-06-40-344645/launcher_2022-03-24-16-30-52-816427",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5843,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-24-18-07-51-016885/launcher_2022-03-26-07-11-16-099518",
+                "state": "RUNNING"
+            },
+            {
+                "fw_id": 5849,
+                "name": "Ti13Cr15(RuO4)28-Ti13Cr15(RuO4)28_101 slab optimization",
+                "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-24-18-07-51-016885/launcher_2022-03-28-17-24-02-688772",
+                "state": "RUNNING"
+            }
+        ],
+        "slab_uuid": "531d7b80-7f81-46ec-b1aa-caeb6f1bd12f",
+        "Ti13Cr15(RuO4)28_101": {
+            "oriented_uuid": "a6c070d0-bd87-4249-89ce-016a839411ed",
+            "slab_uuid": "531d7b80-7f81-46ec-b1aa-caeb6f1bd12f"
+        }
+    },
+    "fw_id": 5796,
+    "created_on": "2022-03-17T15:13:40.232242",
+    "updated_on": "2022-03-29T17:18:28.957488",
+    "launches": [
+        {
+            "fworker": {
+                "name": "atomate_stack",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/home/jovyan/atomate/config/db.json",
+                    "vasp_cmd": "mpirun -np 15 /opt/vasp.5.4.4.pl2/bin/vasp_std",
+                    "scratch_dir": "/home/jovyan/scratch",
+                    "wall_time": "None"
+                }
+            },
+            "fw_id": 5796,
+            "launch_dir": "/home/jovyan/mo-wflow-new/CatFlows/firetasks/5796",
+            "host": "docker-desktop",
+            "ip": "192.168.65.4",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2022-03-29T17:18:28.868031",
+                    "updated_on": "2022-03-29T17:18:28.868048"
+                }
+            ],
+            "launch_id": 4755
+        }
+    ],
+    "archived_launches": [
+        {
+            "fworker": {
+                "name": "atomate_stack",
+                "category": "",
+                "query": "{\"$and\": [{\"fw_id\": {\"$ne\": 5480}}, {\"$or\": [{\"spec.counter\": 0}, {\"spec.host\": \"nersc\"}, {\"spec.counter\": {\"$exists\": false}}]}]}",
+                "env": {
+                    "db_file": "/global/u1/r/rsanspeu/atomate/config/db.json",
+                    "vasp_cmd": "srun -n16 -c16 --cpu-bind=cores vasp_std"
+                }
+            },
+            "fw_id": 5796,
+            "launch_dir": "/global/cscratch1/sd/rsanspeu/block_2022-03-24-18-07-51-016885/launcher_2022-03-28-17-24-02-688772/block_2022-03-29-17-06-13-496931/launcher_2022-03-29-17-06-16-752109",
+            "host": "nid02590",
+            "ip": "10.128.10.51",
+            "trackers": [],
+            "action": {
+                "stored_data": {},
+                "exit": false,
+                "update_spec": {},
+                "mod_spec": [],
+                "additions": [],
+                "detours": [],
+                "defuse_children": false,
+                "defuse_workflow": false,
+                "propagate": false
+            },
+            "state": "COMPLETED",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2022-03-29T17:07:42.477495",
+                    "updated_on": "2022-03-29T17:07:42.952332",
+                    "checkpoint": {
+                        "_task_n": 0,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                },
+                {
+                    "state": "COMPLETED",
+                    "created_on": "2022-03-29T17:07:42.961968"
+                }
+            ],
+            "launch_id": 4754
+        }
+    ],
+    "state": "RUNNING",
+    "name": "TiCr(RuO4)2 Ads_slab optimization"
+}

@@ -2,7 +2,7 @@ from typing import Counter
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure, env_chk
-from atomate.vasp.firetasks.run_calc import RunVaspFake
+from atomate.vasp.firetasks.run_calc import RunVaspFake, RunVaspDirect
 import os
 
 from CatFlows.dft_settings.settings import MOSurfaceSet
@@ -126,6 +126,31 @@ ref_dirs = {
     "TiRuO4-101-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_OH_3",
     "TiRuO4-101-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_OH_4",
     "TiRuO4-101-O_1": f"{os.environ['GITHUB_WORKSPACE']}/RuTiO4/RuTi_101_Ox_1",
+    # TiCrRu2Ox - 101
+    "TiCr(RuO4)2_101 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_bulk",
+    "Ti9Cr11(RuO4)20_101 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_slab",
+    "Ti9Cr11(RuO4)20-101-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_OH_1",
+    "Ti9Cr11(RuO4)20-101-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_OH_2",
+    "Ti9Cr11(RuO4)20-101-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_OH_3",
+    "Ti9Cr11(RuO4)20-101-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_OH_4",
+    "Ti9Cr11(RuO4)20-101-O_1": f"{os.environ['GITHUB_WORKSPACE']}/TiCrRuO_101_results/TiCrRuO_101_O_1",
+    # BaSrCo2O6 - 001 - OH terminated
+    "BaSr(CoO3)2_001 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_bulk",
+    "Ba5Sr5(Co6O17)2_001 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_slab",
+    "Ba5Sr5(Co6O17)2-001-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_OH_1",
+    "Ba5Sr5(Co6O17)2-001-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_OH_2",
+    "Ba5Sr5(Co6O17)2-001-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_OH_3",
+    "Ba5Sr5(Co6O17)2-001-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_OH_4",
+    "Ba5Sr5(Co6O17)2-001-O_1": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_001_results/BaSrCoO_001_O_1",
+    # Ba5Sr5(Co5O16)2 - 101
+    "BaSr(CoO3)2_101 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_101_results/BaSrCoO_101_bulk",
+    "Ba5Sr5(Co5O16)2_101 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSrCoO_101_results/BaSrCoO_101_slab",
+    # Ba5Ti10Sn5O32 - 101
+    "BaTi2SnO6_101 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_101_results/BaSnTiO_101_bulk",
+    "Ba5Ti10Sn5O32_101 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_101_results/BaSnTiO_101_slab",
+    # BaTi2SnO6 - 110
+    "BaTi2SnO6_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_bulk",
+    "BaTi2SnO6_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_slab",
 }
 
 
@@ -134,7 +159,7 @@ def Bulk_FW(
     name="",
     vasp_input_set=None,
     parents=None,
-    wall_time=172800,
+    wall_time=43200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -165,7 +190,7 @@ def Bulk_FW(
 
     # FW
     fw = OptimizeFW(
-        name=name,
+        name=name + "gpu",
         structure=bulk,
         max_force_threshold=None,
         vasp_input_set=vasp_input_set,
@@ -180,24 +205,35 @@ def Bulk_FW(
             "_pass_job_info": True,
             "uuid": fw_bulk_uuid,
             "wall_time": wall_time,
-            "max_tries": 5,
+            "max_tries": 10,
             "name": name,
             "is_bulk": True,
         },
     )
     if run_fake:
         assert (
-            "RuO2" in name or "IrO2" in name or "TiRuO4" in name
+            "RuO2" in name
+            or "IrO2" in name
+            or "TiRuO4" in name
+            or "Ti9Cr11(RuO4)20" in name
+            or "TiCr(RuO4)2" in name
+            or "Co" in name
+            or "Ti" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
-        # Switch-off GzipDir for WAVECAR transferring
-        fw.tasks[1].update({"gzip_output": False})
-        # Switch-on WalltimeHandler in RunVaspCustodian
-        if wall_time is not None:
-            fw.tasks[1].update({"wall_time": 172800})
+        # This is for submitting on Perlmutter, where there is an issue between custodian and the compiled vasp version
+        fw.tasks[1] = RunVaspDirect(
+            vasp_cmd=vasp_cmd
+        )  # We run vasp without custodian (RAW)
+
+        ## Switch-off GzipDir for WAVECAR transferring
+        # fw.tasks[1].update({"gzip_output": False})
+        ## Switch-on WalltimeHandler in RunVaspCustodian
+        # if wall_time is not None:
+        #    fw.tasks[1].update({"wall_time": 43200})
 
     # Append Continue-optimizeFW for wall-time handling and use for uuid message
     # passing
@@ -220,7 +256,7 @@ def Slab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=172800,
+    wall_time=43200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -251,7 +287,7 @@ def Slab_FW(
 
     # FW
     fw = OptimizeFW(
-        name=name,
+        name=name + "gpu",
         structure=slab,
         max_force_threshold=None,
         vasp_input_set=vasp_input_set,
@@ -266,24 +302,31 @@ def Slab_FW(
             "_pass_job_info": True,
             "uuid": fw_slab_uuid,
             "wall_time": wall_time,
-            "max_tries": 5,
+            "max_tries": 10,
             "name": name,
             "is_bulk": False,
         },
     )
     if run_fake:
         assert (
-            "RuO2" in name or "IrO2" in name or "TiRuO4" in name
+            "RuO2" in name
+            or "IrO2" in name
+            or "TiRuO4" in name
+            or "Ti9Cr11(RuO4)20" in name
+            or "TiCr(RuO4)2" in name
+            or "Co" in name
+            or "Ti" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
-        # Switch-off GzipDir for WAVECAR transferring
-        fw.tasks[1].update({"gzip_output": False})
-        # Switch-on WalltimeHandler in RunVaspCustodian
-        if wall_time is not None:
-            fw.tasks[1].update({"wall_time": wall_time})
+        fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
+        ## Switch-off GzipDir for WAVECAR transferring
+        # fw.tasks[1].update({"gzip_output": False})
+        ## Switch-on WalltimeHandler in RunVaspCustodian
+        # if wall_time is not None:
+        #    fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
@@ -320,7 +363,7 @@ def AdsSlab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=172800,
+    wall_time=43200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -347,7 +390,7 @@ def AdsSlab_FW(
 
     # FW
     fw = OptimizeFW(
-        name=name,
+        name=name + "gpu",
         structure=slab,
         max_force_threshold=None,
         vasp_input_set=vasp_input_set,
@@ -363,7 +406,7 @@ def AdsSlab_FW(
             "uuid_lineage": [],
             "wall_time": wall_time,
             "name": name,
-            "max_tries": 5,
+            "max_tries": 10,
             "is_bulk": False,
             "is_adslab": is_adslab,
             "oriented_uuid": oriented_uuid,  # adslab FW should get terminal node ids
@@ -371,19 +414,26 @@ def AdsSlab_FW(
             "is_bulk": False,
         },
     )
-    if run_fake and "-Ru-" not in name:
+    breakpoint()
+    if run_fake and "-Ru-" not in name and "-Co-" not in name and False:
         assert (
-            "RuO2" in name or "IrO2" in name or "TiRuO4" in name
+            "RuO2" in name
+            or "IrO2" in name
+            or "TiRuO4" in name
+            or "Ti9Cr11(RuO4)20" in name
+            or "Co" in name
+            or "Ti" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
-        # Switch-off GzipDir for WAVECAR transferring
-        fw.tasks[1].update({"gzip_output": False})
-        # Switch-on WalltimeHandler in RunVaspCustodian
-        if wall_time is not None:
-            fw.tasks[1].update({"wall_time": wall_time})
+        fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
+        ## Switch-off GzipDir for WAVECAR transferring
+        # fw.tasks[1].update({"gzip_output": False})
+        ## Switch-on WalltimeHandler in RunVaspCustodian
+        # if wall_time is not None:
+        #    fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
