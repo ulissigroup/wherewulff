@@ -10,7 +10,7 @@ from CatFlows.workflows.surface_pourbaix import (
     _bulk_like_adsites_perturbation,
 )
 from u_effect import analyzeUEffect
-from CatFlows.dft_settings.settings import MOSurfaceSet
+from CatFlows.dft_settings.settings import MOSurfaceSet, set_bulk_magmoms
 import numpy as np
 import os
 from fireworks import LaunchPad, Workflow
@@ -176,10 +176,11 @@ mol_meth.add_site_property("binding_site", [False, False, False, False, False, T
 
 # Load the bulk with intention to cleave along the 110 plane
 
-struct = CifParser("TiO2.cif").get_structures(primitive=False)[0]
+bulk_struct = CifParser("TiO2.cif").get_structures(primitive=False)[0]
+bulk_struct = set_bulk_magmoms(bulk_struct)
 
 slab_gen = SlabGenerator(
-    struct,
+    bulk_struct,
     [1, 1, 0],
     min_slab_size=4,
     min_vacuum_size=8,
