@@ -1,4 +1,5 @@
 from pymatgen.core import Structure, Molecule
+from pymatgen.io.cif import CifParser
 from pymatgen.core.surface import Slab
 from pymongo import MongoClient
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
@@ -9,11 +10,11 @@ from CatFlows.workflows.surface_pourbaix import (
     _bulk_like_adsites_perturbation,
 )
 from u_effect import analyzeUEffect
-from CatFlows.dft_settings.settings import MOSurfaceSet
+from CatFlows.dft_settings.settings import MOSurfaceSet, set_bulk_magmoms
 import numpy as np
 import os
 from fireworks import LaunchPad, Workflow
-from atomate.vasp.fireworks.core import OptimizeFW
+from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from CatFlows.firetasks.handlers import ContinueOptimizeFW
 from CatFlows.fireworks.optimize import Slab_FW, AdsSlab_FW
 from atomate.vasp.config import VASP_CMD, DB_FILE
@@ -24,6 +25,11 @@ import json
 from CatFlows.adsorption.adsorbate_configs import OH
 from adslab_with_U import OptimizeAdslabsWithU
 from fireworks import Firework
+from pymatgen.core.surface import (
+    SlabGenerator,
+    get_symmetrically_distinct_miller_indices,
+)
+from CatFlows.dft_settings.settings import SelectiveDynamics
 
 # Connect to the database
 client = MongoClient("mongodb://fw_oal_admin:gfde223223222rft3@localhost:27017/fw_oal")
@@ -47,7 +53,7 @@ fw_spec = {
 }
 
 miller_index = bulk_slab_key.split("_")[1]
-miller_index = "110"
+miller_index = "101"
 oriented_uuid = fw_spec.get(bulk_slab_key)["oriented_uuid"]
 slab_uuid = fw_spec.get(bulk_slab_key)["slab_uuid"]
 slab_wyckoffs = [
@@ -167,6 +173,32 @@ mol_meth.add_site_property("binding_site", [False, False, False, False, False, T
 # This will be a inner method
 # with open('pristine_perovskite_slab.json', 'w') as f:
 #    json.dump(pristine_slab.as_dict(), f, indent=4)
+
+# Load the bulk with intention to cleave along the 110 plane
+
+bulk_struct = CifParser("TiO2.cif").get_structures(primitive=False)[0]
+bulk_struct = set_bulk_magmoms(bulk_struct)
+
+slab_gen = SlabGenerator(
+    bulk_struct,
+    [1, 1, 0],
+    min_slab_size=4,
+    min_vacuum_size=8,
+    in_unit_planes=True,
+    center_slab=True,
+    reorient_lattice=True,
+    lll_reduce=True,
+)
+all_slabs = slab_gen.get_slabs(symmetrize=True, ftol=0.01)
+pristine_slab = all_slabs[1]
+pristine_slab.make_supercell([2, 2, 1])
+pristine_slab.remove_oxidation_states()
+pristine_slab.oriented_unit_cell.remove_oxidation_states()
+
+# Freeze the bottom half of the slab
+pristine_slab = SelectiveDynamics.center_of_mass(pristine_slab)
+breakpoint()
+
 mxidegen = MXideAdsorbateGenerator(
     pristine_slab,
     repeat=[1, 1, 1],
@@ -179,10 +211,11 @@ bulk_like, _ = mxidegen.get_bulk_like_adsites()
 # bulk_like_sites = mxidegen._filter_clashed_sites(bulk_like)
 
 # Bondlength and X
-_, X = mxidegen.bondlengths_dict, mxidegen.X
-bulk_like_shifted = _bulk_like_adsites_perturbation(
-    pristine_slab, relaxed_slab, bulk_like, X=X
-)  # FIXME: Change back to the relaxed
+# _, X = mxidegen.bondlengths_dict, mxidegen.X
+# bulk_like_shifted = _bulk_like_adsites_perturbation(
+#    pristine_slab, relaxed_slab, bulk_like, X=X
+# )  # FIXME: Change back to the relaxed
+mol_meth = OH
 
 # set n_rotations to 1 if mono-atomic
 n = len(mol_meth[0]) if type(mol_meth).__name__ == "list" else len(mol_meth)
@@ -221,11 +254,12 @@ for coverage in range(1, 2):
     #        while random_index in indices_pick:
     #            random_index = np.random.choice(np.arange(coverage))
     #        indices_pick.append(random_index)
-    sites_pick = itertools.combinations(bulk_like_shifted, coverage)
+    sites_pick = itertools.combinations(bulk_like, coverage)
     for cov_idx, cov_bulk_like_sites in enumerate(list(sites_pick)[:1]):
         # cov_bulk_like_sites = [bulk_like_shifted[i] for i in indices_pick]
         #        for rot_idx in range(len(molecule_rotations)):
         adslab_fws = []
+        parents = []
         for U in Us:
             #            slab_ads = relaxed_slab.copy()
             #            slab_ads = add_adsorbates(
@@ -241,10 +275,33 @@ for coverage in range(1, 2):
             # Send an OptimizeFW calc to the hosted MongoDB for execution
             block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
             lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
+            # Derive an oriented bulk onto which we will do a single point calculation
+            # oriented_bulk_struct = pristine_slab.oriented_unit_cell
+            # elements_bulk = [
+            #    el.name for el in oriented_bulk_struct.composition.elements
+            # ]
+            ## Send an OptimizeFW calc to the hosted MongoDB for execution
             elements = [el.name for el in pristine_slab.composition.elements]
             blocks = {s.species_string: s.specie.block for s in pristine_slab}
             #            U_values = {el: U if el == "Ti" else 0 for el in elements}
             U_values = {"Ti": U}
+            # vasp_input_set_bulk = MOSurfaceSet(
+            #    oriented_bulk_struct,
+            #    bulk=True,
+            #    UJ=[0 for el in elements_bulk],
+            #    UU=[U_values[el] if el in U_values else 0 for el in elements_bulk],
+            #    UL=[2 if el in U_values else 0 for el in elements_bulk],
+            #    apply_U=True,
+            #    user_incar_settings={
+            #        "NSW": 0,
+            #        #                    "LDAUJ": [0, 0],
+            #        #                    "LDAUL": [2, 0],
+            #        "LDAUPRINT": 0,
+            #        "LDAUTYPE": 2,
+            #        #                    "LDAUU": [U, 0], # assume applied to d orbitals but can vary
+            #        "LMAXMIX": 4,
+            #    },
+            # )
             vasp_input_set = MOSurfaceSet(
                 pristine_slab,
                 bulk=False,
@@ -264,7 +321,12 @@ for coverage in range(1, 2):
             #            vasp_input_set.incar.update({'LDAUJ': [0, 0]})
             #            vasp_input_set.incar.update({'LDAUU': [U, 0]})
             #            vasp_input_set.incar.update({'LDAUL': [2, 0]})
-            #
+
+            # bulk_fw = StaticFW(
+            #    structure=oriented_bulk_struct,
+            #    vasp_input_set=vasp_input_set_bulk,
+            #    name=f"{oriented_bulk_struct.composition.reduced_formula}-{U}",
+            # )
 
             # Root node is the Slab at a specific U value
             slab_fw = Slab_FW(pristine_slab, vasp_input_set=vasp_input_set)
@@ -272,6 +334,7 @@ for coverage in range(1, 2):
             adslab_fw = Firework(
                 OptimizeAdslabsWithU(
                     reduced_formula=vasp_input_set.structure.composition.reduced_formula,
+                    adsite_index=0,
                     adsorbates=[molecule_rotations[0]],
                     db_file=DB_FILE,
                     miller_index="".join(
@@ -334,9 +397,11 @@ for coverage in range(1, 2):
             #                }
             #            )
             fws.append(slab_fw)
+            # fws.append(bulk_fw)
+            # parents.append(bulk_fw)
             adslab_fws.append(adslab_fw)
         # Define the analysis FW - for now as a placeholder that just ingests the slab_uuid and adslab_uuid
         analysis_fw = Firework(analyzeUEffect(), parents=adslab_fws)
         fws.extend(adslab_fws)
         fws.append(analysis_fw)
-launchpad.add_wf(Workflow(fws, name="Slabs with U range"))
+launchpad.add_wf(Workflow(fws, name="Bulks with U range"))

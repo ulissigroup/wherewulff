@@ -38,14 +38,14 @@ class OptimizeAdslabsWithU(FiretaskBase):
     optional_params = ["adsite_index"]
 
     def run_task(self, fw_spec):
-        vis = self["vis"]
+        # vis = self["vis"]
         adsite_index = self["adsite_index"]
         adsorbates = self["adsorbates"]
         db_file = env_chk(self["db_file"], fw_spec)
         U_values = self[
             "U_values"
         ]  # FIXME: I think this needs to be a dictionary of element with values of +U
-        reduced_formula = self["reduced_formula"]
+        # reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
         #        bulk_slab_key = "_".join([reduced_formula, miller_index])
         # Get the slab uuid
@@ -76,9 +76,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
         ):
             orig_slab_uuid = mmdb.db["fireworks"].find_one({"spec.uuid": slab_uuid})[
                 "spec"
-            ]["uuid_lineage"][
-                0
-            ]  # FIXME: Think it is better to get the orig input from the WriteIOSet task itself
+            ]["uuid_lineage"][0]
         else:
             orig_slab_uuid = slab_uuid
         # Original Structure
@@ -102,9 +100,13 @@ class OptimizeAdslabsWithU(FiretaskBase):
         #        "incar"
         #    ]["MAGMOM"]
         orig_magmoms = slab_struct_orig.site_properties["magmom"]
+        # with magmoms from the dft_settings module
         orig_site_properties = slab_struct.site_properties
         # Replace the magmoms with the initial values
         orig_site_properties["magmom"] = orig_magmoms
+        orig_site_properties["selective_dynamics"] = slab_struct_orig.site_properties[
+            "selective_dynamics"
+        ]
         slab_struct = slab_struct.copy(site_properties=orig_site_properties)
         slab_struct.add_site_property("bulk_wyckoff", slab_wyckoffs)
         slab_struct.add_site_property("bulk_equivalent", slab_equivalents)
@@ -201,7 +203,9 @@ class OptimizeAdslabsWithU(FiretaskBase):
             elements = [el.name for el in adslab.composition.elements]
             # Assume that the adsorbate will not require +U and get the values from the U_values dict
             UU = [U_values[el] if el in U_values else 0 for el in elements]
-            UL = [2 if el in U_values else 0 for el in elements] #FIXME: Need to make this block dependent based 
+            UL = [
+                2 if el in U_values else 0 for el in elements
+            ]  # FIXME: Need to make this block dependent based
             # on which block the element to apply the on site potential to finds itself.
             UJ = [0 for el in elements]
             ads_vis = MOSurfaceSet(adslab, UU=UU, UJ=UJ, UL=UL, apply_U=True)
