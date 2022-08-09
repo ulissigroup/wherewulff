@@ -272,6 +272,9 @@ for coverage in range(1, 2):
             #            if not os.path.exists(dir_name):
             #                os.makedirs(dir_name)
             #            slab_ads.to(filename=f"./{dir_name}/POSCAR_{name}")
+            # Send an OptimizeFW calc to the hosted MongoDB for execution
+            block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
+            lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
             # Derive an oriented bulk onto which we will do a single point calculation
             # oriented_bulk_struct = pristine_slab.oriented_unit_cell
             # elements_bulk = [
@@ -279,6 +282,7 @@ for coverage in range(1, 2):
             # ]
             ## Send an OptimizeFW calc to the hosted MongoDB for execution
             elements = [el.name for el in pristine_slab.composition.elements]
+            blocks = {s.species_string: s.specie.block for s in pristine_slab}
             #            U_values = {el: U if el == "Ti" else 0 for el in elements}
             U_values = {"Ti": U}
             # vasp_input_set_bulk = MOSurfaceSet(
@@ -303,7 +307,7 @@ for coverage in range(1, 2):
                 bulk=False,
                 UJ=[0 for el in elements],
                 UU=[U_values[el] if el in U_values else 0 for el in elements],
-                UL=[2 if el in U_values else 0 for el in elements],
+                UL=[ block_dict[blocks[el]] if el in U_values else 0 for el in elements],
                 apply_U=True,
                 user_incar_settings={
                     #                    "LDAUJ": [0, 0],
@@ -311,7 +315,7 @@ for coverage in range(1, 2):
                     "LDAUPRINT": 0,
                     "LDAUTYPE": 2,
                     #                    "LDAUU": [U, 0], # assume applied to d orbitals but can vary
-                    "LMAXMIX": 4,
+                    "LMAXMIX": lmaxmix_dict[blocks[[k for k in U_values][0]]], # Assume user is varying only on specie at a time
                 },
             )
             #            vasp_input_set.incar.update({'LDAUJ': [0, 0]})
