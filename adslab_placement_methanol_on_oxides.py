@@ -331,7 +331,7 @@ for coverage in range(1, 2):
                 OptimizeAdslabsWithU(
                     reduced_formula=vasp_input_set.structure.composition.reduced_formula,
                     adsite_index=0,
-                    adsorbates=[molecule_rotations[0]],
+                    adsorbates=molecule_rotations,
                     db_file=DB_FILE,
                     miller_index="".join(
                         map(str, vasp_input_set.structure.miller_index)
