@@ -199,17 +199,27 @@ class OptimizeAdslabsWithU(FiretaskBase):
                 bulk_like_site_index = adsite_index
             bulk_like_site = bulk_like_shifted[bulk_like_site_index]
             adslab = add_adsorbates(optimized_slab.copy(), [bulk_like_site], adsorbate)
-            adslab.sort() # to be able to sync I/O
+            adslab.sort()  # to be able to sync I/O
             block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
             lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
             elements = [el.name for el in adslab.composition.elements]
             blocks = {s.species_string: s.specie.block for s in adslab}
             # Assume that the adsorbate will not require +U and get the values from the U_values dict
             UU = [U_values[el] if el in U_values else 0 for el in elements]
-            UL = [[ block_dict[blocks[el]] if el in U_values else 0 for el in elements]]
+            UL = [block_dict[blocks[el]] if el in U_values else 0 for el in elements]
             UJ = [0 for el in elements]
-            ads_vis = MOSurfaceSet(adslab, UU=UU, UJ=UJ, UL=UL, apply_U=True, user_incar_settings=
-                    {"LDAUPRINT": 0, "LDAUTYPE": 2, "LMAXMIX": lmaxmix_dict[blocks[[k for k in U_values][0]]]})
+            ads_vis = MOSurfaceSet(
+                adslab,
+                UU=UU,
+                UJ=UJ,
+                UL=UL,
+                apply_U=True,
+                user_incar_settings={
+                    "LDAUPRINT": 0,
+                    "LDAUTYPE": 2,
+                    "LMAXMIX": lmaxmix_dict[blocks[[k for k in U_values][0]]],
+                },
+            )
             name = f"{adslab.composition.reduced_formula}_{rot_idx}-{miller_index}_{UU}"
             ads_slab_uuid = str(uuid.uuid4())
             ads_slab_fw = AdsSlab_FW(
