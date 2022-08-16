@@ -96,11 +96,12 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # counts
             counter += 1
-            vasp_input_set = MOSurfaceSet(
-                structure,
-                psp_version="PBE_54",
-                bulk=True if is_bulk else False,
-                initial_magmoms=magmoms,
+            # vasp_input_set of parent, to be inherited by child, except for magmoms and structure
+            vasp_input_set_parent_updated_magmoms = MOSurfaceSet.from_dict(
+                fw_spec["_tasks"][0]["vasp_input_set"]
+            )
+            vasp_input_set_parent_updated_magmoms.user_incar_settings.update(
+                {"MAGMOM": magmoms}
             )
 
             # Create a unique uuid for child
@@ -111,7 +112,7 @@ class ContinueOptimizeFW(FiretaskBase):
                 name=fw_spec["name"],
                 structure=structure,
                 max_force_threshold=None,
-                vasp_input_set=vasp_input_set,
+                vasp_input_set=vasp_input_set_parent_updated_magmoms,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 job_type="normal",
@@ -211,7 +212,9 @@ class ContinueOptimizeFW(FiretaskBase):
             elif not is_bulk and not fw_spec.get("is_adslab"):
                 return FWAction(
                     update_spec={
-                        "oriented_uuid": fw_spec["oriented_uuid"] if "oriented_uuid" in fw_spec else None,
+                        "oriented_uuid": fw_spec["oriented_uuid"]
+                        if "oriented_uuid" in fw_spec
+                        else None,
                         "slab_uuid": fw_spec["uuid"],
                     }
                 )
