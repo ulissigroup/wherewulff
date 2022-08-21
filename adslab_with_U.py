@@ -218,6 +218,7 @@ class OptimizeAdslabsWithU(FiretaskBase):
                     "LDAUPRINT": 0,
                     "LDAUTYPE": 2,
                     "LMAXMIX": lmaxmix_dict[blocks[[k for k in U_values][0]]],
+                    "EDIFFG": -0.005,  # tighten threshold on U = 0
                 },
             )
             name = f"{adslab.composition.reduced_formula}_{rot_idx}-{miller_index}_{UU}"
