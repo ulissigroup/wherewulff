@@ -187,7 +187,7 @@ class SlabFlows:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=3,
+                min_slab_size=4, # fixed for test purposes
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,
