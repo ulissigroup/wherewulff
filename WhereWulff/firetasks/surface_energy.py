@@ -53,7 +53,6 @@ class SurfaceEnergyFireTask(FiretaskBase):
     optional_params = ["to_db"]
 
     def run_task(self, fw_spec):
-        breakpoint()
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
         slab_formula = self["slab_formula"]
@@ -216,7 +215,6 @@ class SurfaceEnergyFireTask(FiretaskBase):
         # FIXME: Need to cycle through the potential references to see which one
         # yields excess_deficiency_factors that are integers
         # reference = "O"
-        breakpoint()
         bulk_num_atoms_dict = self.oriented_struct.composition.get_el_amt_dict()
         slab_num_atoms_dict = self.slab_struct.composition.get_el_amt_dict()
         for reference in bulk_num_atoms_dict:
