@@ -1,6 +1,9 @@
 from pymatgen.core import Structure, Molecule
 from pymatgen.io.cif import CifParser
 from pymatgen.core.surface import Slab
+from pymatgen.transformations.standard_transformations import (
+    AutoOxiStateDecorationTransformation,
+)
 from pymongo import MongoClient
 from CatFlows.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 from CatFlows.workflows.surface_pourbaix import (
@@ -197,7 +200,6 @@ pristine_slab.oriented_unit_cell.remove_oxidation_states()
 
 # Freeze the bottom half of the slab
 pristine_slab = SelectiveDynamics.center_of_mass(pristine_slab)
-breakpoint()
 
 mxidegen = MXideAdsorbateGenerator(
     pristine_slab,
@@ -244,6 +246,20 @@ launchpad = LaunchPad(
     password="gfde223223222rft3",
 )
 
+oxid_transformer = AutoOxiStateDecorationTransformation()
+relaxed_slab_U_zero = set_bulk_magmoms(
+    oxid_transformer.apply_transformation(
+        Structure.from_file("CONTCAR_slab_U_zero_110")
+    )
+)
+relaxed_adslab_U_zero = set_bulk_magmoms(
+    oxid_transformer.apply_transformation(
+        Structure.from_file("POSCAR_adslab_3-110_0.0")
+    )
+)
+relaxed_slab_U_zero.remove_oxidation_states()
+relaxed_adslab_U_zero.remove_oxidation_states()
+breakpoint()
 # for coverage in range(len(bulk_like_shifted), len(bulk_like_shifted) + 1):
 for coverage in range(1, 2):
     # Mutate the bulk_like_sites based on the coverage
@@ -276,13 +292,13 @@ for coverage in range(1, 2):
             block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
             lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
             # Derive an oriented bulk onto which we will do a single point calculation
-            # oriented_bulk_struct = pristine_slab.oriented_unit_cell
+            # oriented_bulk_struct = relaxed_slab_U_zero.oriented_unit_cell
             # elements_bulk = [
             #    el.name for el in oriented_bulk_struct.composition.elements
             # ]
             ## Send an OptimizeFW calc to the hosted MongoDB for execution
-            elements = [el.name for el in pristine_slab.composition.elements]
-            blocks = {s.species_string: s.specie.block for s in pristine_slab}
+            elements = [el.name for el in relaxed_slab_U_zero.composition.elements]
+            blocks = {s.species_string: s.specie.block for s in relaxed_slab_U_zero}
             #            U_values = {el: U if el == "Ti" else 0 for el in elements}
             U_values = {"Ti": U}
             # vasp_input_set_bulk = MOSurfaceSet(
@@ -303,11 +319,11 @@ for coverage in range(1, 2):
             #    },
             # )
             vasp_input_set = MOSurfaceSet(
-                pristine_slab,
+                relaxed_slab_U_zero,
                 bulk=False,
                 UJ=[0 for el in elements],
                 UU=[U_values[el] if el in U_values else 0 for el in elements],
-                UL=[ block_dict[blocks[el]] if el in U_values else 0 for el in elements],
+                UL=[block_dict[blocks[el]] if el in U_values else 0 for el in elements],
                 apply_U=True,
                 user_incar_settings={
                     #                    "LDAUJ": [0, 0],
@@ -315,7 +331,10 @@ for coverage in range(1, 2):
                     "LDAUPRINT": 0,
                     "LDAUTYPE": 2,
                     #                    "LDAUU": [U, 0], # assume applied to d orbitals but can vary
-                    "LMAXMIX": lmaxmix_dict[blocks[[k for k in U_values][0]]], # Assume user is varying only on specie at a time
+                    "LMAXMIX": lmaxmix_dict[
+                        blocks[[k for k in U_values][0]]
+                    ],  # Assume user is varying only on specie at a time
+                    "EDIFFG": -0.005,
                 },
             )
             #            vasp_input_set.incar.update({'LDAUJ': [0, 0]})
@@ -327,19 +346,21 @@ for coverage in range(1, 2):
             #    vasp_input_set=vasp_input_set_bulk,
             #    name=f"{oriented_bulk_struct.composition.reduced_formula}-{U}",
             # )
-
             # Root node is the Slab at a specific U value
-            slab_fw = Slab_FW(pristine_slab, vasp_input_set=vasp_input_set)
+            slab_fw = Slab_FW(
+                relaxed_slab_U_zero,
+                vasp_input_set=vasp_input_set,
+                add_slab_metadata=False,
+            )
             # Create FW that will spawn the adslabs for across all the adsorbates
             adslab_fw = Firework(
                 OptimizeAdslabsWithU(
                     reduced_formula=vasp_input_set.structure.composition.reduced_formula,
-                    adsite_index=0,
-                    adsorbates=molecule_rotations,
+                    adslab=relaxed_adslab_U_zero,
+                    #        adsite_index=0,
+                    #        adsorbates=molecule_rotations,
                     db_file=DB_FILE,
-                    miller_index="".join(
-                        map(str, vasp_input_set.structure.miller_index)
-                    ),
+                    miller_index="110",
                     U_values=U_values,
                     vis=vasp_input_set,
                 ),
