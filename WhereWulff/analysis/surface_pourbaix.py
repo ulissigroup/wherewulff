@@ -181,7 +181,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 "output"
             ]["structure"]
         )
-        breakpoint()
         slab_clean, slab_clean_orig = self._add_site_properties(
             slab_clean, mmdb, uuid_termination=slab_uuid
         )
