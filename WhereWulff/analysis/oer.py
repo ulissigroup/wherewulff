@@ -54,7 +54,6 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
     optional_params = ["to_db"]
 
     def run_task(self, fw_spec):
-        breakpoint()
         # Variables
         db_file = env_chk(self.get("db_file"), fw_spec)
         to_db = self.get("to_db", True)
