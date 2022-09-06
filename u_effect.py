@@ -49,13 +49,13 @@ class analyzeUEffect(FiretaskBase):
             # Place the results in a dict
             slab_energy = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
                 "calcs_reversed"
-            ][0]["output"]["energy"]
+            ][0]["output"]["ionic_steps"][-1]["e_0_energy"]
             slab_bandgap = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
                 "calcs_reversed"
             ][0]["output"]["bandgap"]
             adslab_energy = mmdb.db["tasks"].find_one({"uuid": adslab_uuid})[
                 "calcs_reversed"
-            ][0]["output"]["energy"]
+            ][0]["output"]["ionic_steps"][-1]["e_0_energy"]
             contcar = mmdb.db["tasks"].find_one({"uuid": adslab_uuid})[
                 "calcs_reversed"
             ][0]["output"]["structure"]
