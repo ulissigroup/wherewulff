@@ -100,7 +100,6 @@ class SlabAdsFireTask(FiretaskBase):
 
             # Re-build PMG Slab object from optimized structures
             slab_candidates = []
-            breakpoint()
             for miller_index, bulk_slab_key in zip(
                 filtered_slab_miller_indices, bulk_slab_keys
             ):
@@ -150,7 +149,6 @@ class SlabAdsFireTask(FiretaskBase):
                 )
                 slab_struct_orig.sort()  # So we can rely on order to do perturbation corrections
                 # Strip orig slab object of oxi states to accommodate MXide
-                breakpoint()
                 slab_struct_orig.remove_oxidation_states()
                 slab_struct_orig.oriented_unit_cell.remove_oxidation_states()
 
