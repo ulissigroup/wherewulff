@@ -86,10 +86,13 @@ class ContinueOptimizeFW(FiretaskBase):
                 db["tasks"].find_one({"uuid": fw_spec["uuid"]})["output"]["structure"]
             )
             # Slab object of parent
-            if not fw_spec["is_bulk"]:
+            try:
                 slab = Slab.from_dict(
                     db["tasks"].find_one({"uuid": fw_spec["uuid"]})["slab"]
                 )
+            except KeyError:  # no slab_metadata
+                slab = None
+                pass
 
             # Retriving magnetic moments from parent
             magmoms = structure.site_properties["magmom"]
@@ -155,7 +158,7 @@ class ContinueOptimizeFW(FiretaskBase):
             )
 
             # Make sure that the child task doc from VaspToDB has the "Slab" object with wyckoff positions
-            if counter > 0 and not fw_spec["is_bulk"]:
+            if counter > 0 and slab:
                 fw_new.tasks[5]["additional_fields"].update({"slab": slab})
 
             # Get the environment that the parent ran on (either laikapack or nersc for now) and enforce that
@@ -209,9 +212,13 @@ class ContinueOptimizeFW(FiretaskBase):
                 )
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
+                if "oriented_uuid" in fw_spec:
+                    oriented_uuid = fw_spec["oriented_uuid"]
+                else:
+                    oriented_uuid = None
                 return FWAction(
                     update_spec={
-                        "oriented_uuid": fw_spec["oriented_uuid"] if "oriented_uuid" in fw_spec else None,
+                        "oriented_uuid": oriented_uuid,
                         "slab_uuid": fw_spec["uuid"],
                     }
                 )
