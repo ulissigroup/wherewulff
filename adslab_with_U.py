@@ -29,17 +29,17 @@ class OptimizeAdslabsWithU(FiretaskBase):
 
     required_params = [
         "reduced_formula",
-        "adsorbates",
         "db_file",
         "miller_index",
         "U_values",
         "vis",
     ]
-    optional_params = ["adsite_index"]
+    optional_params = ["adsite_index", "adslab", "adsorbates"]
 
     def run_task(self, fw_spec):
         # vis = self["vis"]
         adsite_index = self["adsite_index"]
+        adslab = self["adslab"]
         adsorbates = self["adsorbates"]
         db_file = env_chk(self["db_file"], fw_spec)
         U_values = self[
@@ -171,35 +171,80 @@ class OptimizeAdslabsWithU(FiretaskBase):
 
         # Now we create the adslabs across all rotations of the adsorbate for a specific U value
         adslab_fws = []
-        for rot_idx, adsorbate in enumerate(adsorbates):
+        if adsorbates is not None and adslab is None:
+            for rot_idx, adsorbate in enumerate(adsorbates):
 
-            # Place a single adsorbate using MXide
+                # Place a single adsorbate using MXide
 
-            mxidegen = MXideAdsorbateGenerator(
-                original_slab,
-                repeat=[1, 1, 1],
-                verbose=False,
-                positions=["MX_adsites"],  # tol=1.59,# relax_tol=0.025
-            )
-            bulk_like, _ = mxidegen.get_bulk_like_adsites()
-            #            adslabs, bulk_like_shifted = get_clockwise_rotations(
-            #                original_slab, optimized_slab, adsorbate
-            #            )
-            # Bondlength and X
-            _, X = mxidegen.bondlengths_dict, mxidegen.X
-            bulk_like_shifted = _bulk_like_adsites_perturbation(
-                original_slab, optimized_slab, bulk_like, X=X
-            )
-            # Choose random site
-            if adsite_index is None:
-                bulk_like_site_index = np.random.choice(
-                    np.arange(len(bulk_like_shifted))
+                mxidegen = MXideAdsorbateGenerator(
+                    original_slab,
+                    repeat=[1, 1, 1],
+                    verbose=False,
+                    positions=["MX_adsites"],  # tol=1.59,# relax_tol=0.025
                 )
-            else:
-                bulk_like_site_index = adsite_index
-            bulk_like_site = bulk_like_shifted[bulk_like_site_index]
-            adslab = add_adsorbates(optimized_slab.copy(), [bulk_like_site], adsorbate)
-            adslab.sort()  # to be able to sync I/O
+                bulk_like, _ = mxidegen.get_bulk_like_adsites()
+                #            adslabs, bulk_like_shifted = get_clockwise_rotations(
+                #                original_slab, optimized_slab, adsorbate
+                #            )
+                # Bondlength and X
+                _, X = mxidegen.bondlengths_dict, mxidegen.X
+                bulk_like_shifted = _bulk_like_adsites_perturbation(
+                    original_slab, optimized_slab, bulk_like, X=X
+                )
+                # Choose random site
+                if adsite_index is None:
+                    bulk_like_site_index = np.random.choice(
+                        np.arange(len(bulk_like_shifted))
+                    )
+                else:
+                    bulk_like_site_index = adsite_index
+                bulk_like_site = bulk_like_shifted[bulk_like_site_index]
+                adslab = add_adsorbates(
+                    optimized_slab.copy(), [bulk_like_site], adsorbate
+                )
+                adslab.sort()  # to be able to sync I/O
+                block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
+                lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
+                elements = [el.name for el in adslab.composition.elements]
+                blocks = {s.species_string: s.specie.block for s in adslab}
+                # Assume that the adsorbate will not require +U and get the values from the U_values dict
+                UU = [U_values[el] if el in U_values else 0 for el in elements]
+                UL = [
+                    block_dict[blocks[el]] if el in U_values else 0 for el in elements
+                ]
+                UJ = [0 for el in elements]
+                ads_vis = MOSurfaceSet(
+                    adslab,
+                    UU=UU,
+                    UJ=UJ,
+                    UL=UL,
+                    apply_U=True,
+                    user_incar_settings={
+                        "LDAUPRINT": 0,
+                        "LDAUTYPE": 2,
+                        "LMAXMIX": lmaxmix_dict[blocks[[k for k in U_values][0]]],
+                        "EDIFFG": -0.005,  # tighten threshold on U = 0
+                    },
+                )
+                name = f"{adslab.composition.reduced_formula}_{rot_idx}-{miller_index}_{UU}"
+                ads_slab_uuid = str(uuid.uuid4())
+                ads_slab_fw = AdsSlab_FW(
+                    adslab,
+                    name=name,
+                    slab_uuid=slab_uuid,
+                    ads_slab_uuid=ads_slab_uuid,
+                    vasp_cmd=VASP_CMD,
+                    db_file=db_file,
+                    run_fake=False,
+                    vasp_input_set=ads_vis,  # Need a different U setting to accommodate the adsorbate
+                )
+                adslab_fws.append(ads_slab_fw)
+            return FWAction(detours=adslab_fws)
+        elif (
+            adslab is not None and adsorbates is None
+        ):  # We are providing an optimized adslab directly and relaxing from that initial guess under a specific U
+            # We already have the relaxed adslab under U=0
+            adslab.sort()
             block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
             lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
             elements = [el.name for el in adslab.composition.elements]
@@ -233,10 +278,9 @@ class OptimizeAdslabsWithU(FiretaskBase):
                 run_fake=False,
                 vasp_input_set=ads_vis,  # Need a different U setting to accommodate the adsorbate
             )
-            adslab_fws.append(ads_slab_fw)
+            return FWAction(detours=[ads_slab_fw])
 
         # Spawn the new adslab fws and the post-processing/analysis workflow through FWAction
         # The post-processing task needs to be a child for all the adslab_fws as part of a workflow
         # Then we trigger an action, which is to create the workflow
         # TODO: Post-processing goes here
-        return FWAction(detours=adslab_fws)
