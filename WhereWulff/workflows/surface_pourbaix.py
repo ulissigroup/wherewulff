@@ -192,9 +192,6 @@ def SurfacePBX_WF(
         surface_pbx_uuid=surface_pbx_uuid,
     )
 
-    # Create the workflow
-    from CatFlows.workflows.oer import OER_WF
-
     oer_fw = OER_WF(
         bulk_structure=bulk_structure,
         miller_index=slab_miller_index,
