@@ -414,8 +414,7 @@ def AdsSlab_FW(
             "is_bulk": False,
         },
     )
-    breakpoint()
-    if run_fake and "-Ru-" not in name and "-Co-" not in name and False:
+    if run_fake and "-Ru-" not in name and "-Co-" not in name:
         assert (
             "RuO2" in name
             or "IrO2" in name
