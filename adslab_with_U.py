@@ -38,7 +38,6 @@ class OptimizeAdslabsWithU(FiretaskBase):
 
     def run_task(self, fw_spec):
         # vis = self["vis"]
-        breakpoint()
         adsite_index = self.get('adsite_index', None)
         adslab = self.get('adslab', None)
         adsorbates = self.get("adsorbates", None)
