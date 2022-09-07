@@ -66,8 +66,6 @@ class OERSingleSiteFireTask(FiretaskBase):
         run_fake = self.get("run_fake", False)
         surface_pbx_uuid = self["surface_pbx_uuid"]
 
-        breakpoint()
-
         # User-defined parameters !
         # applied_potential = 1.60  # volts
         # applied_pH = 0  # pH conditions
