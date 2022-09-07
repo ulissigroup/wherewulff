@@ -100,7 +100,6 @@ class WulffShapeFW(FiretaskBase):
                 surface_energies_dict.update({miller_index: surface_energy})
                 structures_dict.update({d["miller_index"]: slab_struct})
 
-        breakpoint()
         # Wulff Analysis
         wulffshape_obj, wulff_info, area_frac_dict = self.get_wulff_analysis(
             bulk_structure, surface_energies_dict
@@ -114,8 +113,6 @@ class WulffShapeFW(FiretaskBase):
         summary_dict["wulff_info"] = wulff_info
         summary_dict["area_fractions"] = area_frac_dict
         summary_dict["slab_structures"] = structures_dict
-
-        breakpoint()
 
         # Plot
         if wulff_plot:
