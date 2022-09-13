@@ -234,10 +234,19 @@ molecule_formula = "".join(molecule_comp.keys())
 molecule_rotations = mxidegen.get_transformed_molecule_MXides(
     mol_meth, axis=[0, 0, 1], angles_list=angles
 )
+
+breakpoint()
+for rot_idx in range(len(molecule_rotations)):
+    slab_ads = pristine_slab.copy()
+    slab_ads = add_adsorbates(
+            slab_ads, bulk_like, molecule_rotations[rot_idx]
+            )
+    slab_ads.sort()
+    slab_ads.to(filename=f"POSCAR_110_OH_TiO2_{rot_idx}")
 # placement
 adslab_dict = {}
 fws = []
-Us = np.linspace(0, 6, 3)
+Us = np.arange(0,8,0.5)
 launchpad = LaunchPad(
     host="localhost",
     name="fw_oal",
