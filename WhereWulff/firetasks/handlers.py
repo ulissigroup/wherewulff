@@ -106,11 +106,13 @@ class ContinueOptimizeFW(FiretaskBase):
 
             # counts
             counter += 1
-            vasp_input_set = MOSurfaceSet(
-                structure,
-                psp_version="PBE_54",
-                bulk=True if is_bulk else False,
-                initial_magmoms=magmoms,
+            # vasp_input_set of parent, to be inherited by child, except for magmoms and structure
+            vasp_input_set_parent_dict = fw_spec["_tasks"][0]["vasp_input_set"]
+            # Update structure and magmoms tied to the parent input set with that of the child
+            vasp_input_set_parent_dict["structure"] = structure.as_dict()
+            vasp_input_set_parent_dict["user_incar_settings"] = {"MAGMOM": magmoms}
+            vasp_input_set_parent_updated_struct_magmoms = MOSurfaceSet.from_dict(
+                vasp_input_set_parent_dict
             )
 
             # Create a unique uuid for child
@@ -124,7 +126,7 @@ class ContinueOptimizeFW(FiretaskBase):
                 name=fw_spec["name"],
                 structure=structure,
                 max_force_threshold=None,
-                vasp_input_set=vasp_input_set,
+                vasp_input_set=vasp_input_set_parent_updated_struct_magmoms,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 job_type="normal",
