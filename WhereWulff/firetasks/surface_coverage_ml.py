@@ -203,6 +203,7 @@ class SurfaceCoverageMLFireTask(FireTaskBase):
                 remaining_site_indices.remove(previous_index)
 
         # Store stable config into summary_dict
+        summary_dict["bulk_like_shifted"] = self.bulk_like_shifted
         summary_dict["stable_config"] = pmg_stable_config.as_dict()
         pmg_stable_config.to(filename="POSCAR_most_stable")
 
