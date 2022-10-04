@@ -59,7 +59,17 @@ class SurfaceCoverageMLFireTask(FireTaskBase):
         The most stable surface coverage, using ML.
     """
 
-    required_params = ["slab", "slab_ref", "adsorbate", "model_checkpoint", "model_config", "db_file"]
+    required_params = ["slab", 
+    "slab_ref", 
+    "adsorbate",
+    "miller_index",
+    "slab_uuid",
+    "oriented_uuid",
+    "ads_slab_uuids",
+    "model_checkpoint", 
+    "model_config", 
+    "db_file"
+    ]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -68,12 +78,20 @@ class SurfaceCoverageMLFireTask(FireTaskBase):
         slab = self["slab"]
         slab_ref = self["slab_ref"]
         adsorbate = self["adsorbate"]
+        miller_index = self["miller_index"]
+        slab_uuid = self["slab_uuid"]
+        oriented_uuids = self["oriented_uuids"]
+        ads_slab_uuids = self["ads_slab_uuids"]
         model_checkpoint = env_chk(self["model_checkpoint"], fw_spec)
         model_config = env_chk(self["model_config"], fw_spec)
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"slab": slab.as_dict(),
                         "slab_ref": slab_ref.as_dict(),
                         "adsorbate": adsorbate.as_dict(),
+                        "miller_index": miller_index,
+                        "slab_uuid": slab_uuid,
+                        "oriented_uuids": oriented_uuids,
+                        "ads_slab_uuids": ads_slab_uuids,
                         "model_checkpoint": model_checkpoint,
                         "model_config": model_config,
         }
