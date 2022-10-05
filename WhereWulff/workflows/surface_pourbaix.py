@@ -18,6 +18,8 @@ from WhereWulff.fireworks.optimize import AdsSlab_FW
 from WhereWulff.fireworks.surface_pourbaix import SurfacePBX_FW
 from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 from WhereWulff.workflows.oer import OER_WF
+from WhereWulff.fireworks.surface_coverage_ml import SurfaceCoverageML_FW
+from WhereWulff.config import MODEL_CHECKPOINT, MODEL_CONFIG
 
 
 # Angles list
@@ -165,11 +167,13 @@ def SurfacePBX_WF(
     slab_uuid,
     oriented_uuid,
     adsorbates,
-    vasp_cmd=VASP_CMD,
-    db_file=DB_FILE,
     metal_site="",
     applied_potential=1.60,
     applied_pH=0.0,
+    vasp_cmd=VASP_CMD,
+    db_file=DB_FILE,
+    model_checkpoint=MODEL_CHECKPOINT,
+    model_config=MODEL_CONFIG
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
@@ -186,27 +190,48 @@ def SurfacePBX_WF(
     reduced_formula = slab.composition.reduced_formula
     slab_miller_index = "".join(list(map(str, slab.miller_index)))
 
-    # Generate a set of OptimizeFW additons that will relax all the adslab in parallel
-    ads_slab_orig = {}
+    # Generate surface coverage with ML and relax with DFT
     for adsorbate in adsorbates:
-        adslabs, bulk_like_shifted = get_clockwise_rotations(slab_orig, slab, adsorbate)
-        for adslab_label, adslab in adslabs.items():
-            name = (
-                f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
-            )
-            ads_slab_uuid = str(uuid.uuid4())
-            ads_slab_fw = AdsSlab_FW(
-                adslab,
-                name=name,
-                oriented_uuid=oriented_uuid,
-                slab_uuid=slab_uuid,
-                ads_slab_uuid=ads_slab_uuid,
-                vasp_cmd=vasp_cmd,
-                db_file=db_file,
-            )
-            ads_slab_orig.update({adslab_label: adslab})
-            hkl_fws.append(ads_slab_fw)
-            hkl_uuids.append(ads_slab_uuid)
+        ads_slab_uuid = str(uuid.uuid4())
+        ads_formula = "".join(adsorbate.composition.as_dict().keys())
+        surf_cov_ml = SurfaceCoverageML_FW(
+            slab=slab,
+            slab_ref=slab_orig,
+            adsorbate=adsorbate,
+            miller_index=slab_miller_index,
+            slab_uuid=slab_uuid,
+            oriented_uuid=oriented_uuid,
+            ads_slab_uuid=ads_slab_uuid,
+            name=f"SurfaceCoverageML-{reduced_formula}-{slab_miller_index}-{ads_formula}",
+            db_file=db_file,
+            vasp_cmd=vasp_cmd,
+            model_checkpoint=model_checkpoint,
+            model_config=model_config,
+        )
+        hkl_fws.append(surf_cov_ml)
+        hkl_uuids.append(ads_slab_uuid)
+
+    # Generate a set of OptimizeFW additons that will relax all the adslab in parallel
+#    ads_slab_orig = {}
+#    for adsorbate in adsorbates:
+#        adslabs, bulk_like_shifted = get_clockwise_rotations(slab_orig, slab, adsorbate)
+#        for adslab_label, adslab in adslabs.items():
+#            name = (
+#                f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
+#            )
+#            ads_slab_uuid = str(uuid.uuid4())
+#            ads_slab_fw = AdsSlab_FW(
+#                adslab,
+#                name=name,
+#                oriented_uuid=oriented_uuid,
+#                slab_uuid=slab_uuid,
+#                ads_slab_uuid=ads_slab_uuid,
+#                vasp_cmd=vasp_cmd,
+#                db_file=db_file,
+#            )
+#            ads_slab_orig.update({adslab_label: adslab})
+#            hkl_fws.append(ads_slab_fw)
+#            hkl_uuids.append(ads_slab_uuid)
 
     # Surface PBX Diagram for each surface orientation
     surface_pbx_uuid = str(uuid.uuid4())
@@ -227,8 +252,8 @@ def SurfacePBX_WF(
         bulk_structure=bulk_structure,
         miller_index=slab_miller_index,
         slab_orig=slab_orig,
-        bulk_like_sites=bulk_like_shifted,
-        ads_dict_orig=ads_slab_orig,
+        #bulk_like_sites=bulk_like_shifted,
+        #ads_dict_orig=ads_slab_orig,
         metal_site=metal_site,
         applied_potential=applied_potential,
         applied_pH=applied_pH,
