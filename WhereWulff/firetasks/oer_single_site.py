@@ -45,8 +45,8 @@ class OERSingleSiteFireTask(FiretaskBase):
         "reduced_formula",
         "miller_index",
         "slab_orig",
-        "bulk_like_sites",
-        "ads_dict_orig",
+#        "bulk_like_sites",
+#        "ads_dict_orig",
         "metal_site",
         "applied_potential",
         "applied_pH",
@@ -61,9 +61,9 @@ class OERSingleSiteFireTask(FiretaskBase):
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
-        # slab_orig = self["slab_orig"]
-        bulk_like_sites = self["bulk_like_sites"]
-        ads_dict_orig = self["ads_dict_orig"]
+        #slab_orig = self["slab_orig"]
+        #bulk_like_sites = self["bulk_like_sites"]
+        #ads_dict_orig = self["ads_dict_orig"]
         metal_site = self["metal_site"]
         applied_potential = self["applied_potential"]
         applied_pH = self["applied_pH"]
@@ -99,20 +99,33 @@ class OERSingleSiteFireTask(FiretaskBase):
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
 
         # Retrieve the surface termination as input
+#        if surface_termination == "ox":
+#            stable_surface_orig = ads_dict_orig["O_1"]
+#        elif surface_termination == "oh":
+#            n_oh_rotation = pbx_doc["n_oh_rotation"]
+#            stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
+#        else:
+#            stable_surface_orig = clean_surface
+
+        # Retrieve the bulk_like_sites from SurfaceCoverageML
+        surfcov_ml_collection = mmdb.db[f"{reduced_formula}_{miller_index}_{surface_termination}_surface_coverage_ml"]
+        surfcov_ml_doc = surfcov_ml_collection.find_one({"slab_uuid": parent_dict["slab_uuid"]})
+
+        # stable surface orig based on termination
         if surface_termination == "ox":
-            stable_surface_orig = ads_dict_orig["O_1"]
+            stable_surface_orig = surfcov_ml_doc["stable_config"]
         elif surface_termination == "oh":
-            n_oh_rotation = pbx_doc["n_oh_rotation"]
-            stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
+            stable_surface_orig = surfcov_ml_doc["stable_config"]
         else:
             stable_surface_orig = clean_surface
+
 
         # Generate OER single site intermediates (WNA)
         oer_wna = OER_SingleSite(
             stable_surface,
             slab_orig=stable_surface_orig,
             slab_clean=clean_surface,
-            bulk_like_sites=bulk_like_sites,
+            bulk_like_sites=surfcov_ml_doc["bulk_like_shifted"],
             metal_site=metal_site,
             adsorbates=oer_adsorbates_dict,
         )
@@ -121,7 +134,7 @@ class OERSingleSiteFireTask(FiretaskBase):
 
         # Logger
         logger.info(
-            f"{reduced_formula}-{miller_index} at (pH = {applied_pH}, V = {applied_potential} is: {surface_termination}"
+            f"{reduced_formula}-{miller_index} at (pH = {applied_pH}, V = {applied_potential}) is: {surface_termination}"
         )
 
         # OER_WF
