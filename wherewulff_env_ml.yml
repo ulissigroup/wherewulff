@@ -6,10 +6,12 @@ channels:
     - pyg
     - nvidia
 dependencies:
-    - python=3.8
+    - python=3.9.*
+    - pip
     - numpy
     - pandas
     - matplotlib
+    - ase
     - pymatgen
     - enumlib
     - phonopy
@@ -22,6 +24,8 @@ dependencies:
     - pymatgen-db
     - pytorch=1.10
     - pyg
-    - lmdb
-    - python-lmdb
     - tqdm
+    - numba
+    - pip:
+        - wandb
+        - lmdb
