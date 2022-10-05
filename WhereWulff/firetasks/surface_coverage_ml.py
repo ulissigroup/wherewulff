@@ -19,6 +19,7 @@ from pymatgen.io.ase import AseAtomsAdaptor as AAA
 from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
+from WhereWulff.fireworks.optimize import AdsSlab_FW
 
 # OCP
 import torch
@@ -65,9 +66,10 @@ class SurfaceCoverageMLFireTask(FireTaskBase):
     "miller_index",
     "slab_uuid",
     "oriented_uuid",
-    "ads_slab_uuids",
+    "ads_slab_uuid",
     "model_checkpoint", 
     "model_config", 
+    "vasp_cmd",
     "db_file"
     ]
     optional_params = []
@@ -80,18 +82,21 @@ class SurfaceCoverageMLFireTask(FireTaskBase):
         adsorbate = self["adsorbate"]
         miller_index = self["miller_index"]
         slab_uuid = self["slab_uuid"]
-        oriented_uuids = self["oriented_uuids"]
-        ads_slab_uuids = self["ads_slab_uuids"]
+        oriented_uuid = self["oriented_uuid"]
+        ads_slab_uuid = self["ads_slab_uuid"]
         model_checkpoint = env_chk(self["model_checkpoint"], fw_spec)
         model_config = env_chk(self["model_config"], fw_spec)
         db_file = env_chk(self.get("db_file"), fw_spec)
+        vasp_cmd = self["vasp_cmd"]
+
+        # Summary dict
         summary_dict = {"slab": slab.as_dict(),
                         "slab_ref": slab_ref.as_dict(),
                         "adsorbate": adsorbate.as_dict(),
                         "miller_index": miller_index,
                         "slab_uuid": slab_uuid,
-                        "oriented_uuids": oriented_uuids,
-                        "ads_slab_uuids": ads_slab_uuids,
+                        "oriented_uuid": oriented_uuid,
+                        "ads_slab_uuid": ads_slab_uuid,
                         "model_checkpoint": model_checkpoint,
                         "model_config": model_config,
         }
@@ -208,13 +213,25 @@ class SurfaceCoverageMLFireTask(FireTaskBase):
         pmg_stable_config.to(filename="POSCAR_most_stable")
 
         # Collection
-        mmdb.collection = mmdb.db[f"{slab.composition.reduced_formula}_{adsorbate_formula} surface_coverage_ml"]
+        mmdb.collection = mmdb.db[f"{slab.composition.reduced_formula}_{miller_index}_{adsorbate_formula}_surface_coverage_ml"]
         mmdb.collection.insert_one(summary_dict)
 
         # Logger
         logger.info("Surface Coverage with ML, Done!")
 
-        return
+        # Ads_slab to optimize the predicted structure
+        name = f"{slab.composition.reduced_formula}-{miller_index}-{adsorbate_formula}"
+        ads_slab_fw = AdsSlab_FW(
+            pmg_stable_config,
+            name=name,
+            oriented_uuid=oriented_uuid,
+            slab_uuid=slab_uuid,
+            ads_slab_uuid=ads_slab_uuid,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
+
+        return FWAction(detours=[ads_slab_fw])
 
     def _get_angles(self, n_rotations=4):
         """Get angles"""
