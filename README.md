@@ -1,4 +1,4 @@
-<h1 align="center">WhereWulff <br/> (Under Development)</h1>
+# ![WhereWulff](/img/wherewulff_logo.png)
 
 
 [![WhereWulff](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff.yml/badge.svg)](https://github.com/ulissigroup/mo-wulff-workflow/actions/workflows/WhereWulff.yml)
