@@ -1,7 +1,6 @@
-<h1 align="center">WhereWulff <br/> (Under Development)</h1>
-
 <div aligh="center">
     <img src="img/wherewulff_logo.png" width="100""><br/>
+    <h1 align="center">WhereWulff <br/> (Under Development)</h1>
 </div>
 
 
