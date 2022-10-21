@@ -69,6 +69,8 @@ class analyzeUEffect(FiretaskBase):
                 "calcs_reversed"
             ][0]["output"]["bandgap"]
             if U_value in results_dict:  # update with the lowest energy config
+                results_dict[U_value]["adslab_energies"].append(adslab_energy)
+                results_dict[U_value]["configs_order"].append(k.split("_")[1])
                 if adslab_energy < results_dict[U_value]["adslab_energy"]:
                     results_dict[U_value]["adslab_energy"] = adslab_energy
                     results_dict[U_value]["has_adslab_converged"] = has_adslab_converged
@@ -92,6 +94,8 @@ class analyzeUEffect(FiretaskBase):
                     "magmoms": magmoms,
                     "slab_bandgap": slab_bandgap,
                     "adslab_bandgap": adslab_bandgap,
+                    "adslab_energies": [adslab_energy],
+                    "configs_order": [k.split("_")[1]]
                 }
         # Here we need to go over the adslab contcars and export them to disk for ase gui
         for U in results_dict:
@@ -99,7 +103,7 @@ class analyzeUEffect(FiretaskBase):
             Structure.from_dict(results_dict[U]["contcar"]).to(
                 filename=f"POSCAR_adslab_{config}_{U}"
             )
-
+        breakpoint()
         # Create pandas dict
         df = pd.DataFrame.from_dict(results_dict, orient="index")
         df_sort = df.sort_index()
