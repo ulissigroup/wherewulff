@@ -1,33 +1,23 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
-
+from atomate.vasp.config import DB_FILE, VASP_CMD
+from fireworks import LaunchPad, Workflow
+from pymatgen.analysis.local_env import VoronoiNN
+from pymatgen.core.surface import (SlabGenerator,
+                                   get_symmetrically_distinct_miller_indices)
 from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.core.surface import (
-    SlabGenerator,
-    get_symmetrically_distinct_miller_indices,
-)
-
-from pymatgen.analysis.local_env import VoronoiNN
-
-from pymatgen.transformations.standard_transformations import (
-    AutoOxiStateDecorationTransformation,
-)
-
-from fireworks import LaunchPad, Workflow
-from atomate.vasp.config import VASP_CMD, DB_FILE
-
-from WhereWulff.dft_settings.settings import (
-    set_bulk_magmoms,
-    SelectiveDynamics,
-)
-
+from pymatgen.transformations.standard_transformations import \
+    AutoOxiStateDecorationTransformation
+from WhereWulff.adsorption.adsorbate_configs import OH_Ox_list
+from WhereWulff.dft_settings.settings import (SelectiveDynamics,
+                                              set_bulk_magmoms)
+from WhereWulff.workflows.oer import OER_WF
+from WhereWulff.workflows.slab_ads import SlabAds_WF
 from WhereWulff.workflows.surface_energy import SurfaceEnergy_WF
 from WhereWulff.workflows.wulff_shape import WulffShape_WF
-from WhereWulff.workflows.slab_ads import SlabAds_WF
-from WhereWulff.workflows.oer import OER_WF
-from WhereWulff.adsorption.adsorbate_configs import OH_Ox_list
 
 
 # Surface Workflow method
@@ -78,6 +68,8 @@ class SlabFlows:
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
         run_fake=False,
+        streamline=False,
+        checkpoint_path=None,
     ):
 
         self.run_fake = run_fake
@@ -115,6 +107,14 @@ class SlabFlows:
         # PBX conditions
         self.applied_potential = applied_potential
         self.applied_pH = applied_pH
+
+        # ML used to streamline
+        self.streamline = streamline
+        self.checkpoint_path = checkpoint_path
+        if self.streamline and self.checkpoint_path is None:
+            raise ValueError(
+                "If wish to streamline need to provide checkpoint absolute path on server"
+            )
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -187,7 +187,7 @@ class SlabFlows:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=4, # fixed for test purposes
+                min_slab_size=3,  # fixed for test purposes
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,
@@ -220,6 +220,7 @@ class SlabFlows:
                         count_metal = count
                         slab_list.append(slab_cand)
             print(mi_index)
+            breakpoint()
         return slab_list
 
     def _get_all_wfs(self):
@@ -261,6 +262,8 @@ class SlabFlows:
             metal_site=self.metal_site,
             applied_potential=self.applied_potential,
             applied_pH=self.applied_pH,
+            streamline=self.streamline,
+            checkpoint_path=self.checkpoint_path,
         )
         return ads_slab_wfs, parents_fws
 
@@ -377,10 +380,20 @@ class SlabFlows:
             launchpad.add_wf(wulff_wf)
 
         else:
-            wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
+            # wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
+            # Add OER reactivity
+            if len(self.miller_indices) > 1:
+                wulff_wf, wulff_parents = self._get_wulff_analysis(parents=parents_list)
+
+                # Surface Pourbaix Diagram (OH/Ox)
+                ads_slab_wf, ads_slab_fws = self._get_ads_slab_wfs(
+                    parents=wulff_parents
+                )
+            else:  # case where there is only one surface orientation
+                # skip the Wulff
+                ads_slab_wf, ads_slab_fws = self._get_ads_slab_wfs(parents=parents_list)
 
             # Ads slab into the launchpad
-            ads_slab_wf = self._get_ads_slab_wfs(parents=wulff_parents)
             launchpad.add_wf(ads_slab_wf)
 
         return launchpad
