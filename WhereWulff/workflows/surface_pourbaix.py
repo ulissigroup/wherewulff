@@ -1,16 +1,263 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+
 import uuid
+
 import numpy as np
-
-from pymatgen.core.periodic_table import Element
-
+import torch
+from ase.constraints import FixAtoms
+from atomate.vasp.config import DB_FILE, VASP_CMD
 from fireworks import Workflow
-from atomate.vasp.config import VASP_CMD, DB_FILE
-
+from ocpmodels.common.relaxation.ase_utils import OCPCalculator
+from ocpmodels.common.utils import setup_imports
+from ocpmodels.datasets import data_list_collater
+from ocpmodels.preprocessing import AtomsToGraphs
+from ocpmodels.trainers import ForcesTrainer
+from pymatgen.core.periodic_table import Element
+from pymatgen.core.structure import Structure
+from pymatgen.core.surface import Slab
+from pymatgen.io.ase import AseAtomsAdaptor as AAA
+from scipy.spatial.distance import pdist, squareform
+from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 from WhereWulff.fireworks.optimize import AdsSlab_FW
 from WhereWulff.fireworks.surface_pourbaix import SurfacePBX_FW
-from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 from WhereWulff.workflows.oer import OER_WF
+
+
+class SurfaceCoverageML(object):
+    """
+    Given a surface structure and an adsorbate,
+    predict the most stable termination using OCP models.
+
+    Args:
+        slab             (pmg struct)  : Pymatgen Structure object of a clean slab model.
+        slab_ref         (pmg struct)  : Pymatgen Structure object origin of the slab after optimization.
+        adsorbate        (pmg molecule): Adsorbate to be placed as surface coverage, assuming full monolayer.
+        model_checkpoint (env)         : Path to the best OCP model checkpoint (my_fworker.yml variable).
+        model_config     (env)         : Path to the OCP model configuration file (my_fworker.yml variable).
+        to_db            (bool)        : If results should be stored into db or local json file.
+        db_file          (env)         : Environment variable to connect to the DB.
+
+    Returns:
+        The most stable surface coverage, using ML.
+    """
+
+    def __init__(self, slab_ref, slab, adsorbate, checkpoint_path):
+
+        # Init the OCP calculator
+        self.calc = OCPCalculator(checkpoint=checkpoint_path)
+
+        # Init Atoms2Graph
+        self.a2g = AtomsToGraphs(
+            max_neigh=50,
+            radius=6,
+            r_energy=False,
+            r_forces=False,
+            r_distances=False,
+            r_edges=False,
+        )
+
+        # Init Mxide
+        mxidegen = MXideAdsorbateGenerator(
+            slab_ref, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"]
+        )
+
+        self.bulk_like, _ = mxidegen.get_bulk_like_adsites()
+        _, self.X = mxidegen.bondlengths_dict, mxidegen.X
+
+        # Perturb bulk_like_sites in case the slab model is optimized
+        self.bulk_like_shifted = self._bulk_like_adsites_perturbation(
+            slab_ref=slab_ref, slab=slab
+        )
+
+        # Set n_rotations
+        n = len(adsorbate[0]) if type(adsorbate).__name__ == "list" else len(adsorbate)
+        n_rotations = 1 if n == 1 else 4
+
+        # Get angles
+        self.angles = self._get_angles(n_rotations=n_rotations)
+
+        # Adsorbate formula
+        adsorbate_comp = adsorbate.composition.as_dict()
+        self.adsorbate_formula = "".join(adsorbate_comp.keys())
+
+        # Rotate adsorbate
+        self.adsorbate_rotations = mxidegen.get_transformed_molecule_MXides(
+            adsorbate, axis=[0, 0, 1], angles_list=self.angles
+        )
+
+        # (pseudo)-Randomly pick the first site
+        site_index = np.random.choice(len(self.bulk_like_shifted))
+        remaining_site_indices = list(range(len(self.bulk_like_shifted)))
+
+        # Place the 1st adsorbate on that site
+        square_distance_matrix = self._get_closest_neighbors(self.bulk_like_shifted)[1]
+
+        # Loop
+        counter = 0
+        while remaining_site_indices:
+            if len(remaining_site_indices) == len(self.bulk_like_shifted):
+                slab_ads = slab.copy()
+
+            (
+                site_1,
+                site_2,
+                remaining_site_indices,
+                square_distance_matrix,
+            ) = self.find_and_update_sites(
+                square_distance_matrix, remaining_site_indices
+            )
+            slab_ads = add_adsorbates(
+                slab_ads.copy(),
+                [self.bulk_like_shifted[site_1], self.bulk_like_shifted[site_2]],
+                self.adsorbate_rotations[0],
+            )
+            configs = self.rotate_site_indices(slab_ads, counter)
+            slab_ads = self.find_most_stable_dimer_config(configs)
+            counter += 1
+        breakpoint()
+        slab_ads.to(filename="POSCAR_most_stable")
+        self.pmg_stable_config = slab_ads.copy()
+
+    def find_and_update_sites(self, square_distance_matrix, remaining_site_indices):
+        row, column = np.unravel_index(
+            square_distance_matrix.argmin(), square_distance_matrix.shape
+        )
+        for index in [row, column]:
+            remaining_site_indices.remove(index)
+        square_distance_matrix[row, :] = np.inf
+        square_distance_matrix[:, column] = np.inf
+        square_distance_matrix[column, :] = np.inf
+        square_distance_matrix[:, row] = np.inf
+        return (row, column, remaining_site_indices, square_distance_matrix)
+
+    def rotate_site_indices(self, slab_ads, counter):
+        anchor_site_indices = np.where(
+            (np.array(slab_ads.site_properties["binding_site"]) == True)
+        )[0].tolist()[-2:]
+        adsorbate_indices_two = np.where(
+            (np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate")
+        )[0].tolist()[-len(self.adsorbate_rotations[0]) :]
+        adsorbate_indices_one = np.where(
+            (np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate")
+        )[0].tolist()[
+            -2 * len(self.adsorbate_rotations[0]) : -len(self.adsorbate_rotations[0])
+        ]
+
+        configs = []
+        # for site, other_site in rotate_site_indices:
+        for i, ang in enumerate(self.angles):
+            if len(configs) > 1:
+                slab_ads = configs[len(configs) - len(self.angles)].copy()
+            first_site = anchor_site_indices[0]
+            slab_ads.rotate_sites(
+                adsorbate_indices_one,
+                ang,
+                [0, 0, 1],
+                slab_ads[first_site].coords,
+                to_unit_cell=False,
+            )
+            # configs.append(slab_ads.copy())
+            second_site = anchor_site_indices[1]
+            for ang2 in self.angles:
+                slab_ads.rotate_sites(
+                    adsorbate_indices_two,
+                    ang2,
+                    [0, 0, 1],
+                    slab_ads[second_site].coords,
+                    to_unit_cell=False,
+                )
+                # slab_ads.to(filename=f"visuals/POSCAR_dimer_{counter}_{i}_{ang}_{ang2}")
+                configs.append(slab_ads.copy())
+
+        return configs
+
+    def find_most_stable_dimer_config(self, configs):
+        adslab_atoms = []
+        for config in configs:
+            atoms = AAA.get_atoms(config)
+            # Apply the tags for relaying to gemnet model
+            if "constraints" not in atoms.todict():
+                constraint_indices = [1] * len(atoms)
+            else:
+                constraint_indices = atoms.todict()["constraints"][
+                    0
+                ].get_indices()  # NOTE: This seamless transfer of properties seems to be only
+                # present in later versions of pymatgen
+            surface_properties = atoms.todict()["surface_properties"]
+            tags = []
+            for (is_adsorbate, atom) in zip(surface_properties, atoms):
+                if atom.index in constraint_indices:
+                    tags.append(0)  # bulk like
+                elif atom.index not in constraint_indices and not is_adsorbate:
+                    tags.append(1)  # surface
+                else:
+                    tags.append(2)  # adsorbate
+            atoms.set_tags(tags)
+            adslab_atoms.append(atoms)
+        graphs = self.a2g.convert_all(adslab_atoms)
+
+        # Place the tags on the graph objects
+        for graph, atoms in zip(graphs, adslab_atoms):
+            graph.tags = torch.LongTensor(
+                atoms.get_tags().astype(int)
+            )  # Need the dtype to be LongTensor and items to be int type
+
+        batch = data_list_collater(graphs, otf_graph=True)
+        predictions = self.calc.trainer.predict(
+            batch, per_image=False, disable_tqdm=True
+        )["energy"]
+        stable_index = predictions.sort().indices[0]
+        slab_ads = AAA.get_structure(adslab_atoms[stable_index])
+        return slab_ads
+
+    def _get_angles(self, n_rotations=8):
+        """Get angles"""
+        angles = []
+        for i in range(n_rotations):
+            deg = (2 * np.pi / n_rotations) * i
+            angles.append(deg)
+        return angles
+
+    def _get_closest_neighbors(self, sites):
+        """Get distances between bulk_like sites"""
+        sites_stack = np.vstack(sites)
+        distances = squareform(pdist(sites_stack, "euclidean"))
+        np.fill_diagonal(distances, np.inf)
+        site_pairs = list(
+            zip(range(len(self.bulk_like_shifted)), distances.argmin(axis=0))
+        )
+        return site_pairs, distances
+
+    def _bulk_like_adsites_perturbation(self, slab_ref, slab):
+        """Let's perturb bulk_like_sites with delta (x,y,z) comparing input and output"""
+        slab_ref_coords = slab_ref.cart_coords
+        slab_coords = slab.cart_coords
+
+        delta_coords = slab_coords - slab_ref_coords
+
+        metal_idx = []
+        for bulk_like_site in self.bulk_like:
+            min_dist = np.inf  # initialize min_dist register
+            min_metal_idx = 0
+            end_idx = np.where(
+                slab_ref.frac_coords[:, 2] >= slab_ref.center_of_mass[2]
+            )[0][-1]
+            for idx, site in enumerate(slab_ref):
+                if (
+                    site.specie != Element(self.X)
+                    and site.frac_coords[2] > slab_ref.center_of_mass[2]
+                ):
+                    dist = np.linalg.norm(bulk_like_site - site.coords)
+
+                    if dist < min_dist:
+                        min_dist = dist
+                        min_metal_idx = idx
+
+                if idx == end_idx:
+                    metal_idx.append(min_metal_idx)
+
+        bulk_like_deltas = [delta_coords[i] for i in metal_idx]
+        return [n + m for n, m in zip(self.bulk_like, bulk_like_deltas)]
 
 
 # Angles list
@@ -137,6 +384,8 @@ def SurfacePBX_WF(
     metal_site="",
     applied_potential=1.6,
     applied_pH=0,
+    streamline=False,
+    checkpoint_path=None,
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
@@ -155,8 +404,23 @@ def SurfacePBX_WF(
 
     # Generate a set of OptimizeFW additons that will relax all the adslab in parallel
     ads_slab_orig = {}
+    adslabs = {}
     for adsorbate in adsorbates:
-        adslabs, bulk_like_shifted = get_clockwise_rotations(slab_orig, slab, adsorbate)
+        if not streamline or len(adsorbate) == 1:
+            adslabs, bulk_like_shifted = get_clockwise_rotations(
+                slab_orig, slab, adsorbate
+            )
+        else:
+            # TODO: Find the most stable config with adsorbate monolayer
+            surface_pbx_ml = SurfaceCoverageML(
+                slab_orig, slab, adsorbate, checkpoint_path=checkpoint_path
+            )
+            adslabs.update(
+                {
+                    f"{surface_pbx_ml.adsorbate_formula}_1": surface_pbx_ml.pmg_stable_config
+                }
+            )
+            bulk_like_shifted = surface_pbx_ml.bulk_like_shifted
         for adslab_label, adslab in adslabs.items():
             name = (
                 f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
