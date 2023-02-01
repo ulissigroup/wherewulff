@@ -1,16 +1,13 @@
 import uuid
-import numpy as np
-from pydash.objects import has, get
 
+import numpy as np
+from atomate.utils.utils import env_chk
+from atomate.vasp.config import DB_FILE, VASP_CMD
+from atomate.vasp.database import VaspCalcDb
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pydash.objects import get, has
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
-
-from fireworks import FiretaskBase, FWAction, explicit_serialize
-
-from atomate.utils.utils import env_chk
-from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.config import VASP_CMD, DB_FILE
-
 from WhereWulff.workflows.surface_pourbaix import SurfacePBX_WF
 
 
@@ -42,6 +39,8 @@ class SlabAdsFireTask(FiretaskBase):
         "metal_site",
         "applied_potential",
         "applied_pH",
+        "streamline",
+        "checkpoint_path",
     ]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
@@ -53,6 +52,8 @@ class SlabAdsFireTask(FiretaskBase):
         adsorbates = self["adsorbates"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
+        streamline = self.get("streamline", False)
+        checkpoint_path = self.get("checkpoint_path", None)
         wulff_uuid = fw_spec.get("wulff_uuid", None)
         run_fake = self.get("run_fake", False)
         metal_site = self.get("metal_site", "")
@@ -243,8 +244,10 @@ class SlabAdsFireTask(FiretaskBase):
                     )
                 )
             # Generate independent WF for OH/Ox terminations + Surface PBX
+            breakpoint()
             hkl_pbx_wfs = []
             for slab_out, slab_inp, oriented_uuid, slab_uuid in slab_candidates:
+                breakpoint()
                 hkl_pbx_wf = SurfacePBX_WF(
                     bulk_structure=bulk_structure,
                     slab=slab_out,
@@ -258,6 +261,8 @@ class SlabAdsFireTask(FiretaskBase):
                     metal_site=metal_site,
                     applied_potential=applied_potential,
                     applied_pH=applied_pH,
+                    streamline=streamline,
+                    checkpoint_path=checkpoint_path,
                 )
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 
