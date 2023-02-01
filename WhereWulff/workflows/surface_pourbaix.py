@@ -71,7 +71,7 @@ class SurfaceCoverageML(object):
 
         # Set n_rotations
         n = len(adsorbate[0]) if type(adsorbate).__name__ == "list" else len(adsorbate)
-        n_rotations = 1 if n == 1 else 4
+        n_rotations = 1 if n == 1 else 8
 
         # Get angles
         self.angles = self._get_angles(n_rotations=n_rotations)
@@ -114,7 +114,17 @@ class SurfaceCoverageML(object):
             configs = self.rotate_site_indices(slab_ads, counter)
             slab_ads = self.find_most_stable_dimer_config(configs)
             counter += 1
-        breakpoint()
+        # Cast the structure into a Slab object
+        slab_ads = Slab(
+            slab_ads.lattice,
+            slab_ads.species,
+            slab_ads.frac_coords,
+            miller_index=slab.miller_index,
+            oriented_unit_cell=slab.oriented_unit_cell,
+            shift=0,
+            scale_factor=0,
+            site_properties=slab_ads.site_properties,
+        )
         slab_ads.to(filename="POSCAR_most_stable")
         self.pmg_stable_config = slab_ads.copy()
 
