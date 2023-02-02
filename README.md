@@ -146,11 +146,11 @@ This work was supported by the National Research Council (NRC) and the Army Rese
 If you use this codebase in your work, please consider citing:
 
 ```bibtex
-@article{wherewulff2022,
-title = {WhereWulff: An Autonomous Workflow to Democratize and Scale Complex Material Discovery for Electrocatalysis},
-author = {Rohan Yuri Sanspeur, Javier Heras-Domingo and Zachary Ulissi},
+@article{wherewulff2023,
+title = {WhereWulff: A semi-autonomous workflow for systematic catalyst surface reactivity under reaction conditions},
+author = {Rohan Yuri Sanspeur, Javier Heras-Domingo, John R. Kitchin and Zachary Ulissi},
 journal = {in preparation},
-year = {2022},
+year = {2023},
 }
 ```
 
