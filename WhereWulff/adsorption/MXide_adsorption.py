@@ -214,25 +214,35 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             errors or neighboring sites slightly further away
         :return (float): M-O bond length
         """
-
-        min_dists = []
+        # Get all the sites that are not oxygen
+        metal_sites = [site for site in self.bulk if site.species_string != self.X]
+        max_r = 0.0
         max_bond_lengths_dict = {}
-        for site in self.bulk:
-            if site.species_string != self.X:
-                dist = min(
-                    [
-                        nn.distance(site)
-                        for nn in self.bulk.get_neighbors(site, max_r)
-                        if nn.species_string == self.X
-                    ]
-                )
-                if (
-                    site.species_string in max_bond_lengths_dict
-                    and dist * tol > max_bond_lengths_dict[site.species_string]
-                ):
-                    max_bond_lengths_dict[site.species_string] = dist * tol
-                elif site.species_string not in max_bond_lengths_dict:
-                    max_bond_lengths_dict[site.species_string] = dist * tol
+        for site in metal_sites:
+            while all(
+                [
+                    nn.species_string == self.X
+                    for nn in self.bulk.get_neighbors(site, max_r)
+                ]
+            ):
+                max_r += 0.01
+            # Dynamically bound the search to be able to safely apply max operator
+            max_r -= 0.01
+            distances = [
+                nn.distance(site)
+                for nn in self.bulk.get_neighbors(site, max_r)
+                if nn.species_string == self.X
+            ]
+            dist = max(distances)
+            site_key = site.bulk_wyckoff + site.species_string
+
+            if (
+                site_key in max_bond_lengths_dict
+                and dist > max_bond_lengths_dict[site_key]
+            ):  # Go on the safer bigger length:
+                max_bond_lengths_dict[site_key] = dist
+            elif site_key not in max_bond_lengths_dict:
+                max_bond_lengths_dict[site_key] = dist
 
         return max_bond_lengths_dict
 
@@ -556,20 +566,20 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             if site.surface_properties == "surface" and site.species_string == self.X
         ]
         for surfsite in self.slab:
-            if (
-                surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]
-            ):  # and abs(sum(surfsite.coords - np.array([9.717,11.903,31.921]))) < 0.05:
+            if surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]:
+                surfsite_key = surfsite.bulk_wyckoff + surfsite.species_string
                 surf_nn = self.slab.get_neighbors(
-                    surfsite, self.bondlengths_dict[surfsite.species_string]
+                    surfsite, self.bondlengths_dict[surfsite_key]
                 )
                 for bulksite in self.bulk:
                     if (
                         bulksite.bulk_wyckoff == surfsite.bulk_wyckoff
                         and bulksite.species_string == surfsite.species_string
                     ):
+                        bulksite_key = bulksite.bulk_wyckoff + bulksite.species_string
                         cn = len(
                             self.bulk.get_neighbors(
-                                bulksite, self.bondlengths_dict[bulksite.species_string]
+                                bulksite, self.bondlengths_dict[bulksite_key]
                             )
                         )
                         break
@@ -577,10 +587,11 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     continue
                 for site in self.slab:
                     if site.species_string != self.X:
+                        site_key = site.bulk_wyckoff + site.species_string
                         bulk_frac_coords = [
                             nn.frac_coords
                             for nn in self.slab.get_neighbors(
-                                site, self.bondlengths_dict[site.species_string]
+                                site, self.bondlengths_dict[site_key]
                             )
                         ]
                         if len(bulk_frac_coords) == cn and (
@@ -775,7 +786,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             # now using the MM coord pairs as the base of our trapezoid,
             # find the height of the trapezoid represented as a vector.
             tri_base = (min_dist - OO_length) / 2  # half base of isosceles triangle
-            h = (self.bondlength ** 2 - tri_base ** 2) ** (1 / 2)  # solve for h
+            h = (self.bondlength**2 - tri_base**2) ** (1 / 2)  # solve for h
 
             # using the height, MM midpoint, the unit normal vector and
             # dimer length, solve for the two positions of the dimer coupling
