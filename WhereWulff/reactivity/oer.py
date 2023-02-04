@@ -1,11 +1,13 @@
 import numpy as np
 
 from pymatgen.core.structure import Structure, Molecule
+from pymatgen.core.surface import Slab
 from pymatgen.core.periodic_table import Element
 
 
 from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 from WhereWulff.adsorption.adsorbate_configs import oer_adsorbates_dict
+from WhereWulff.utils import find_most_stable_config
 
 
 class OER_SingleSite(object):
@@ -32,6 +34,8 @@ class OER_SingleSite(object):
         metal_site="",
         adsorbates=oer_adsorbates_dict,
         random_state=42,
+        streamline=False,
+        checkpoint_path=None,
     ):
         self.slab = slab
         self.slab_orig = slab_orig
@@ -40,6 +44,8 @@ class OER_SingleSite(object):
         self.metal_site = metal_site
         self.adsorbates = adsorbates
         self.random_state = random_state
+        self.streamline = streamline
+        self.checkpoint_path = checkpoint_path
 
         # We need to remove oxidation states
         self.slab_clean.remove_oxidation_states()
@@ -369,16 +375,65 @@ class OER_SingleSite(object):
         # Generate intermediantes depeding on Termination
         if self.surface_coverage[0] == "oxo":
             oh_intermediates = self._get_oer_intermediates(self.adsorbates["OH"])
+            if self.streamline:
+                configs = [
+                    Slab.from_dict(oh_intermediates[k]) for k in oh_intermediates.keys()
+                ]
+                slab_ads, slab_index = find_most_stable_config(
+                    configs, self.checkpoint_path
+                )
+                # Cast the Struct to Slab so can add metadata
+                slab_ads = Slab(
+                    slab_ads.lattice,
+                    slab_ads.species,
+                    slab_ads.frac_coords,
+                    miller_index=configs[0].miller_index,
+                    oriented_unit_cell=configs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=slab_ads.site_properties,
+                )
+
+                oh_intermediates = {f"OH_{slab_index}": slab_ads.as_dict()}
             ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
-            oer_intermediates = {
-                **reference_dict,
-                **oh_intermediates,
-                **ooh_up,
-                **ooh_down,
-            }
+            if self.streamline:
+                # Can commingle the OOH and pick only one
+                ooh_intermediates = {**ooh_down, **ooh_up}
+                configs = [
+                    Slab.from_dict(ooh_intermediates[k])
+                    for k in ooh_intermediates.keys()
+                ]
+                slab_ads, slab_index = find_most_stable_config(
+                    configs, self.checkpoint_path
+                )
+                slab_ads = Slab(
+                    slab_ads.lattice,
+                    slab_ads.species,
+                    slab_ads.frac_coords,
+                    miller_index=configs[0].miller_index,
+                    oriented_unit_cell=configs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=slab_ads.site_properties,
+                )
+                ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
+            if self.streamline:
+                oer_intermediates = {
+                    **reference_dict,
+                    **oh_intermediates,
+                    **ooh_intermediates,
+                }
+            else:
+                oer_intermediates = {
+                    **reference_dict,
+                    **oh_intermediates,
+                    **ooh_up,
+                    **ooh_down,
+                }
+
             return oer_intermediates
 
         elif self.surface_coverage[0] == "oh":
