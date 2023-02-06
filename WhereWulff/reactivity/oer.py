@@ -69,7 +69,7 @@ class OER_SingleSite(object):
             self.metal_site in active_sites_dict.keys()
         ), f"There is no available {self.metal_site} on the surface"
         self.ads_indices = active_sites_dict[self.metal_site]
-
+        # TODO: Need to create all possible references and pick the most stable one (active site)
         # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
 
@@ -197,8 +197,28 @@ class OER_SingleSite(object):
             ref_slab.add_site_property(
                 "magmom", self.slab_orig.site_properties["magmom"]
             )
-            reactive_site = np.random.choice(self.ads_indices)
-            ref_slab.remove_sites(indices=[reactive_site])
+            if self.checkpoint_path:  # streamline
+                ref_slabs = []
+                for active_site in self.ads_indices:
+                    ref_slab_copy = ref_slab.copy()
+                    ref_slab_copy.remove_sites(indices=[active_site])
+                    ref_slabs.append(ref_slab_copy)
+                ref_slab, reactive_site = find_most_stable_config(
+                    ref_slabs, self.checkpoint_path
+                )
+                ref_slab = Slab(
+                    ref_slab.lattice,
+                    ref_slab.species,
+                    ref_slab.frac_coords,
+                    miller_index=ref_slabs[0].miller_index,
+                    oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=ref_slab.site_properties,
+                )
+            else:  # random
+                reactive_site = np.random.choice(self.ads_indices)
+                ref_slab.remove_sites(indices=[reactive_site])
 
             return ref_slab, reactive_site
 
@@ -512,7 +532,7 @@ class OER_SingleSite(object):
                 slab_ads, slab_index = find_most_stable_config(
                     configs, self.checkpoint_path
                 )
-                slab_ads = Slab(
+                slab_ads = slab(
                     slab_ads.lattice,
                     slab_ads.species,
                     slab_ads.frac_coords,
