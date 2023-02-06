@@ -110,7 +110,13 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
 
         # Filter OER intermediates (reference, OH_n, O_n, OOH_up_n, OOH_down_n)
         oer_intermediates_uuid, oer_intermediates_energy = {}, {}
-        dft_energy_oh_min, dft_energy_ooh_up_min, dft_energy_ooh_down_min = (
+        (
+            dft_energy_oh_min,
+            dft_energy_ooh_up_min,
+            dft_energy_ooh_down_min,
+            dft_energy_ooh_min,
+        ) = (
+            np.inf,
             np.inf,
             np.inf,
             np.inf,
@@ -121,13 +127,17 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             adsorbate_label = oer_task_label.split("-")[3]
             # reference active site
             if "reference" in adsorbate_label:
-                dft_energy_reference = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                dft_energy_reference = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
+                    "e_0_energy"
+                ]
                 oer_uuid_reference = ads_slab_uuid
                 oer_intermediates_uuid["reference"] = oer_uuid_reference
                 oer_intermediates_energy["reference"] = dft_energy_reference
             # select OH intermediate as min dft energy
             if re.match("^OH_.*", adsorbate_label):
-                dft_energy_oh = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                dft_energy_oh = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
+                    "e_0_energy"
+                ]
                 if dft_energy_oh <= dft_energy_oh_min:
                     dft_energy_oh_min = dft_energy_oh
                     oer_uuid_oh = adsorbate_label
@@ -135,13 +145,17 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_energy["OH"] = dft_energy_oh_min
             # select Ox intermediate as min dft energy (no rotation - just one)
             if "O_" in adsorbate_label:
-                dft_energy_oh = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                dft_energy_oh = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
+                    "e_0_energy"
+                ]
                 oer_uuid_ox = adsorbate_label
                 oer_intermediates_uuid["Ox"] = oer_uuid_ox
                 oer_intermediates_energy["Ox"] = dft_energy_oh
             # select OOH_up intermediate as min dft energy
             if re.match("^OOH_up_.*", adsorbate_label):
-                dft_energy_ooh_up = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                dft_energy_ooh_up = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
+                    "e_0_energy"
+                ]
                 if dft_energy_ooh_up <= dft_energy_ooh_up_min:
                     oer_uuid_ooh_up = adsorbate_label
                     dft_energy_ooh_up_min = dft_energy_ooh_up
@@ -149,12 +163,24 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_energy["OOH_up"] = dft_energy_ooh_up_min
             # select OOH_down intermediate as min dft energy
             if "OOH_down_" in adsorbate_label:
-                dft_energy_ooh_down = doc_oer["calcs_reversed"][-1]["output"]["energy"]
+                dft_energy_ooh_down = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
+                    "e_0_energy"
+                ]
                 if dft_energy_ooh_down <= dft_energy_ooh_down_min:
                     oer_uuid_ooh_down = adsorbate_label
                     dft_energy_ooh_down_min = dft_energy_ooh_down
                     oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
                     oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
+            if re.match("^OOH_.*", adsorbate_label):  # streamline case
+                dft_energy_ooh = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
+                    "e_0_energy"
+                ]
+                if dft_energy_ooh <= dft_energy_ooh_min:
+                    oer_uuid_ooh = adsorbate_label
+                    dft_energy_ooh_min = dft_energy_ooh
+                    oer_intermediates_uuid["OOH"] = oer_uuid_ooh
+                    oer_intermediates_energy["OOH"] = dft_energy_ooh
+
         # Add termination as OER intermediate
         if surface_termination == "ox":
             oer_intermediates_energy["Ox"] = stable_termination.energy
@@ -185,27 +211,36 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             thermo_correction=None,
         )
 
-        delta_g_oer_dict["g_ox"] = eads_ox
-
         # Eads_OOH
-        eads_ooh_up = self.Eads_OOH(
-            oer_intermediates_energy["OOH_up"],
-            oer_intermediates_energy["reference"],
-            thermo_correction=None,
-        )
+        delta_g_oer_dict["g_ox"] = eads_ox
+        if (
+            "OOH_up" in oer_intermediates_energy
+            and "OOH_down" in oer_intermediates_energy
+        ):
+            eads_ooh_up = self.Eads_OOH(
+                oer_intermediates_energy["OOH_up"],
+                oer_intermediates_energy["reference"],
+                thermo_correction=None,
+            )
 
-        eads_ooh_down = self.Eads_OOH(
-            oer_intermediates_energy["OOH_down"],
-            oer_intermediates_energy["reference"],
-            thermo_correction=None,
-        )
+            eads_ooh_down = self.Eads_OOH(
+                oer_intermediates_energy["OOH_down"],
+                oer_intermediates_energy["reference"],
+                thermo_correction=None,
+            )
+            # Select between OOH_up and OOH_down
+            if eads_ooh_up <= eads_ooh_down:
+                delta_g_oer_dict["g_ooh"] = eads_ooh_up
 
-        # Select between OOH_up and OOH_down
-        if eads_ooh_up <= eads_ooh_down:
-            delta_g_oer_dict["g_ooh"] = eads_ooh_up
-
-        if eads_ooh_down <= eads_ooh_up:
-            delta_g_oer_dict["g_ooh"] = eads_ooh_down
+            if eads_ooh_down <= eads_ooh_up:
+                delta_g_oer_dict["g_ooh"] = eads_ooh_down
+        else:
+            eads_ooh = self.Eads_OOH(
+                oer_intermediates_energy["OOH"],
+                oer_intermediates_energy["reference"],
+                thermo_correction=None,
+            )
+            delta_g_oer_dict["g_ooh"] = eads_ooh
 
         # O2 evolution
         o2_evol = self.oxygen_evolution(delta_g_oer_dict["g_ooh"], std_potential=4.92)
@@ -221,7 +256,6 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         summary_dict["oer_info"] = oer_dict
         summary_dict["overpotential"] = overpotential
         summary_dict["PDS"] = pds_step
-
         # Export to json file
         with open(
             f"{self.reduced_formula}_{self.miller_index}_{self.metal_site}_oer.json",
