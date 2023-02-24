@@ -255,7 +255,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
             for k in excess_deficiency_factors_dict
             if k != reference
         }
-
+        breakpoint()
         surface_energy = (
             slab_E
             - (slab_bulk_ratio * oriented_E)

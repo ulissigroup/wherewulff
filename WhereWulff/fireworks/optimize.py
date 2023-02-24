@@ -2,7 +2,7 @@ from typing import Counter
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.utils.utils import get_meta_from_structure, env_chk
-from atomate.vasp.firetasks.run_calc import RunVaspFake, RunVaspDirect
+from atomate.vasp.firetasks.run_calc import RunVaspFake, RunVaspDirect, RunVaspCustodian
 import os
 
 from WhereWulff.dft_settings.settings import MOSurfaceSet
@@ -151,6 +151,11 @@ ref_dirs = {
     # BaTi2SnO6 - 110
     "BaTi2SnO6_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_bulk",
     "BaTi2SnO6_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_slab",
+    "BaTi2SnO6-110-OH_4": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_OH_4",
+    "BaTi2SnO6-110-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_OH_3",
+    "BaTi2SnO6-110-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_OH_2",
+    "BaTi2SnO6-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_OH_1",
+    "BaTi2SnO6-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_Ox",
 }
 
 
@@ -159,7 +164,7 @@ def Bulk_FW(
     name="",
     vasp_input_set=None,
     parents=None,
-    wall_time=43200,
+    wall_time=172800,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -190,7 +195,7 @@ def Bulk_FW(
 
     # FW
     fw = OptimizeFW(
-        name=name + "gpu",
+        name=name,
         structure=bulk,
         max_force_threshold=None,
         vasp_input_set=vasp_input_set,
@@ -256,7 +261,7 @@ def Slab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=43200,
+    wall_time=172800,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -287,7 +292,7 @@ def Slab_FW(
 
     # FW
     fw = OptimizeFW(
-        name=name + "gpu",
+        name=name,
         structure=slab,
         max_force_threshold=None,
         vasp_input_set=vasp_input_set,
@@ -363,7 +368,7 @@ def AdsSlab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=43200,
+    wall_time=172800,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -387,10 +392,11 @@ def AdsSlab_FW(
     # DFT Method
     if not vasp_input_set:
         vasp_input_set = MOSurfaceSet(slab, bulk=False)
+    breakpoint()
 
     # FW
     fw = OptimizeFW(
-        name=name + "gpu",
+        name=name + "_gpu",
         structure=slab,
         max_force_threshold=None,
         vasp_input_set=vasp_input_set,
@@ -414,7 +420,7 @@ def AdsSlab_FW(
             "is_bulk": False,
         },
     )
-    if run_fake and "-Ru-" not in name and "-Co-" not in name:
+    if run_fake and "-Ru-" not in name and "-Co-" not in name and "-Ti-" not in name:
         assert (
             "RuO2" in name
             or "IrO2" in name
@@ -427,8 +433,9 @@ def AdsSlab_FW(
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
+        #        fw.tasks[1] = RunVaspCustodian(vasp_cmd=vasp_cmd)
+        # Switch-off GzipDir for WAVECAR transferring
         fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
-        ## Switch-off GzipDir for WAVECAR transferring
         # fw.tasks[1].update({"gzip_output": False})
         ## Switch-on WalltimeHandler in RunVaspCustodian
         # if wall_time is not None:

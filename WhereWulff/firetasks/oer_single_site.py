@@ -93,6 +93,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             user_point, clean_2_oh_list, oh_2_ox_list
         )
 
+        breakpoint()
         # Retrieve the surface termination clean/OH/Ox geometries
         clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
@@ -105,6 +106,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             stable_surface_orig = ads_dict_orig[f"OH_{n_oh_rotation}"]
         else:
             stable_surface_orig = self["slab_orig"]  # Original pristine surface
+
         # Generate OER single site intermediates (WNA)
         oer_wna = OER_SingleSite(
             stable_surface,

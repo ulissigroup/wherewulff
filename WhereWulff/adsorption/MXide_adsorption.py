@@ -152,20 +152,21 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             and site.frac_coords[2] > self.slab.center_of_mass[2]
         ]
 
+        # FIXME: Do we need this called in the constructor???
         # Get bulk-like adsorption sites on top surface where adsorbate binds to M site
-        if "MX_adsites" in positions:
-            self.MX_adsites, self.MX_partitions = self.get_bulk_like_adsites()
-        else:
-            self.MX_adsites, self.MX_partitions = [], []
+        #if "MX_adsites" in positions:
+        #    self.MX_adsites, self.MX_partitions = self.get_bulk_like_adsites()
+        #else:
+        #    self.MX_adsites, self.MX_partitions = [], []
 
         # Get bulk-like adsorption sites on top surface where
         # adsorbate binds to X site to form the desired molecule
-        if "mvk_adsites" in positions:
-            self.mvk_adsites, self.mvk_partitions = self.get_surface_Xsites()
-        else:
-            self.mvk_adsites, self.mvk_partitions = [], []
-        if self.verbose:
-            print("Total adsites: ", len(self.MX_adsites) + len(self.mvk_adsites))
+        # if "mvk_adsites" in positions:
+        #    self.mvk_adsites, self.mvk_partitions = self.get_surface_Xsites()
+        # else:
+        #    self.mvk_adsites, self.mvk_partitions = [], []
+        # if self.verbose:
+        #    print("Total adsites: ", len(self.MX_adsites) + len(self.mvk_adsites))
 
         # Get CN of bulk Wyckoff position for BB analysis at surface later on
         bulk_wyckoff_cn = {}

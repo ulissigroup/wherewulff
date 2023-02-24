@@ -72,7 +72,6 @@ class ContinueOptimizeFW(FiretaskBase):
             print(f"{e}: Had trouble detecting errors in VaspRun...")
             wall_time_reached_errors = []
             pass
-
         # Imtermediate nodes that mutate the workflow
         if counter < fw_spec["max_tries"] and any(wall_time_reached_errors):
 

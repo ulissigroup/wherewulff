@@ -90,11 +90,19 @@ class OER_SingleSite(object):
 
     def _get_surface_termination(self):
         """Helper function to get whether the surface is OH or Ox terminated"""
+
+        # FIXME: Refer to the slab_orig and align it to the relaxed one by calling slab.sort()
+        self.slab_orig.sort()
+        self.slab.sort()
+        # Get the indices of the adsorbates from the slab_orig
+        termination_indices = np.where(
+            np.array(self.slab_orig.site_properties["surface_properties"])
+            == "adsorbate"
+        )[0].tolist()
         termination_info = [
-            [idx, site.specie, site.frac_coords]
-            for idx, site in enumerate(self.slab.sites)
-            if "surface_properties" in site.properties
-            and site.properties["surface_properties"] == "adsorbate"
+            [idx, self.slab[idx].specie, self.slab[idx].frac_coords]
+            for idx in termination_indices
+            # if "surface_properties" in site.properties
         ]
 
         # Filter sites information
@@ -203,7 +211,7 @@ class OER_SingleSite(object):
                     ref_slab_copy = ref_slab.copy()
                     ref_slab_copy.remove_sites(indices=[active_site])
                     ref_slabs.append(ref_slab_copy)
-                ref_slab, reactive_site = find_most_stable_config(
+                ref_slab, stable_index = find_most_stable_config(
                     ref_slabs, self.checkpoint_path
                 )
                 ref_slab = Slab(
@@ -220,7 +228,7 @@ class OER_SingleSite(object):
                 reactive_site = np.random.choice(self.ads_indices)
                 ref_slab.remove_sites(indices=[reactive_site])
 
-            return ref_slab, reactive_site
+            return ref_slab, self.ads_indices[stable_index]
 
         elif self.surface_coverage[0] == "oh":
             ref_slab = self.slab.copy()
@@ -234,13 +242,39 @@ class OER_SingleSite(object):
             ads_indices_hyd = [
                 site for site in self.termination_info if site[1] == Element("H")
             ]
-            reactive_site_oxygen = np.random.choice(ads_indices_oxygen)
-            hyd_site = self._find_nearest_hydrogen(
-                reactive_site_oxygen, ads_indices_hyd
-            )
-            reactive_site = [reactive_site_oxygen, hyd_site]
-            ref_slab.remove_sites(indices=reactive_site)
-
+            if self.checkpoint_path:  # streamline
+                ref_slabs = []
+                reactive_sites = []
+                for active_site in self.ads_indices:
+                    ref_slab_copy = ref_slab.copy()
+                    hyd_site = self._find_nearest_hydrogen(active_site, ads_indices_hyd)
+                    reactive_site = [active_site, hyd_site]
+                    ref_slab_copy.remove_sites(indices=reactive_site)
+                    reactive_sites.append(reactive_site)
+                    ref_slabs.append(ref_slab_copy)
+                ref_slab, stable_index = find_most_stable_config(
+                    ref_slabs, self.checkpoint_path
+                )
+                ref_slab = Slab(
+                    ref_slab.lattice,
+                    ref_slab.species,
+                    ref_slab.frac_coords,
+                    miller_index=ref_slabs[0].miller_index,
+                    oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=ref_slab.site_properties,
+                )
+                reactive_site = reactive_sites[stable_index]
+                reactive_site_oxygen = self.ads_indices[stable_index]
+            else:
+                reactive_site_oxygen = np.random.choice(ads_indices_oxygen)
+                hyd_site = self._find_nearest_hydrogen(
+                    reactive_site_oxygen, ads_indices_hyd
+                )
+                reactive_site = [reactive_site_oxygen, hyd_site]
+                ref_slab.remove_sites(indices=reactive_site)
+            breakpoint()
             return ref_slab, reactive_site_oxygen
         else:  # clean termination?
             ref_slab = self.slab_clean.copy()
@@ -336,7 +370,7 @@ class OER_SingleSite(object):
         return clean_slab
 
     def _get_oer_intermediates(
-        self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=4
+        self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=8
     ):
         """Returns OH/Ox/OOH intermediates"""
         # Adsorbate manipulation
