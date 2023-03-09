@@ -4,4 +4,5 @@
 ./atomate_run.sh
 main_slab_jh.py
 main_bulk_jh.py
+POTCAR
 *.cif
