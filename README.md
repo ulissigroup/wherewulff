@@ -132,6 +132,21 @@ Finally, submitting the workflow must be done through the same command as the pr
 ```bash
 qlaunch rapidfire -m 5
 ```
+## Example BaSrCo-001
+
+We have included all the input and output files from an end-to-end run of the bulk workflow and WhereWulff on BaSrCo2O6 structure. They are organized as follows and can be found on the `example_IO_run` branch:
+```bash
+Bulk Optimization: - BaSrCoO_001_bulk folder
+Slab Optimization: - BaSrCoO_001_slab folder
+Pourbaix Optimizations: - BaSrCoO_001_O_1 for full oxo terminations
+                        - BaSrCoO_001_OH_* for all hydroxyl terminations
+OER Reactivity Optimizations: - BaSrCoO_001_Co_OH_* for *OH intermediate on clean termination at Co active site
+                              - BaSrCoO_001_Co_Ox for *O intermediate on clean termination at Co active site
+                              - BaSrCoO_001_Co_OOH_up_* for *OOH up configuration on clean termination at Co active site
+                              - BaSrCoO_001_Co_OOH_down_* for *OOH down configuration on clean termination at Co active site
+```
+Since the OUTCAR and vasprun.xml files are large, they have been uploaded per LFS protocol. In order to download the contents one needs
+to have `git-lfs` installed. Subsequently, to download contents one can run the following command inside the repo: `git lfs pull`
 
 ## Acknowledgements
 
