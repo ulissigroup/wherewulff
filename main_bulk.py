@@ -8,7 +8,7 @@ LICENSE file in the root directory of this source tree.
 from WhereWulff.launchers.bulkflows import BulkFlows
 
 # Import CIF file
-cif_file = "<<YOUR_CIF_FILE>>"
+cif_file = "./BaSrCo2O6_bulk.cif"
 
 # BulkFlow method and config
 bulk_flow = BulkFlows(cif_file)
