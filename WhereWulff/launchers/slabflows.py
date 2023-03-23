@@ -1,19 +1,20 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 from atomate.vasp.config import DB_FILE, VASP_CMD
 from fireworks import LaunchPad, Workflow
 from pymatgen.analysis.local_env import VoronoiNN
-from pymatgen.core.surface import (SlabGenerator,
-                                   get_symmetrically_distinct_miller_indices)
+from pymatgen.core.surface import (
+    SlabGenerator,
+    get_symmetrically_distinct_miller_indices,
+)
 from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.transformations.standard_transformations import \
-    AutoOxiStateDecorationTransformation
+from pymatgen.transformations.standard_transformations import (
+    AutoOxiStateDecorationTransformation,
+)
 from WhereWulff.adsorption.adsorbate_configs import OH_Ox_list
-from WhereWulff.dft_settings.settings import (SelectiveDynamics,
-                                              set_bulk_magmoms)
+from WhereWulff.dft_settings.settings import SelectiveDynamics, set_bulk_magmoms
 from WhereWulff.workflows.oer import OER_WF
 from WhereWulff.workflows.slab_ads import SlabAds_WF
 from WhereWulff.workflows.surface_energy import SurfaceEnergy_WF
@@ -187,7 +188,7 @@ class SlabFlows:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=3,  # fixed for test purposes
+                min_slab_size=4,  # fixed for test purposes
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,

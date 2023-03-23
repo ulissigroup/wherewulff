@@ -34,7 +34,7 @@ class OER_SingleSite(object):
         metal_site="",
         adsorbates=oer_adsorbates_dict,
         random_state=42,
-        streamline=False,
+        # streamline=False,
         checkpoint_path=None,
     ):
         self.slab = slab
@@ -44,7 +44,7 @@ class OER_SingleSite(object):
         self.metal_site = metal_site
         self.adsorbates = adsorbates
         self.random_state = random_state
-        self.streamline = streamline
+        # self.streamline = streamline
         self.checkpoint_path = checkpoint_path
 
         # We need to remove oxidation states
@@ -429,7 +429,7 @@ class OER_SingleSite(object):
         # Generate intermediantes depeding on Termination
         if self.surface_coverage[0] == "oxo":
             oh_intermediates = self._get_oer_intermediates(self.adsorbates["OH"])
-            if self.streamline:
+            if self.checkpoint_path:
                 configs = [
                     Slab.from_dict(oh_intermediates[k]) for k in oh_intermediates.keys()
                 ]
@@ -453,7 +453,7 @@ class OER_SingleSite(object):
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
-            if self.streamline:
+            if self.checkpoint_path:
                 # Can commingle the OOH and pick only one
                 ooh_intermediates = {**ooh_down, **ooh_up}
                 configs = [
@@ -497,7 +497,7 @@ class OER_SingleSite(object):
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
-            if self.streamline:
+            if self.checkpoint_path:
                 ooh_intermediates = {**ooh_down, **ooh_up}
                 configs = [
                     Slab.from_dict(ooh_intermediates[k])
@@ -538,7 +538,7 @@ class OER_SingleSite(object):
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
-            if self.streamline:
+            if self.checkpoint_path:
                 configs = [
                     Slab.from_dict(oh_intermediates[k]) for k in oh_intermediates.keys()
                 ]

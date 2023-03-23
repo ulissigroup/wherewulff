@@ -39,20 +39,21 @@ class SlabAdsFireTask(FiretaskBase):
         "metal_site",
         "applied_potential",
         "applied_pH",
-        "streamline",
+        #"streamline",  # FIXME: Don't think this toggle is necessary; just check if checkpoint_path provided to switch to streamlined interface
         "checkpoint_path",
     ]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
         # Variables
+        checkpoint_path = env_chk(self["checkpoint_path"], fw_spec)  # abstract variable
         bulk_structure = self["bulk_structure"]  # already deserialized
         reduced_formula = self["reduced_formula"]
         slabs = self["slabs"]
         adsorbates = self["adsorbates"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        streamline = self.get("streamline", False)
+        # streamline = self.get("streamline", False)
         checkpoint_path = self.get("checkpoint_path", None)
         wulff_uuid = fw_spec.get("wulff_uuid", None)
         run_fake = self.get("run_fake", False)
@@ -261,7 +262,7 @@ class SlabAdsFireTask(FiretaskBase):
                     metal_site=metal_site,
                     applied_potential=applied_potential,
                     applied_pH=applied_pH,
-                    streamline=streamline,
+                    # streamline=streamline,
                     checkpoint_path=checkpoint_path,
                 )
                 hkl_pbx_wfs.append(hkl_pbx_wf)

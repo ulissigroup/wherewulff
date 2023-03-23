@@ -343,7 +343,7 @@ def SurfacePBX_WF(
     metal_site="",
     applied_potential=1.6,
     applied_pH=0,
-    streamline=False,
+    # streamline=False,
     checkpoint_path=None,
 ):
     """
@@ -365,7 +365,7 @@ def SurfacePBX_WF(
     ads_slab_orig = {}
     adslabs = {}
     for adsorbate in adsorbates:
-        if not streamline or len(adsorbate) == 1:
+        if not checkpoint_path or len(adsorbate) == 1:
             adslabs, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
             )
@@ -429,7 +429,7 @@ def SurfacePBX_WF(
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
         surface_pbx_uuid=surface_pbx_uuid,
-        streamline=streamline,
+        # streamline=streamline,
         checkpoint_path=checkpoint_path,
     )
 

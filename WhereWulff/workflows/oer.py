@@ -20,7 +20,7 @@ def OER_WF(
     db_file=DB_FILE,
     run_fake=False,
     surface_pbx_uuid="",
-    streamline=False,
+    # streamline=False,
     checkpoint_path=None,
 ):
     """
@@ -57,7 +57,7 @@ def OER_WF(
             vasp_cmd=vasp_cmd,
             run_fake=run_fake,
             surface_pbx_uuid=surface_pbx_uuid,
-            streamline=streamline,
+            # streamline=streamline,
             checkpoint_path=checkpoint_path,
         ),
         name=f"{bulk_formula}-{miller_index} OER Single Site WNA",

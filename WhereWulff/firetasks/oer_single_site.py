@@ -47,7 +47,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         "db_file",
         "run_fake",
         "surface_pbx_uuid",
-        "streamline",
+        # "streamline",
         "checkpoint_path",
     ]
     optional_params = []
@@ -67,7 +67,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         run_fake = self.get("run_fake", False)
         surface_pbx_uuid = self["surface_pbx_uuid"]
-        streamline = self.get("streamline", False)
+        # streamline = self.get("streamline", False)
         checkpoint_path = self.get("checkpoint_path", None)
 
         # User-defined parameters !
@@ -115,7 +115,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             bulk_like_sites=bulk_like_sites,
             metal_site=metal_site,
             adsorbates=oer_adsorbates_dict,
-            streamline=streamline,
+            # streamline=streamline,
             checkpoint_path=checkpoint_path,
         )
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
