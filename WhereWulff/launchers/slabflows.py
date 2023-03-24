@@ -69,7 +69,7 @@ class SlabFlows:
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
         run_fake=False,
-        streamline=False,
+        # streamline=False,
         checkpoint_path=None,
     ):
 
@@ -110,9 +110,9 @@ class SlabFlows:
         self.applied_pH = applied_pH
 
         # ML used to streamline
-        self.streamline = streamline
+        #self.streamline = streamline
         self.checkpoint_path = checkpoint_path
-        if self.streamline and self.checkpoint_path is None:
+        if self.checkpoint_path is None:
             raise ValueError(
                 "If wish to streamline need to provide checkpoint absolute path on server"
             )
@@ -263,7 +263,7 @@ class SlabFlows:
             metal_site=self.metal_site,
             applied_potential=self.applied_potential,
             applied_pH=self.applied_pH,
-            streamline=self.streamline,
+            #streamline=self.streamline,
             checkpoint_path=self.checkpoint_path,
         )
         return ads_slab_wfs, parents_fws
