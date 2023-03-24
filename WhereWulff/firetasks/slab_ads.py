@@ -256,7 +256,7 @@ class SlabAdsFireTask(FiretaskBase):
                     oriented_uuid=oriented_uuid,
                     adsorbates=adsorbates,
                     vasp_cmd=vasp_cmd,
-                    db_file=db_file,
+                    db_file=DB_FILE, # abstract variable
                     run_fake=run_fake,
                     metal_site=metal_site,
                     applied_potential=applied_potential,
