@@ -100,7 +100,7 @@ class SurfaceCoverageML(object):
             configs = self.rotate_site_indices(slab_ads, counter)
             slab_ads = find_most_stable_config(
                 configs, checkpoint_path=self.checkpoint_path
-            )
+            )[0]
             counter += 1
         # Cast the structure into a Slab object
         slab_ads = Slab(
