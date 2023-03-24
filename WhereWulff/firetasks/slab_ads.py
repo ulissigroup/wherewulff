@@ -54,7 +54,6 @@ class SlabAdsFireTask(FiretaskBase):
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         # streamline = self.get("streamline", False)
-        checkpoint_path = self.get("checkpoint_path", None)
         wulff_uuid = fw_spec.get("wulff_uuid", None)
         run_fake = self.get("run_fake", False)
         metal_site = self.get("metal_site", "")
