@@ -39,7 +39,7 @@ class SlabAdsFireTask(FiretaskBase):
         "metal_site",
         "applied_potential",
         "applied_pH",
-        #"streamline",  # FIXME: Don't think this toggle is necessary; just check if checkpoint_path provided to switch to streamlined interface
+        # "streamline",  # FIXME: Don't think this toggle is necessary; just check if checkpoint_path provided to switch to streamlined interface
         "checkpoint_path",
     ]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
@@ -256,13 +256,13 @@ class SlabAdsFireTask(FiretaskBase):
                     oriented_uuid=oriented_uuid,
                     adsorbates=adsorbates,
                     vasp_cmd=vasp_cmd,
-                    db_file=DB_FILE, # abstract variable
+                    db_file=DB_FILE,  # abstract variable
                     run_fake=run_fake,
                     metal_site=metal_site,
                     applied_potential=applied_potential,
                     applied_pH=applied_pH,
                     # streamline=streamline,
-                    checkpoint_path=checkpoint_path,
+                    checkpoint_path=">>checkpoint_path<<",  # abstract variable
                 )
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 
