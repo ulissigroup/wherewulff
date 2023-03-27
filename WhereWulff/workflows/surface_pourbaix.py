@@ -80,24 +80,35 @@ class SurfaceCoverageML(object):
 
         # Loop
         counter = 0
-        while remaining_site_indices:
+        while remaining_site_indices and not (square_distance_matrix == np.inf).all():
             if len(remaining_site_indices) == len(self.bulk_like_shifted):
                 slab_ads = slab.copy()
+                previous_site_1, previous_site_2 = None, None
+                original_sdm = None
+            else:
+                previous_site_1, previous_site_2 = site_1, site_2
 
             (
                 site_1,
                 site_2,
                 remaining_site_indices,
                 square_distance_matrix,
+                original_sdm,
             ) = self.find_and_update_sites(
-                square_distance_matrix, remaining_site_indices
+                square_distance_matrix,
+                remaining_site_indices,
+                previous_site_1,
+                previous_site_2,
+                original_sdm,
             )
             slab_ads = add_adsorbates(
                 slab_ads.copy(),
                 [self.bulk_like_shifted[site_1], self.bulk_like_shifted[site_2]],
                 self.adsorbate_rotations[0],
             )
-            configs = self.rotate_site_indices(slab_ads, counter)
+            configs = self.rotate_site_indices(
+                slab_ads, counter, single_site=True if site_2 is None else False
+            )
             slab_ads = find_most_stable_config(
                 configs, checkpoint_path=self.checkpoint_path
             )[0]
@@ -116,57 +127,109 @@ class SurfaceCoverageML(object):
         slab_ads.to(filename="POSCAR_most_stable")
         self.pmg_stable_config = slab_ads.copy()
 
-    def find_and_update_sites(self, square_distance_matrix, remaining_site_indices):
-        row, column = np.unravel_index(
-            square_distance_matrix.argmin(), square_distance_matrix.shape
-        )
-        for index in [row, column]:
-            remaining_site_indices.remove(index)
-        square_distance_matrix[row, :] = np.inf
-        square_distance_matrix[:, column] = np.inf
-        square_distance_matrix[column, :] = np.inf
-        square_distance_matrix[:, row] = np.inf
-        return (row, column, remaining_site_indices, square_distance_matrix)
+    def find_and_update_sites(
+        self,
+        square_distance_matrix,
+        remaining_site_indices,
+        previous_site_1,
+        previous_site_2,
+        original_sdm,
+    ):
+        if original_sdm is None:
+            original_sdm = square_distance_matrix.copy()
+        if len(remaining_site_indices) > 2:
+            square_distance_matrix = np.ma.array(
+                square_distance_matrix,
+                mask=square_distance_matrix < 2.3,  # FIXME: Should be user-defined?
+            )
+            square_distance_matrix = square_distance_matrix.filled(np.inf)
+            if previous_site_1 is not None and previous_site_2 is not None:
+                mask = (
+                    original_sdm[
+                        np.ix_(
+                            np.arange(original_sdm.shape[0]),
+                            [previous_site_1, previous_site_2],
+                        )
+                    ]
+                    > 2.3  # FIXME: Should be user-defined?
+                )
+                indices = np.where(mask == False)[
+                    0
+                ]  # Replace with inf the rows, columns yielded since these are too close to the previous index
+                if indices.size > 0:
+                    square_distance_matrix[indices] = np.inf
+                    square_distance_matrix[:, indices] = np.inf
 
-    def rotate_site_indices(self, slab_ads, counter):
-        anchor_site_indices = np.where(
+            if (square_distance_matrix == np.inf).all():
+                return (
+                    None,
+                    None,
+                    remaining_site_indices,
+                    square_distance_matrix,
+                    original_sdm,
+                )
+
+            row, column = np.unravel_index(  # Pick next site
+                square_distance_matrix.argmin(), square_distance_matrix.shape
+            )
+        elif len(remaining_site_indices) == 2:
+            row, column = remaining_site_indices
+        elif (
+            len(remaining_site_indices) == 1
+        ):  # Means we started with an odd number of sites
+            row, column = remaining_site_indices[0], None
+        else:
+            return None, None, remaining_site_indices, square_distance_matrix
+        for index in [row, column]:
+            if index is not None:
+                remaining_site_indices.remove(index)
+        if row is not None:
+            square_distance_matrix[row, :] = np.inf
+            square_distance_matrix[:, row] = np.inf
+        if column is not None:
+            square_distance_matrix[:, column] = np.inf
+            square_distance_matrix[column, :] = np.inf
+        return (
+            row,
+            column,
+            remaining_site_indices,
+            square_distance_matrix,
+            original_sdm,
+        )
+
+    def rotate_site_indices(self, slab_ads, counter, single_site=False):
+
+        rotate_site_indices = np.where(
             (np.array(slab_ads.site_properties["binding_site"]) == True)
         )[0].tolist()[-2:]
-        adsorbate_indices_two = np.where(
-            (np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate")
-        )[0].tolist()[-len(self.adsorbate_rotations[0]) :]
-        adsorbate_indices_one = np.where(
-            (np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate")
-        )[0].tolist()[
-            -2 * len(self.adsorbate_rotations[0]) : -len(self.adsorbate_rotations[0])
-        ]
-
         configs = []
         # for site, other_site in rotate_site_indices:
-        for i, ang in enumerate(self.angles):
-            if len(configs) > 1:
-                slab_ads = configs[len(configs) - len(self.angles)].copy()
-            first_site = anchor_site_indices[0]
+        for i, ang in enumerate(angles):
+            if len(configs) > 1 and not single_site:
+                slab_ads = configs[len(configs) - len(angles)].copy()
+            first_site = rotate_site_indices[0]
             slab_ads.rotate_sites(
-                adsorbate_indices_one,
+                [first_site, first_site + 1],
                 ang,
                 [0, 0, 1],
                 slab_ads[first_site].coords,
                 to_unit_cell=False,
             )
-            # configs.append(slab_ads.copy())
-            second_site = anchor_site_indices[1]
-            for ang2 in self.angles:
-                slab_ads.rotate_sites(
-                    adsorbate_indices_two,
-                    ang2,
-                    [0, 0, 1],
-                    slab_ads[second_site].coords,
-                    to_unit_cell=False,
-                )
-                # slab_ads.to(filename=f"visuals/POSCAR_dimer_{counter}_{i}_{ang}_{ang2}")
+            if single_site:
                 configs.append(slab_ads.copy())
-
+            # configs.append(slab_ads.copy())
+            else:
+                second_site = rotate_site_indices[1]
+                for ang2 in angles:
+                    slab_ads.rotate_sites(
+                        [second_site, second_site + 1],
+                        ang2,
+                        [0, 0, 1],
+                        slab_ads[second_site].coords,
+                        to_unit_cell=False,
+                    )
+                    slab_ads.to(filename=f"POSCAR_{counter}_dimer_{i}_{ang}_{ang2}")
+                    configs.append(slab_ads.copy())
         return configs
 
     def _get_angles(self, n_rotations=8):
