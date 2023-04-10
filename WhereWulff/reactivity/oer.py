@@ -65,6 +65,7 @@ class OER_SingleSite(object):
 
         # Select active site composition
         active_sites_dict = self._group_ads_sites_by_metal()
+        breakpoint()
         assert (
             self.metal_site in active_sites_dict.keys()
         ), f"There is no available {self.metal_site} on the surface"
@@ -72,7 +73,7 @@ class OER_SingleSite(object):
         # TODO: Need to create all possible references and pick the most stable one (active site)
         # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
-
+        breakpoint()
         # Mxide method
         self.mxidegen = self._mxidegen()
         if not self.surface_coverage[0] == "clean":
@@ -144,18 +145,30 @@ class OER_SingleSite(object):
 
     def _find_nearest_metal(self, reactive_idx):
         """Find reactive site by min distance between any metal and oxygen"""
-        reactive_site = [
-            site for idx, site in enumerate(self.slab) if idx == reactive_idx
-        ][0]
+        radius = 1
+        while not any(
+            [
+                site.species_string not in ["O", "H"]
+                for site in self.slab.get_neighbors(self.slab[reactive_idx], radius)
+            ]
+        ):
+            radius += 0.1
+            neighbors = [
+                nn for nn in self.slab.get_neighbors(self.slab[reactive_idx], radius)
+            ]
 
-        min_dist = np.inf
-        for site in self.slab:
-            if Element(site.specie).is_metal:
-                dist = site.distance(reactive_site)
-                if dist <= min_dist:
-                    min_dist = dist
-                    closest_metal = site
-        return closest_metal
+        # reactive_site = [
+        #    site for idx, site in enumerate(self.slab) if idx == reactive_idx
+        # ][0]
+
+        # min_dist = np.inf
+        # for site in self.slab:
+        #    if Element(site.specie).is_metal:
+        #        dist = site.distance(reactive_site)
+        #        if dist <= min_dist:
+        #            min_dist = dist
+        #            closest_metal = site
+        return [site for site in neighbors if site.species_string not in ["O", "H"]][0]
 
     def _group_ads_sites_by_metal(self):
         """Groups self.ads_indices by metal"""
@@ -274,7 +287,6 @@ class OER_SingleSite(object):
                 )
                 reactive_site = [reactive_site_oxygen, hyd_site]
                 ref_slab.remove_sites(indices=reactive_site)
-            breakpoint()
             return ref_slab, reactive_site_oxygen
         else:  # clean termination?
             ref_slab = self.slab_clean.copy()
