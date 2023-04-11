@@ -234,7 +234,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 for nn in self.bulk.get_neighbors(site, max_r)
                 if nn.species_string == self.X
             ]
-            dist = round(max(distances), 2) # To avoid precision-related discrepancies
+            dist = round(max(distances), 2)  # To avoid precision-related discrepancies
             site_key = site.bulk_wyckoff + site.species_string
 
             if (
@@ -592,7 +592,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         bulk_frac_coords = [
                             nn.frac_coords
                             for nn in self.slab.get_neighbors(
-                                site, self.bondlengths_dict[site_key]
+                                site, round(self.bondlengths_dict[site_key], 2)
                             )
                         ]
                         if len(bulk_frac_coords) == cn and (
