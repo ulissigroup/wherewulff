@@ -263,7 +263,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Graph Bounds - OER
         self.oer_std = self.oer_potential_std()
         self.oer_up = self.oer_potential_up()
-        breakpoint()
+        #breakpoint()
         self.clean_2_OH = self._get_surface_potential_line(
             ads_slab_terminations[ads_uuid_oh_min], slab_clean_energy, nH=nH, nH2O=nH2O
         )
@@ -304,7 +304,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         logger.info(
             f"{self.reduced_formula}-({self.miller_index}) Surface Pourbaix Done!"
         )
-        breakpoint()
+        #breakpoint()
 
         # Send the summary_dict to the child FW
         return FWAction(
