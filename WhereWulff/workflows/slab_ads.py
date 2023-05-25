@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from atomate.vasp.config import DB_FILE, VASP_CMD
 from fireworks import Firework, Workflow
@@ -16,8 +15,9 @@ def SlabAds_WF(
     metal_site="",
     applied_potential=1.60,
     applied_pH=0,
-    streamline=False,
+    # streamline=False,
     checkpoint_path=None,
+    is_metal=False,
 ):
     """
     Wrap-up workflow to do the Wulff Shape Analysis after MO_SLABS_WF.
@@ -46,8 +46,9 @@ def SlabAds_WF(
             metal_site=metal_site,
             applied_potential=applied_potential,
             applied_pH=applied_pH,
-            streamline=streamline,
+            # streamline=streamline,
             checkpoint_path=checkpoint_path,
+            is_metal=is_metal,
         ),
         name=f"{bulk_formula} Ads_slab optimization",
         parents=parents,
