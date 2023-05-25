@@ -39,14 +39,16 @@ class SlabAdsFireTask(FiretaskBase):
         "metal_site",
         "applied_potential",
         "applied_pH",
-        #"streamline",  # FIXME: Don't think this toggle is necessary; just check if checkpoint_path provided to switch to streamlined interface
+        # "streamline",  # FIXME: Don't think this toggle is necessary; just check if checkpoint_path provided to switch to streamlined interface
         "checkpoint_path",
+        "is_metal",
     ]
     optional_params = ["_pass_job_info", "_add_launchpad_and_fw_id"]
 
     def run_task(self, fw_spec):
         # Variables
         checkpoint_path = env_chk(self["checkpoint_path"], fw_spec)  # abstract variable
+        is_metal = self["is_metal"]
         bulk_structure = self["bulk_structure"]  # already deserialized
         reduced_formula = self["reduced_formula"]
         slabs = self["slabs"]
@@ -54,7 +56,6 @@ class SlabAdsFireTask(FiretaskBase):
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         # streamline = self.get("streamline", False)
-        checkpoint_path = self.get("checkpoint_path", None)
         wulff_uuid = fw_spec.get("wulff_uuid", None)
         run_fake = self.get("run_fake", False)
         metal_site = self.get("metal_site", "")
@@ -245,10 +246,8 @@ class SlabAdsFireTask(FiretaskBase):
                     )
                 )
             # Generate independent WF for OH/Ox terminations + Surface PBX
-            breakpoint()
             hkl_pbx_wfs = []
             for slab_out, slab_inp, oriented_uuid, slab_uuid in slab_candidates:
-                breakpoint()
                 hkl_pbx_wf = SurfacePBX_WF(
                     bulk_structure=bulk_structure,
                     slab=slab_out,
@@ -257,13 +256,14 @@ class SlabAdsFireTask(FiretaskBase):
                     oriented_uuid=oriented_uuid,
                     adsorbates=adsorbates,
                     vasp_cmd=vasp_cmd,
-                    db_file=db_file,
+                    db_file=DB_FILE,
                     run_fake=run_fake,
                     metal_site=metal_site,
                     applied_potential=applied_potential,
                     applied_pH=applied_pH,
                     # streamline=streamline,
                     checkpoint_path=checkpoint_path,
+                    is_metal=is_metal,  # FIXME: New parameter
                 )
                 hkl_pbx_wfs.append(hkl_pbx_wf)
 
