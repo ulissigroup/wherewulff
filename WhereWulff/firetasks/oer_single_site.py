@@ -94,7 +94,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             user_point, clean_2_oh_list, oh_2_ox_list
         )
 
-        breakpoint()
+        #breakpoint()
         # Retrieve the surface termination clean/OH/Ox geometries
         clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
