@@ -158,7 +158,7 @@ class SurfaceCoverageML(object):
             slab_ads, index = find_most_stable_config(
                 configs, checkpoint_path=self.checkpoint_path
             )
-        breakpoint()
+        #breakpoint()
         # Cast the structure into a Slab object
         slab_ads = Slab(
             slab_ads.lattice,
@@ -585,7 +585,7 @@ def SurfacePBX_WF(
     ads_slab_orig = {}
     adslabs = {}
     for adsorbate in adsorbates:
-        breakpoint()
+        #breakpoint()
         if (not checkpoint_path or len(adsorbate) == 1) and not is_metal:
             adslabs, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
@@ -657,5 +657,5 @@ def SurfacePBX_WF(
         all_fws,
         name=f"{slab.composition.reduced_formula}-{slab_miller_index}-PBX Workflow",
     )
-    breakpoint()
+    #breakpoint()
     return oer_wf
