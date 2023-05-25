@@ -19,6 +19,7 @@ from WhereWulff.fireworks.optimize import AdsSlab_FW
 from WhereWulff.fireworks.surface_pourbaix import SurfacePBX_FW
 from WhereWulff.workflows.oer import OER_WF
 from WhereWulff.utils import find_most_stable_config
+from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 
 
 class SurfaceCoverageML(object):
@@ -39,16 +40,23 @@ class SurfaceCoverageML(object):
         The most stable surface coverage, using ML.
     """
 
-    def __init__(self, slab_ref, slab, adsorbate, checkpoint_path):
+    def __init__(self, slab_ref, slab, adsorbate, is_metal, checkpoint_path):
 
         self.checkpoint_path = checkpoint_path
         # Init Mxide
-        mxidegen = MXideAdsorbateGenerator(
-            slab_ref, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"]
-        )
+        if not is_metal:  # MXide
+            mxidegen = MXideAdsorbateGenerator(
+                slab_ref, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"]
+            )
 
-        self.bulk_like, _ = mxidegen.get_bulk_like_adsites()
-        _, self.X = mxidegen.bondlengths_dict, mxidegen.X
+            self.bulk_like, _ = mxidegen.get_bulk_like_adsites()
+            _, self.X = mxidegen.bondlengths_dict, mxidegen.X
+        else:  # Metals
+            asf = AdsorbateSiteFinder(slab_ref)
+            self.bulk_like = asf.find_adsorption_sites(
+                positions=["bridge"], put_inside=True, symm_reduce=0
+            )["all"]
+            self.X = "not_oxide"
 
         # Perturb bulk_like_sites in case the slab model is optimized
         self.bulk_like_shifted = self._bulk_like_adsites_perturbation(
@@ -59,17 +67,35 @@ class SurfaceCoverageML(object):
         n = len(adsorbate[0]) if type(adsorbate).__name__ == "list" else len(adsorbate)
         n_rotations = 1 if n == 1 else 8
 
-        # Get angles
-        self.angles = self._get_angles(n_rotations=n_rotations)
-
         # Adsorbate formula
         adsorbate_comp = adsorbate.composition.as_dict()
         self.adsorbate_formula = "".join(adsorbate_comp.keys())
 
+        # if is_metal and n_rotations == 1:
+        #    slab_ads = slab.copy()
+        #    for site_pos in self.bulk_like_shifted:
+        #        asf = AdsorbateSiteFinder(slab_ads)
+        #        slab_ads = asf.add_adsorbate(adsorbate, site_pos)
+        #    slab_ads = Slab(
+        #        slab_ads.lattice,
+        #        slab_ads.species,
+        #        slab_ads.frac_coords,
+        #        miller_index=slab.miller_index,
+        #        oriented_unit_cell=slab.oriented_unit_cell,
+        #        shift=0,
+        #        scale_factor=0,
+        #        site_properties=slab_ads.site_properties,
+        #    )
+        #    self.pmg_stable_config = slab_ads.copy()
+        #    return
+
+        # Get angles
+        self.angles = self._get_angles(n_rotations=n_rotations)
+
         # Rotate adsorbate
-        self.adsorbate_rotations = mxidegen.get_transformed_molecule_MXides(
-            adsorbate, axis=[0, 0, 1], angles_list=self.angles
-        )
+        # self.adsorbate_rotations = mxidegen.get_transformed_molecule_MXides(
+        #    adsorbate, axis=[0, 0, 1], angles_list=self.angles
+        # )
 
         # (pseudo)-Randomly pick the first site
         site_index = np.random.choice(len(self.bulk_like_shifted))
@@ -80,7 +106,8 @@ class SurfaceCoverageML(object):
 
         # Loop
         counter = 0
-        while remaining_site_indices and not (square_distance_matrix == np.inf).all():
+        occ_site_indices = []
+        while remaining_site_indices and counter < 1:
             if len(remaining_site_indices) == len(self.bulk_like_shifted):
                 slab_ads = slab.copy()
                 previous_site_1, previous_site_2 = None, None
@@ -94,25 +121,44 @@ class SurfaceCoverageML(object):
                 remaining_site_indices,
                 square_distance_matrix,
                 original_sdm,
+                occ_site_indices,
             ) = self.find_and_update_sites(
                 square_distance_matrix,
                 remaining_site_indices,
                 previous_site_1,
                 previous_site_2,
                 original_sdm,
+                occ_site_indices,
+                slab_ads,
             )
-            slab_ads = add_adsorbates(
-                slab_ads.copy(),
-                [self.bulk_like_shifted[site_1], self.bulk_like_shifted[site_2]],
-                self.adsorbate_rotations[0],
-            )
-            configs = self.rotate_site_indices(
-                slab_ads, counter, single_site=True if site_2 is None else False
-            )
-            slab_ads = find_most_stable_config(
-                configs, checkpoint_path=self.checkpoint_path
-            )[0]
+            if site_1 is None and site_2 is None:
+                break
+            if not is_metal:
+                slab_ads = add_adsorbates(
+                    slab_ads.copy(),
+                    [self.bulk_like_shifted[site_1], self.bulk_like_shifted[site_2]],
+                    adsorbate,
+                )
+            else:
+                for site in [site_1, site_2]:
+                    if site is not None:
+                        asf = AdsorbateSiteFinder(slab_ads)
+                        slab_ads = asf.add_adsorbate(
+                            adsorbate, self.bulk_like_shifted[site]
+                        )
             counter += 1
+            if is_metal and n_rotations == 1:
+                continue  # There is no point rotating e.g Ox
+
+            configs = self.rotate_site_indices(
+                slab_ads,
+                counter,
+                single_site=True if site_2 is None and site_1 is not None else False,
+            )
+            slab_ads, index = find_most_stable_config(
+                configs, checkpoint_path=self.checkpoint_path
+            )
+        breakpoint()
         # Cast the structure into a Slab object
         slab_ads = Slab(
             slab_ads.lattice,
@@ -134,13 +180,38 @@ class SurfaceCoverageML(object):
         previous_site_1,
         previous_site_2,
         original_sdm,
-    ):
+        occ_site_indices,
+        slab_ads,
+    ):  # FIXME: Is there a way to project to reciprocal space so the pairwise distances factor in mirror periodic images or is it enough to
+        # model large supercells
+        # We need to make sure we locate sites that are close to periodic images of previously placed
+        # adsorbates
+        if len(remaining_site_indices) < len(self.bulk_like):
+            periodic_neighbors = [
+                slab_ads.get_sites_in_sphere(self.bulk_like[i], 2.4)
+                for i in remaining_site_indices
+            ]
+            periodic_mask = [
+                "O" in [y.species_string for y in x]
+                and "H" in [y.species_string for y in x]
+                for x in periodic_neighbors
+            ]
+            indices_to_exclude = np.array(remaining_site_indices)[
+                np.array(periodic_mask)
+            ]
+            for ind in indices_to_exclude:
+                square_distance_matrix[ind, :] = np.inf
+                square_distance_matrix[:, ind] = np.inf
+                remaining_site_indices.remove(ind)
+
+        # Let's constrain the sites to be at least 1 Angs apart since this is the average bond length
+        # of an O-H bond
+
         if original_sdm is None:
             original_sdm = square_distance_matrix.copy()
         if len(remaining_site_indices) > 2:
             square_distance_matrix = np.ma.array(
-                square_distance_matrix,
-                mask=square_distance_matrix < 2.3,  # FIXME: Should be user-defined?
+                square_distance_matrix, mask=square_distance_matrix < 2.3
             )
             square_distance_matrix = square_distance_matrix.filled(np.inf)
             if previous_site_1 is not None and previous_site_2 is not None:
@@ -151,7 +222,7 @@ class SurfaceCoverageML(object):
                             [previous_site_1, previous_site_2],
                         )
                     ]
-                    > 2.3  # FIXME: Should be user-defined?
+                    > 2.3
                 )
                 indices = np.where(mask == False)[
                     0
@@ -167,22 +238,57 @@ class SurfaceCoverageML(object):
                     remaining_site_indices,
                     square_distance_matrix,
                     original_sdm,
+                    occ_site_indices,
                 )
 
             row, column = np.unravel_index(  # Pick next site
                 square_distance_matrix.argmin(), square_distance_matrix.shape
             )
-        elif len(remaining_site_indices) == 2:
-            row, column = remaining_site_indices
         elif (
-            len(remaining_site_indices) == 1
-        ):  # Means we started with an odd number of sites
-            row, column = remaining_site_indices[0], None
-        else:
-            return None, None, remaining_site_indices, square_distance_matrix
-        for index in [row, column]:
-            if index is not None:
-                remaining_site_indices.remove(index)
+            len(remaining_site_indices) <= 2 and len(remaining_site_indices) >= 0
+        ):  # FIXME: Need to check whether we can just pick both or one of them # Need to place one by one
+            mask = (
+                original_sdm[
+                    np.ix_(
+                        occ_site_indices,
+                        # [previous_site_1, previous_site_2],
+                        remaining_site_indices,
+                    )
+                ]
+                > 2.0
+            )  # Identify if both sites are eligible
+            vmask = np.all(mask, axis=0)
+            indices = np.where(vmask == True)[0]
+            if (
+                indices.size > 1
+            ):  # Pick two #TODO: We pick one even if there are two to protect against periodic clashes
+                row = np.array(remaining_site_indices)[indices].tolist()[0]
+                column = None
+            elif indices.size == 1:  # Pick one
+                row = np.array(remaining_site_indices)[indices].tolist()[0]
+                column = None
+            else:
+                return (
+                    None,
+                    None,
+                    [],
+                    square_distance_matrix,
+                    original_sdm,
+                    occ_site_indices,
+                )
+        # elif len(remaining_site_indices) == 2:
+        #    row, column = remaining_site_indices
+        # elif (
+        #    len(remaining_site_indices) == 1
+        # ):  # Means we started with an odd number of sites
+        #    row, column = remaining_site_indices[0], None
+        # else:
+        #    return None, None, remaining_site_indices, square_distance_matrix
+        for value in [row, column]:
+            if value is not None:
+                occ_site_indices.append(
+                    remaining_site_indices.pop(remaining_site_indices.index(value))
+                )
         if row is not None:
             square_distance_matrix[row, :] = np.inf
             square_distance_matrix[:, row] = np.inf
@@ -195,18 +301,29 @@ class SurfaceCoverageML(object):
             remaining_site_indices,
             square_distance_matrix,
             original_sdm,
+            occ_site_indices,
         )
 
+    # def find_and_update_sites(self, square_distance_matrix, remaining_site_indices):
+    #    row, column = np.unravel_index(
+    #        square_distance_matrix.argmin(), square_distance_matrix.shape
+    #    )
+    #    for index in [row, column]:
+    #        remaining_site_indices.remove(index)
+    #    square_distance_matrix[row, :] = np.inf
+    #    square_distance_matrix[:, column] = np.inf
+    #    square_distance_matrix[column, :] = np.inf
+    #    square_distance_matrix[:, row] = np.inf
+    #    return (row, column, remaining_site_indices, square_distance_matrix)
     def rotate_site_indices(self, slab_ads, counter, single_site=False):
-
         rotate_site_indices = np.where(
             (np.array(slab_ads.site_properties["binding_site"]) == True)
         )[0].tolist()[-2:]
         configs = []
         # for site, other_site in rotate_site_indices:
-        for i, ang in enumerate(angles):
+        for i, ang in enumerate(self.angles):
             if len(configs) > 1 and not single_site:
-                slab_ads = configs[len(configs) - len(angles)].copy()
+                slab_ads = configs[len(configs) - len(self.angles)].copy()
             first_site = rotate_site_indices[0]
             slab_ads.rotate_sites(
                 [first_site, first_site + 1],
@@ -220,7 +337,7 @@ class SurfaceCoverageML(object):
             # configs.append(slab_ads.copy())
             else:
                 second_site = rotate_site_indices[1]
-                for ang2 in angles:
+                for ang2 in self.angles:
                     slab_ads.rotate_sites(
                         [second_site, second_site + 1],
                         ang2,
@@ -228,9 +345,48 @@ class SurfaceCoverageML(object):
                         slab_ads[second_site].coords,
                         to_unit_cell=False,
                     )
-                    slab_ads.to(filename=f"POSCAR_{counter}_dimer_{i}_{ang}_{ang2}")
+                    slab_ads.to(filename=f"POSCAR_dimer_{counter}_{ang}_{ang2}")
                     configs.append(slab_ads.copy())
         return configs
+
+    # def rotate_site_indices(self, slab_ads, counter, adsorbate, single_site):
+    #    anchor_site_indices = np.where(
+    #        (np.array(slab_ads.site_properties["binding_site"]) == True)
+    #    )[0].tolist()[-2:]
+    #    adsorbate_indices_two = np.where(
+    #        (np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate")
+    #    )[0].tolist()[-len(adsorbate) :]
+    #    adsorbate_indices_one = np.where(
+    #        (np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate")
+    #    )[0].tolist()[-2 * len(adsorbate) : -len(adsorbate)]
+
+    #    configs = []
+    #    # for site, other_site in rotate_site_indices:
+    #    for i, ang in enumerate(self.angles):
+    #        if len(configs) > 1:
+    #            slab_ads = configs[len(configs) - len(self.angles)].copy()
+    #        first_site = anchor_site_indices[0]
+    #        slab_ads.rotate_sites(
+    #            adsorbate_indices_one,
+    #            ang,
+    #            [0, 0, 1],
+    #            slab_ads[first_site].coords,
+    #            to_unit_cell=False,
+    #        )
+    #        # configs.append(slab_ads.copy())
+    #        second_site = anchor_site_indices[1]
+    #        for ang2 in self.angles:
+    #            slab_ads.rotate_sites(
+    #                adsorbate_indices_two,
+    #                ang2,
+    #                [0, 0, 1],
+    #                slab_ads[second_site].coords,
+    #                to_unit_cell=False,
+    #            )
+    #            # slab_ads.to(filename=f"visuals/POSCAR_dimer_{counter}_{i}_{ang}_{ang2}")
+    #            configs.append(slab_ads.copy())
+
+    #    return configs
 
     def _get_angles(self, n_rotations=8):
         """Get angles"""
@@ -266,7 +422,7 @@ class SurfaceCoverageML(object):
             )[0][-1]
             for idx, site in enumerate(slab_ref):
                 if (
-                    site.specie != Element(self.X)
+                    site.species_string != self.X
                     and site.frac_coords[2] > slab_ref.center_of_mass[2]
                 ):
                     dist = np.linalg.norm(bulk_like_site - site.coords)
@@ -408,6 +564,7 @@ def SurfacePBX_WF(
     applied_pH=0,
     # streamline=False,
     checkpoint_path=None,
+    is_metal=False,
 ):
     """
     Wrap-up Workflow for surface-OH/Ox terminated + SurfacePBX Analysis.
@@ -428,14 +585,15 @@ def SurfacePBX_WF(
     ads_slab_orig = {}
     adslabs = {}
     for adsorbate in adsorbates:
-        if not checkpoint_path or len(adsorbate) == 1:
+        breakpoint()
+        if (not checkpoint_path or len(adsorbate) == 1) and not is_metal:
             adslabs, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
             )
         else:
             # TODO: Find the most stable config with adsorbate monolayer
             surface_pbx_ml = SurfaceCoverageML(
-                slab_orig, slab, adsorbate, checkpoint_path=checkpoint_path
+                slab_orig, slab, adsorbate, is_metal, checkpoint_path=checkpoint_path
             )
             adslabs.update(
                 {
@@ -443,24 +601,22 @@ def SurfacePBX_WF(
                 }
             )
             bulk_like_shifted = surface_pbx_ml.bulk_like_shifted
-        for adslab_label, adslab in adslabs.items():
-            name = (
-                f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
-            )
-            ads_slab_uuid = str(uuid.uuid4())
-            ads_slab_fw = AdsSlab_FW(
-                adslab,
-                name=name,
-                oriented_uuid=oriented_uuid,
-                slab_uuid=slab_uuid,
-                ads_slab_uuid=ads_slab_uuid,
-                vasp_cmd=vasp_cmd,
-                db_file=db_file,
-                run_fake=run_fake,
-            )
-            ads_slab_orig.update({adslab_label: adslab})
-            hkl_fws.append(ads_slab_fw)
-            hkl_uuids.append(ads_slab_uuid)
+    for adslab_label, adslab in adslabs.items():
+        name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
+        ads_slab_uuid = str(uuid.uuid4())
+        ads_slab_fw = AdsSlab_FW(
+            adslab,
+            name=name,
+            oriented_uuid=oriented_uuid,
+            slab_uuid=slab_uuid,
+            ads_slab_uuid=ads_slab_uuid,
+            vasp_cmd=vasp_cmd,
+            db_file=DB_FILE,
+            run_fake=run_fake,
+        )
+        ads_slab_orig.update({adslab_label: adslab})
+        hkl_fws.append(ads_slab_fw)
+        hkl_uuids.append(ads_slab_uuid)
 
     # Surface PBX Diagram for each surface orientation
     surface_pbx_uuid = str(uuid.uuid4())
@@ -493,7 +649,7 @@ def SurfacePBX_WF(
         db_file=DB_FILE,
         surface_pbx_uuid=surface_pbx_uuid,
         # streamline=streamline,
-        checkpoint_path=checkpoint_path,
+        checkpoint_path=">>checkpoint_path<<",
     )
 
     all_fws = hkl_fws + [pbx_fw] + [oer_fw]
@@ -501,4 +657,5 @@ def SurfacePBX_WF(
         all_fws,
         name=f"{slab.composition.reduced_formula}-{slab_miller_index}-PBX Workflow",
     )
+    breakpoint()
     return oer_wf

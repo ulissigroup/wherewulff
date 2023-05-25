@@ -190,7 +190,7 @@ class MOSurfaceSet(MVLSlabSet):
             "ISTART": 1,
             "NELM": 80,
             "NCORE": 4,
-            "ISMEAR": 0,
+            "ISMEAR": 1,
             "SIGMA": 0.2,
         }
         # Update incar

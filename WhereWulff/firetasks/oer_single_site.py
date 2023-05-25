@@ -14,6 +14,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 from WhereWulff.reactivity.oer import OER_SingleSite
 from WhereWulff.adsorption.adsorbate_configs import oer_adsorbates_dict
 from WhereWulff.workflows.oer_single_site import OERSingleSite_WF
+from atomate.utils.utils import env_chk
 
 logger = get_logger(__name__)
 
@@ -62,13 +63,13 @@ class OERSingleSiteFireTask(FiretaskBase):
         ads_dict_orig = self["ads_dict_orig"]
         metal_site = self["metal_site"]
         applied_potential = self["applied_potential"]
+        checkpoint_path = env_chk(self["checkpoint_path"], fw_spec)  # abstract variable
         applied_pH = self["applied_pH"]
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         run_fake = self.get("run_fake", False)
         surface_pbx_uuid = self["surface_pbx_uuid"]
         # streamline = self.get("streamline", False)
-        checkpoint_path = self.get("checkpoint_path", None)
 
         # User-defined parameters !
         # applied_potential = 1.60  # volts

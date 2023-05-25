@@ -64,6 +64,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         ads_slab_uuids = self["ads_slab_uuids"]
         surface_termination = self["surface_termination"]
         surface_pbx_uuid = self["surface_pbx_uuid"]
+        breakpoint()
 
         # parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
         # surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
@@ -127,17 +128,17 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             adsorbate_label = oer_task_label.split("-")[3]
             # reference active site
             if "reference" in adsorbate_label:
-                dft_energy_reference = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
-                    "e_0_energy"
-                ]
+                dft_energy_reference = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
                 oer_uuid_reference = ads_slab_uuid
                 oer_intermediates_uuid["reference"] = oer_uuid_reference
                 oer_intermediates_energy["reference"] = dft_energy_reference
             # select OH intermediate as min dft energy
             if re.match("^OH_.*", adsorbate_label):
-                dft_energy_oh = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
-                    "e_0_energy"
-                ]
+                dft_energy_oh = doc_oer["calcs_reversed"][0]["output"]["ionic_steps"][
+                    -1
+                ]["e_0_energy"]
                 if dft_energy_oh <= dft_energy_oh_min:
                     dft_energy_oh_min = dft_energy_oh
                     oer_uuid_oh = adsorbate_label
@@ -145,17 +146,17 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_energy["OH"] = dft_energy_oh_min
             # select Ox intermediate as min dft energy (no rotation - just one)
             if "O_" in adsorbate_label:
-                dft_energy_oh = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
-                    "e_0_energy"
-                ]
+                dft_energy_oh = doc_oer["calcs_reversed"][0]["output"]["ionic_steps"][
+                    -1
+                ]["e_0_energy"]
                 oer_uuid_ox = adsorbate_label
                 oer_intermediates_uuid["Ox"] = oer_uuid_ox
                 oer_intermediates_energy["Ox"] = dft_energy_oh
             # select OOH_up intermediate as min dft energy
             if re.match("^OOH_up_.*", adsorbate_label):
-                dft_energy_ooh_up = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
-                    "e_0_energy"
-                ]
+                dft_energy_ooh_up = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
                 if dft_energy_ooh_up <= dft_energy_ooh_up_min:
                     oer_uuid_ooh_up = adsorbate_label
                     dft_energy_ooh_up_min = dft_energy_ooh_up
@@ -163,18 +164,18 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     oer_intermediates_energy["OOH_up"] = dft_energy_ooh_up_min
             # select OOH_down intermediate as min dft energy
             if "OOH_down_" in adsorbate_label:
-                dft_energy_ooh_down = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
-                    "e_0_energy"
-                ]
+                dft_energy_ooh_down = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
                 if dft_energy_ooh_down <= dft_energy_ooh_down_min:
                     oer_uuid_ooh_down = adsorbate_label
                     dft_energy_ooh_down_min = dft_energy_ooh_down
                     oer_intermediates_uuid["OOH_down"] = oer_uuid_ooh_down
                     oer_intermediates_energy["OOH_down"] = dft_energy_ooh_down_min
             if re.match("^OOH_.*", adsorbate_label):  # streamline case
-                dft_energy_ooh = doc_oer["calcs_reversed"][0]['output']["ionic_steps"][-1][
-                    "e_0_energy"
-                ]
+                dft_energy_ooh = doc_oer["calcs_reversed"][0]["output"]["ionic_steps"][
+                    -1
+                ]["e_0_energy"]
                 if dft_energy_ooh <= dft_energy_ooh_min:
                     oer_uuid_ooh = adsorbate_label
                     dft_energy_ooh_min = dft_energy_ooh

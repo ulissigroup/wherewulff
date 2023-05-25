@@ -251,16 +251,19 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         summary_dict["n_oh_rotation"] = n_oh_rotation
         summary_dict["slab_ox"] = slab_ox_obj.as_dict()
         summary_dict["slab_ox_orig"] = slab_ox_orig.as_dict()
-
         # Number of H2O and nH for PBX
-        nH2O = slab_ox_composition["O"] - slab_clean_comp["O"]
+        try:
+            slab_clean_comp_O = slab_clean_comp["O"]
+        except KeyError:  # Pure metals
+            slab_clean_comp_O = 0
+        nH2O = slab_ox_composition["O"] - slab_clean_comp_O
         nH = slab_oh_composition["H"]
         nH_2 = 2.0 * nH
 
         # Graph Bounds - OER
         self.oer_std = self.oer_potential_std()
         self.oer_up = self.oer_potential_up()
-
+        breakpoint()
         self.clean_2_OH = self._get_surface_potential_line(
             ads_slab_terminations[ads_uuid_oh_min], slab_clean_energy, nH=nH, nH2O=nH2O
         )
@@ -301,6 +304,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         logger.info(
             f"{self.reduced_formula}-({self.miller_index}) Surface Pourbaix Done!"
         )
+        breakpoint()
 
         # Send the summary_dict to the child FW
         return FWAction(
@@ -396,13 +400,16 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             orig_uuid = uuid_termination
         # Orig structure and magmoms
 
-        struct_orig = Slab.from_dict(
-            mmdb.db["fireworks"].find_one({"spec.uuid": orig_uuid})["spec"]["_tasks"][
-                0
-            ]["structure"]
-        )
+        orig_obj_dict = mmdb.db["fireworks"].find_one({"spec.uuid": orig_uuid})["spec"][
+            "_tasks"
+        ][0]
+        struct_orig = Slab.from_dict(orig_obj_dict["structure"])
         struct_orig.sort()  # So we can rely on order to do perturbation corrections
-        orig_magmoms = struct_orig.site_properties["magmom"]
+        try:
+            orig_magmoms = struct_orig.site_properties["magmom"]
+        except KeyError:
+            # This probably means the magmoms were provided as part of the vasp input set
+            orig_magmoms = orig_obj_dict["vasp_input_set"]["initial_magmoms"]
         #        if not self.run_fake:
 
         #            orig_magmoms = mmdb.db["tasks"].find_one({"uuid": orig_uuid})[

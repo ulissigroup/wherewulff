@@ -156,6 +156,12 @@ ref_dirs = {
     "BaTi2SnO6-110-OH_2": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_OH_2",
     "BaTi2SnO6-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_OH_1",
     "BaTi2SnO6-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/BaSnTiO_110_results/BaSnTiO_110_pbx_Ox",
+    # FeSb2O6 - 110
+    "Fe(SbO3)2_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/FeSbOx_110_results/FeSbOx_101_bulk",
+    "Fe(SbO3)2_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/FeSbOx_110_results/FeSbOx_101_slab",
+    # Au - 100
+    "Au_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_bulk",
+    "Au_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_slab",
 }
 
 
@@ -164,7 +170,7 @@ def Bulk_FW(
     name="",
     vasp_input_set=None,
     parents=None,
-    wall_time=172800,
+    wall_time=43200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -177,7 +183,7 @@ def Bulk_FW(
         name              (string)          : name of firework
         parents           (default: None)   : parent FWs
         add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
-        wall_time         (default: 172800) : 2 days in seconds
+        wall_time         (default: 43200) : 2 days in seconds
         vasp_cmd                            : vasp_comand
         db_file                             : Path to the dabase file
 
@@ -224,21 +230,23 @@ def Bulk_FW(
             or "TiCr(RuO4)2" in name
             or "Co" in name
             or "Ti" in name
+            or "Sb" in name
+            or "Au" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
         # This is for submitting on Perlmutter, where there is an issue between custodian and the compiled vasp version
-        fw.tasks[1] = RunVaspDirect(
-            vasp_cmd=vasp_cmd
-        )  # We run vasp without custodian (RAW)
+        # fw.tasks[1] = RunVaspDirect(
+        #    vasp_cmd=vasp_cmd
+        # )  # We run vasp without custodian (RAW)
 
-        ## Switch-off GzipDir for WAVECAR transferring
-        # fw.tasks[1].update({"gzip_output": False})
-        ## Switch-on WalltimeHandler in RunVaspCustodian
-        # if wall_time is not None:
-        #    fw.tasks[1].update({"wall_time": 43200})
+        # Switch-off GzipDir for WAVECAR transferring
+        fw.tasks[1].update({"gzip_output": False})
+        # Switch-on WalltimeHandler in RunVaspCustodian
+        if wall_time is not None:
+            fw.tasks[1].update({"wall_time": 43200})
 
     # Append Continue-optimizeFW for wall-time handling and use for uuid message
     # passing
@@ -261,7 +269,7 @@ def Slab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=172800,
+    wall_time=43200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -274,7 +282,7 @@ def Slab_FW(
         name              (string)          : name of firework
         parents           (default: None)   : parent FWs
         add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
-        wall_time         (default: 172800) : 2 days in seconds
+        wall_time         (default: 43200) : 2 days in seconds
         vasp_cmd                            : vasp_comand
         db_file                             : Path to the dabase file
 
@@ -321,17 +329,19 @@ def Slab_FW(
             or "TiCr(RuO4)2" in name
             or "Co" in name
             or "Ti" in name
+            or "Sb" in name
+            or "Au" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
-        fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
-        ## Switch-off GzipDir for WAVECAR transferring
-        # fw.tasks[1].update({"gzip_output": False})
-        ## Switch-on WalltimeHandler in RunVaspCustodian
-        # if wall_time is not None:
-        #    fw.tasks[1].update({"wall_time": wall_time})
+        # fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
+        # Switch-off GzipDir for WAVECAR transferring
+        fw.tasks[1].update({"gzip_output": False})
+        # Switch-on WalltimeHandler in RunVaspCustodian
+        if wall_time is not None:
+            fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
@@ -368,7 +378,7 @@ def AdsSlab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=172800,
+    wall_time=43200,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -381,7 +391,7 @@ def AdsSlab_FW(
         name              (string)          : name of firework
         parents           (default: None)   : parent FWs
         add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
-        wall_time         (default: 172800) : 2 days in seconds
+        wall_time         (default: 43200) : 2 days in seconds
         vasp_cmd                            : vasp_comand
         db_file                             : Path to the dabase file
 
@@ -433,13 +443,13 @@ def AdsSlab_FW(
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
-        #        fw.tasks[1] = RunVaspCustodian(vasp_cmd=vasp_cmd)
+        fw.tasks[1] = RunVaspCustodian(vasp_cmd=vasp_cmd)
         # Switch-off GzipDir for WAVECAR transferring
-        fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
-        # fw.tasks[1].update({"gzip_output": False})
-        ## Switch-on WalltimeHandler in RunVaspCustodian
-        # if wall_time is not None:
-        #    fw.tasks[1].update({"wall_time": wall_time})
+        # fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
+        fw.tasks[1].update({"gzip_output": False})
+        # Switch-on WalltimeHandler in RunVaspCustodian
+        if wall_time is not None:
+            fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
