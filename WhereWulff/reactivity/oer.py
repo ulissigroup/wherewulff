@@ -65,7 +65,6 @@ class OER_SingleSite(object):
 
         # Select active site composition
         active_sites_dict = self._group_ads_sites_by_metal()
-        breakpoint()
         assert (
             self.metal_site in active_sites_dict.keys()
         ), f"There is no available {self.metal_site} on the surface"
@@ -73,7 +72,7 @@ class OER_SingleSite(object):
         # TODO: Need to create all possible references and pick the most stable one (active site)
         # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
-        breakpoint()
+
         # Mxide method
         self.mxidegen = self._mxidegen()
         if not self.surface_coverage[0] == "clean":
@@ -131,43 +130,36 @@ class OER_SingleSite(object):
                 nn_site = bulk_like_site
         return nn_site
 
-    def _find_nearest_hydrogen(self, site_idx, search_list):
+    def _find_nearest_hydrogen(self, site_idx):
         """Depending on how the surface atoms are sorted we need to find the nearest H"""
-        fixed_site = [site for idx, site in enumerate(self.slab) if idx == site_idx][0]
+        radius = 1
+        neighbors = self.slab.get_neighbors(self.slab[site_idx], radius)
+        while not any([site.species_string in ["H"] for site in neighbors]):
+            radius += 0.1
+            neighbors = [
+                nn for nn in self.slab.get_neighbors(self.slab[site_idx], radius)
+            ]
 
-        min_dist = np.inf
-        for site in search_list:
-            dist = np.linalg.norm(fixed_site.frac_coords - site[2])
-            if dist <= min_dist:
-                min_dist = dist
-                nn_site = site
-        return nn_site[0]
+        # fixed_site = [site for idx, site in enumerate(self.slab) if idx == site_idx][0]
+
+        # min_dist = np.inf
+        # for site in search_list:
+        #    dist = np.linalg.norm(fixed_site.frac_coords - site[2])
+        #    if dist <= min_dist:
+        #        min_dist = dist
+        #        nn_site = site
+        return [site for site in neighbors if site.species_string in ["H"]][0]
 
     def _find_nearest_metal(self, reactive_idx):
         """Find reactive site by min distance between any metal and oxygen"""
         radius = 1
-        while not any(
-            [
-                site.species_string not in ["O", "H"]
-                for site in self.slab.get_neighbors(self.slab[reactive_idx], radius)
-            ]
-        ):
+        neighbors = self.slab.get_neighbors(self.slab[reactive_idx], radius)
+        while not any([site.species_string not in ["O", "H"] for site in neighbors]):
             radius += 0.1
             neighbors = [
                 nn for nn in self.slab.get_neighbors(self.slab[reactive_idx], radius)
             ]
 
-        # reactive_site = [
-        #    site for idx, site in enumerate(self.slab) if idx == reactive_idx
-        # ][0]
-
-        # min_dist = np.inf
-        # for site in self.slab:
-        #    if Element(site.specie).is_metal:
-        #        dist = site.distance(reactive_site)
-        #        if dist <= min_dist:
-        #            min_dist = dist
-        #            closest_metal = site
         return [site for site in neighbors if site.species_string not in ["O", "H"]][0]
 
     def _group_ads_sites_by_metal(self):
@@ -258,10 +250,13 @@ class OER_SingleSite(object):
             if self.checkpoint_path:  # streamline
                 ref_slabs = []
                 reactive_sites = []
-                for active_site in self.ads_indices:
+                oxygens_on_target = [
+                    x for x in self.ads_indices if x in ads_indices_oxygen
+                ]
+                for active_site in oxygens_on_target:
                     ref_slab_copy = ref_slab.copy()
-                    hyd_site = self._find_nearest_hydrogen(active_site, ads_indices_hyd)
-                    reactive_site = [active_site, hyd_site]
+                    hyd_site = self._find_nearest_hydrogen(active_site)
+                    reactive_site = [active_site, hyd_site.index]
                     ref_slab_copy.remove_sites(indices=reactive_site)
                     reactive_sites.append(reactive_site)
                     ref_slabs.append(ref_slab_copy)
@@ -279,12 +274,10 @@ class OER_SingleSite(object):
                     site_properties=ref_slab.site_properties,
                 )
                 reactive_site = reactive_sites[stable_index]
-                reactive_site_oxygen = self.ads_indices[stable_index]
+                reactive_site_oxygen = oxygens_on_target[stable_index]
             else:
                 reactive_site_oxygen = np.random.choice(ads_indices_oxygen)
-                hyd_site = self._find_nearest_hydrogen(
-                    reactive_site_oxygen, ads_indices_hyd
-                )
+                hyd_site = self._find_nearest_hydrogen(reactive_site_oxygen)
                 reactive_site = [reactive_site_oxygen, hyd_site]
                 ref_slab.remove_sites(indices=reactive_site)
             return ref_slab, reactive_site_oxygen

@@ -154,9 +154,9 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         # FIXME: Do we need this called in the constructor???
         # Get bulk-like adsorption sites on top surface where adsorbate binds to M site
-        #if "MX_adsites" in positions:
+        # if "MX_adsites" in positions:
         #    self.MX_adsites, self.MX_partitions = self.get_bulk_like_adsites()
-        #else:
+        # else:
         #    self.MX_adsites, self.MX_partitions = [], []
 
         # Get bulk-like adsorption sites on top surface where
@@ -228,13 +228,13 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             ):
                 max_r += 0.01
             # Dynamically bound the search to be able to safely apply max operator
-            max_r -= 0.01
+            # max_r -= 0.01
             distances = [
                 nn.distance(site)
                 for nn in self.bulk.get_neighbors(site, max_r)
                 if nn.species_string == self.X
             ]
-            dist = max(distances)
+            dist = round(max(distances), 2)  # To avoid precision-related discrepancies
             site_key = site.bulk_wyckoff + site.species_string
 
             if (
@@ -570,7 +570,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
             if surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]:
                 surfsite_key = surfsite.bulk_wyckoff + surfsite.species_string
                 surf_nn = self.slab.get_neighbors(
-                    surfsite, self.bondlengths_dict[surfsite_key]
+                    surfsite, round(self.bondlengths_dict[surfsite_key], 2)
                 )
                 for bulksite in self.bulk:
                     if (
@@ -580,7 +580,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         bulksite_key = bulksite.bulk_wyckoff + bulksite.species_string
                         cn = len(
                             self.bulk.get_neighbors(
-                                bulksite, self.bondlengths_dict[bulksite_key]
+                                bulksite, round(self.bondlengths_dict[bulksite_key], 2)
                             )
                         )
                         break
@@ -592,7 +592,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         bulk_frac_coords = [
                             nn.frac_coords
                             for nn in self.slab.get_neighbors(
-                                site, self.bondlengths_dict[site_key]
+                                site, round(self.bondlengths_dict[site_key], 2)
                             )
                         ]
                         if len(bulk_frac_coords) == cn and (
