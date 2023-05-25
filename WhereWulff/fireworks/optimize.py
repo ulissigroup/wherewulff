@@ -402,7 +402,7 @@ def AdsSlab_FW(
     # DFT Method
     if not vasp_input_set:
         vasp_input_set = MOSurfaceSet(slab, bulk=False)
-    breakpoint()
+    #breakpoint()
 
     # FW
     fw = OptimizeFW(
