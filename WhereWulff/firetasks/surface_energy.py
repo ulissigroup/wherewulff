@@ -31,6 +31,7 @@ METAL_BULK_ENERGIES = {
     #    "Co": -7.00,
     "Co": -6.258,
     "Sn": -3.9923,
+    "Sb": 0,
 }  # ev/Atom from MP?
 
 
@@ -255,7 +256,7 @@ class SurfaceEnergyFireTask(FiretaskBase):
             for k in excess_deficiency_factors_dict
             if k != reference
         }
-        breakpoint()
+        #breakpoint()
         surface_energy = (
             slab_E
             - (slab_bulk_ratio * oriented_E)
