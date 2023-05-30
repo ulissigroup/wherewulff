@@ -38,7 +38,7 @@ def find_most_stable_config(configs, checkpoint_path):
                 tags.append(1)  # surface
             else:
                 tags.append(2)  # adsorbate
-        breakpoint()
+        #breakpoint()
         atoms.set_tags(tags)
         adslab_atoms.append(atoms)
     graphs = a2g.convert_all(adslab_atoms)

@@ -587,7 +587,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 if (
                     len(surf_nn) >= cn
                 ):  # FIXME: I see cases where the bondlengths in the surface are too small to be applied to bulk sites
-                    breakpoint()
+                    #breakpoint()
                     continue
                 for site in self.slab:
                     if site.species_string != self.X:

@@ -53,7 +53,7 @@ class OER_SingleSite(object):
         # We need to remove oxidation states
         self.slab_clean.remove_oxidation_states()
         self.slab_clean.oriented_unit_cell.remove_oxidation_states()
-        breakpoint()
+        #breakpoint()
 
         # Cache all the idx
         if not self.surface_coverage[0] == "clean":
@@ -80,7 +80,7 @@ class OER_SingleSite(object):
         # self.mxidegen = self._mxidegen() #FIXME: Not needed for metals
         if not self.surface_coverage[0] == "clean":
 
-            breakpoint()
+            #breakpoint()
             # TODO: Logic for metals -> can just pick the site from the oxygen
             self.selected_site = self.slab[self.reactive_idx].coords
 
