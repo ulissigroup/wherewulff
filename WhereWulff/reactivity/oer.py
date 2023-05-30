@@ -8,6 +8,7 @@ from pymatgen.core.periodic_table import Element
 from WhereWulff.adsorption.MXide_adsorption import MXideAdsorbateGenerator
 from WhereWulff.adsorption.adsorbate_configs import oer_adsorbates_dict
 from WhereWulff.utils import find_most_stable_config
+from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 
 
 class OER_SingleSite(object):
@@ -35,6 +36,7 @@ class OER_SingleSite(object):
         adsorbates=oer_adsorbates_dict,
         random_state=42,
         # streamline=False,
+        surface_coverage=None,
         checkpoint_path=None,
     ):
         self.slab = slab
@@ -45,45 +47,50 @@ class OER_SingleSite(object):
         self.adsorbates = adsorbates
         self.random_state = random_state
         # self.streamline = streamline
+        self.surface_coverage = [surface_coverage]
         self.checkpoint_path = checkpoint_path
 
         # We need to remove oxidation states
         self.slab_clean.remove_oxidation_states()
         self.slab_clean.oriented_unit_cell.remove_oxidation_states()
-
-        # Inspect slab site properties to determine termination (OH/Ox)
-        (
-            self.surface_coverage,
-            self.ads_species,
-            self.ads_indices,
-            self.termination_info,
-        ) = self._get_surface_termination()
+        breakpoint()
 
         # Cache all the idx
         if not self.surface_coverage[0] == "clean":
+            # Inspect slab site properties to determine termination (OH/Ox)
+            (
+                self.surface_coverage,
+                self.ads_species,
+                self.ads_indices,
+                self.termination_info,
+            ) = self._get_surface_termination()
             self.all_ads_indices = self.ads_indices.copy()
 
-        # Select active site composition
-        active_sites_dict = self._group_ads_sites_by_metal()
-        assert (
-            self.metal_site in active_sites_dict.keys()
-        ), f"There is no available {self.metal_site} on the surface"
-        self.ads_indices = active_sites_dict[self.metal_site]
+            # Select active site composition
+            active_sites_dict = self._group_ads_sites_by_metal()
+            assert (
+                self.metal_site in active_sites_dict.keys()
+            ), f"There is no available {self.metal_site} on the surface"
+            self.ads_indices = active_sites_dict[self.metal_site]
         # TODO: Need to create all possible references and pick the most stable one (active site)
         # Generate slab reference to place the adsorbates
         self.ref_slab, self.reactive_idx = self._get_reference_slab()
 
         # Mxide method
-        self.mxidegen = self._mxidegen()
+        # self.mxidegen = self._mxidegen() #FIXME: Not needed for metals
         if not self.surface_coverage[0] == "clean":
 
-            # Shifted bulk_like_sites
-            self.bulk_like_dict = self._get_shifted_bulk_like_sites()
+            breakpoint()
+            # TODO: Logic for metals -> can just pick the site from the oxygen
+            self.selected_site = self.slab[self.reactive_idx].coords
 
-            # Selected site
-            self.selected_site = self.bulk_like_dict[self.reactive_idx]
+        #    # Shifted bulk_like_sites
+        #    self.bulk_like_dict = self._get_shifted_bulk_like_sites()
+
+        #    # Selected site
+        #    self.selected_site = self.bulk_like_dict[self.reactive_idx]
         else:
-            self.selected_site = [self.bulk_like_sites[self.reactive_idx]]
+            self.selected_site = self.reactive_idx
 
         # np seed
         np.random.seed(self.random_state)
@@ -287,7 +294,9 @@ class OER_SingleSite(object):
             ref_slab.add_site_property(
                 "magmom", self.slab_orig.site_properties["magmom"]
             )
-            reactive_site = np.random.choice([x[1] for x in self.ads_indices])
+            reactive_site = self.bulk_like_sites[
+                np.random.choice(np.arange(len(self.bulk_like_sites)))
+            ]
             return ref_slab, reactive_site
 
     def _mxidegen(self, repeat=[1, 1, 1], verbose=False):
@@ -382,24 +391,53 @@ class OER_SingleSite(object):
         adsorbate = adsorbate.copy()
         adsorbate_label = "".join([site.species_string for site in adsorbate])
         adsorbate_angles = self._get_angles(n_rotations=n_rotations)
-        adsorbate_rotations = self.mxidegen.get_transformed_molecule(
-            adsorbate, axis=axis_rotation, angles_list=adsorbate_angles
-        )
-        # Intermediates generation
+
+        # FIXME: Logic for metals can use the internal rotation on the slab
+        ads_slab = self.ref_slab.copy()
+        asf = AdsorbateSiteFinder(ads_slab)
+        slab_ads = asf.add_adsorbate(adsorbate, self.selected_site)
         intermediates_dict = {}
-        for ads_rot_idx in range(len(adsorbate_rotations)):
-            ads_slab = self.ref_slab.copy()
-            ads_slab = self._add_adsorbates(
-                ads_slab, self.selected_site, adsorbate_rotations[ads_rot_idx]
-            )
-            if suffix:
-                intermediates_dict.update(
-                    {f"{adsorbate_label}_{suffix}_{ads_rot_idx}": ads_slab.as_dict()}
+        # Now rotate about the binding oxo position in case the adsorbate has rot deg freedom
+        if len(adsorbate) > 1:
+            binding_site_index = np.where(
+                np.array(slab_ads.site_properties["binding_site"]) == True
+            )[0].tolist()[-1]
+            rotate_site_indices = np.where(
+                np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate"
+            )[0].tolist()[-len(adsorbate) :]
+            for i, ang in enumerate(adsorbate_angles):
+                slab_ads.rotate_sites(
+                    rotate_site_indices,
+                    ang,
+                    axis_rotation,
+                    slab_ads[binding_site_index].coords,
+                    to_unit_cell=False,
                 )
-            else:
+                slab_ads_snap = slab_ads.copy()
                 intermediates_dict.update(
-                    {f"{adsorbate_label}_{ads_rot_idx}": ads_slab.as_dict()}
+                    {f"{adsorbate_label}_{suffix}_{i}": slab_ads_snap.as_dict()}
                 )
+        else:
+            intermediates_dict.update({f"{adsorbate_label}_0": slab_ads.as_dict()})
+
+        # adsorbate_rotations = self.mxidegen.get_transformed_molecule(
+        #    adsorbate, axis=axis_rotation, angles_list=adsorbate_angles
+        # )
+        # Intermediates generation
+        # intermediates_dict = {}
+        # for ads_rot_idx in range(len(adsorbate_rotations)):
+        #    ads_slab = self.ref_slab.copy()
+        #    ads_slab = self._add_adsorbates(
+        #        ads_slab, self.selected_site, adsorbate_rotations[ads_rot_idx]
+        #    )
+        #    if suffix:
+        #        intermediates_dict.update(
+        #            {f"{adsorbate_label}_{suffix}_{ads_rot_idx}": ads_slab.as_dict()}
+        #        )
+        #    else:
+        #        intermediates_dict.update(
+        #            {f"{adsorbate_label}_{ads_rot_idx}": ads_slab.as_dict()}
+        #        )
 
         return intermediates_dict
 
@@ -571,7 +609,7 @@ class OER_SingleSite(object):
                 slab_ads, slab_index = find_most_stable_config(
                     configs, self.checkpoint_path
                 )
-                slab_ads = slab(
+                slab_ads = Slab(
                     slab_ads.lattice,
                     slab_ads.species,
                     slab_ads.frac_coords,

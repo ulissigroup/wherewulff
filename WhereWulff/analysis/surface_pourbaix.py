@@ -305,7 +305,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
             f"{self.reduced_formula}-({self.miller_index}) Surface Pourbaix Done!"
         )
         #breakpoint()
-
         # Send the summary_dict to the child FW
         return FWAction(
             update_spec={
@@ -439,7 +438,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         """
         Standard OER bound --> H2O -> O2 + 4H+ + 4e-
         """
-        return [(1.229 - self.K * pH) for pH in self.pH_range]
+        return [(0.9 - self.K * pH) for pH in self.pH_range]
 
     def oer_potential_up(self, u_0=1.60):
         """

@@ -64,7 +64,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         ads_slab_uuids = self["ads_slab_uuids"]
         surface_termination = self["surface_termination"]
         surface_pbx_uuid = self["surface_pbx_uuid"]
-        #breakpoint()
+        breakpoint()
 
         # parent_dict = fw_spec[f"{self.reduced_formula}_{self.miller_index}_surface_pbx"]
         # surface_pbx_uuid = parent_dict["surface_pbx_uuid"]

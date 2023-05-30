@@ -29,7 +29,7 @@ def find_most_stable_config(configs, checkpoint_path):
                 0
             ].get_indices()  # NOTE: This seamless transfer of properties seems to be only
             # present in later versions of pymatgen
-        surface_properties = atoms.todict()["surface_properties"]
+        surface_properties = atoms.todict()["surface_properties"] == "adsorbate"
         tags = []
         for (is_adsorbate, atom) in zip(surface_properties, atoms):
             if atom.index in constraint_indices:
@@ -38,6 +38,7 @@ def find_most_stable_config(configs, checkpoint_path):
                 tags.append(1)  # surface
             else:
                 tags.append(2)  # adsorbate
+        breakpoint()
         atoms.set_tags(tags)
         adslab_atoms.append(atoms)
     graphs = a2g.convert_all(adslab_atoms)
