@@ -75,6 +75,8 @@ class OERSingleSiteFireTask(FiretaskBase):
         # applied_potential = 1.60  # volts
         # applied_pH = 0  # pH conditions
         user_point = np.array([applied_pH, applied_potential])
+        # ORR
+        user_point[1] = 0.9
 
         parent_dict = fw_spec[f"{reduced_formula}_{miller_index}_surface_pbx"]
         surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
@@ -94,7 +96,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             user_point, clean_2_oh_list, oh_2_ox_list
         )
 
-        #breakpoint()
+        # breakpoint()
         # Retrieve the surface termination clean/OH/Ox geometries
         clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
@@ -117,8 +119,10 @@ class OERSingleSiteFireTask(FiretaskBase):
             metal_site=metal_site,
             adsorbates=oer_adsorbates_dict,
             # streamline=streamline,
+            surface_coverage=surface_termination,
             checkpoint_path=checkpoint_path,
         )
+        #breakpoint()
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
