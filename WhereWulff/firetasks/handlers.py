@@ -1,4 +1,5 @@
 import uuid
+import numpy as np
 
 from pydash.objects import has, get
 
@@ -17,6 +18,9 @@ from atomate.common.firetasks.glue_tasks import (
 
 from WhereWulff.dft_settings.settings import MOSurfaceSet
 from WhereWulff.common.glue_tasks import GzipPrevDir
+from WhereWulff.analysis.EDL import EDLAnalysis
+from atomate.vasp.fireworks.core import StaticFW
+from fireworks import Workflow, Firework
 
 
 @explicit_serialize
@@ -210,13 +214,53 @@ class ContinueOptimizeFW(FiretaskBase):
                 )
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
+                task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
+                # Logic to spawn a static set of single points with varying NELECT to simulate EDL and get free energy as fxn of applied potential on the SHE scale
+                nelect_orig = task_doc["calcs_reversed"][0]["output"]["outcar"][
+                    "nelect"
+                ]
+                contcar = task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
+                    "structure"
+                ]
+                # Add the LVHAR keyword and set NSW to zero
+                incar_dict = fw_spec["_tasks"][0]["vasp_input_set"]
+                incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True}
+                incar_dict["structure"] = contcar.as_dict()
+                parents = []
+                all_fws = []
+                uuids = []
+                for nelect in np.arange(nelect_orig - 2.4, nelect_orig + 2.4, 0.8):
+                    new_uuid = uuid.uuid4()
+                    uuids.append(new_uuid)
+                    incar_dict["user_incar_settings"].update({"NELECT": nelect})
+                    vasp_input_set = MOSurfaceSet.from_dict(incar_dict)
+                    static_fw = OptimizeFW(
+                        structure=Structure.from_dict(contcar),
+                        max_force_threshold=None,
+                        vasp_cmd=vasp_cmd,
+                        db_file=db_file,
+                        job_type="normal",
+                        name=f"SP_{nelect}",
+                        vasp_input_set=vasp_input_set,
+                    )
+                    static_fw.tasks[1].update({"gzip_output": False})
+                    static_fw.tasks[3]["additional_fields"].update({"uuid": new_uuid})
+                    parents.append(static_fw)
+                    all_fws.append(static_fw)
+                # Analysis FW
+                edl_fw = Firework(
+                    EDLAnalysis(uuids=uuids), name="EDL_analysis", parents=parents
+                )
+                all_fws.append(edl_fw)
+                wf = Workflow(all_fws, name="EDL_WF")
                 return FWAction(
+                    detours=[wf],
                     update_spec={
                         "oriented_uuid": fw_spec["oriented_uuid"]
                         if "oriented_uuid" in fw_spec
                         else None,
                         "slab_uuid": fw_spec["uuid"],
-                    }
+                    },
                 )
             elif fw_spec["is_adslab"]:
                 return FWAction(
