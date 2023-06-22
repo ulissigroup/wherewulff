@@ -162,6 +162,36 @@ ref_dirs = {
     # Au - 100
     "Au_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_bulk",
     "Au_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_slab",
+    # Pt - 110
+    "Pt_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_bulk",
+    "Pt_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_slab",
+    # Pt - 100
+    "Pt_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_bulk",
+    "Pt_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_slab",
+    # Pt - 111
+    "Pt_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_bulk",
+    "Pt_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_slab",
+    # Pt - 211
+    "Pt_211 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_bulk",
+    "Pt_211 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_slab",
+    # Au - 110
+    "Au_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_bulk",
+    "Au_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_slab",
+    # Ag - 110
+    "Ag_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_bulk",
+    "Ag_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_slab",
+    # Ir - 110
+    "Ir_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_bulk",
+    "Ir_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_slab",
+    # Pd - 110
+    "Pd_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_110_results/Pd_110_bulk",
+    "Pd_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_110_results/Pd_110_slab",
+    # Pd - 100
+    "Pd_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_bulk",
+    "Pd_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_slab",
+    "HPd32O-Pd-100-OH_1_gpu": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_OH_1",
+    "Pd32O-Pd-100-O_1_gpu": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_O_1",
+    "HPd64O3-Pd-100-Pd-OOH_4_gpu": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_Pd_OOH_4",
 }
 
 
@@ -232,6 +262,10 @@ def Bulk_FW(
             or "Ti" in name
             or "Sb" in name
             or "Au" in name
+            or "Pt" in name
+            or "Ag" in name
+            or "Pd" in name
+            or "Ir" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
@@ -331,6 +365,10 @@ def Slab_FW(
             or "Ti" in name
             or "Sb" in name
             or "Au" in name
+            or "Pt" in name
+            or "Ag" in name
+            or "Pd" in name
+            or "Ir" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
@@ -402,7 +440,7 @@ def AdsSlab_FW(
     # DFT Method
     if not vasp_input_set:
         vasp_input_set = MOSurfaceSet(slab, bulk=False)
-    #breakpoint()
+    # breakpoint()
 
     # FW
     fw = OptimizeFW(
@@ -438,6 +476,7 @@ def AdsSlab_FW(
             or "Ti9Cr11(RuO4)20" in name
             or "Co" in name
             or "Ti" in name
+            or "Pd" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
