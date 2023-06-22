@@ -224,8 +224,11 @@ class ContinueOptimizeFW(FiretaskBase):
                 ]
                 # Add the LVHAR keyword and set NSW to zero
                 incar_dict = fw_spec["_tasks"][0]["vasp_input_set"]
-                incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True}
-                incar_dict["structure"] = contcar.as_dict()
+                orig_struct = Structure.from_dict(fw_spec["_tasks"][0]["structure"])
+                orig_struct.sort()
+                orig_magmoms = orig_struct.site_properties["magmom"]
+                incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True, "MAGMOM": orig_magmoms}
+                incar_dict["structure"] = contcar
                 parents = []
                 all_fws = []
                 uuids = []
@@ -237,8 +240,8 @@ class ContinueOptimizeFW(FiretaskBase):
                     static_fw = OptimizeFW(
                         structure=Structure.from_dict(contcar),
                         max_force_threshold=None,
-                        vasp_cmd=vasp_cmd,
-                        db_file=db_file,
+                        vasp_cmd=">>vasp_cmd<<",
+                        db_file=">>db_file<<",
                         job_type="normal",
                         name=f"SP_{nelect}",
                         vasp_input_set=vasp_input_set,
