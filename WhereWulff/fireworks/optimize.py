@@ -191,7 +191,9 @@ ref_dirs = {
     "Pd_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_slab",
     "Pd-100-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_OH_1",
     "Pd-100-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_O_1",
-    "Pd-100-Pd-OOH_4": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_Pd_OOH_4",
+    "Pd-100-Pd-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-reference",
+    "Pd-100-Pd-OOH_4": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OOH_4",
+    "Pd-100-Pd-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OH_3",
 }
 
 
