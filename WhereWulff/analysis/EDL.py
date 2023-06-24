@@ -10,17 +10,17 @@ from scipy.optimize import curve_fit
 @explicit_serialize
 class EDLAnalysis(FiretaskBase):
 
-    # required_params = ["uuids", "slab_uuid", "db_file", "nelects"]
+    required_params = ["uuids", "replace_uuid", "db_file"]
 
     def run_task(self, fw_spec):
         """Placeholder firetask for fit Free energies versus applied potential for
         PZC and free energy at a specific reaction condition determination"""
 
-        db_file = env_chk(">>db_file<<", fw_spec)
-        # Connect to DB
+        db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         task_collection = mmdb.db["tasks"]
-        uuids = fw_spec["_tasks"][0]["uuids"]
+        uuids = self["uuids"]
+        replace_uuid = self["replace_uuid"]
         workfunctions = []
         nelects = []
         USHEs = []
@@ -80,8 +80,29 @@ class EDLAnalysis(FiretaskBase):
             color="green",
             fontsize=12,
         )
+        # We need to find the free energy at the reaction conditions and then mutate
+        # the free energy in the task doc of that interface
+        ionic_steps = mmdb.db["tasks"].find_one({"uuid": replace_uuid})["calcs_reversed"][
+            0
+        ]["output"]["ionic_steps"]
+        initial_energy = ionic_steps[-1]["e_0_energy"]
+        final_energy = func([0.17], *fit_params)
+        print(
+            f"Comparing doc with uuid: {replace_uuid} from {initial_energy} eV to {final_energy} eV"
+        )
         fig.savefig("PZC_plot.png")
-
-        breakpoint()
-
-        return workfunction
+        return FWAction(
+            stored_data={
+                "initial_energy": initial_energy,
+                "energy_at_RC": final_energy,
+                "USHEs": USHEs,
+                "Ghats": free_energies,
+                "wfs": workfunctions,
+                "corrections": corrections,
+                "escfs": escfs,
+                "nelects": nelects,
+                "fit_params": fit_params,
+                "charges": charges,
+                "avg_pots": avg_pots,
+            }
+        )

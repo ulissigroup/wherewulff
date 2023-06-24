@@ -43,6 +43,55 @@ class ContinueOptimizeFW(FiretaskBase):
     required_params = ["is_bulk", "counter", "db_file", "vasp_cmd"]
     optional_params = []
 
+    def run_EDL(self):
+        # Logic to spawn a static set of single points with varying NELECT to simulate EDL and get free energy as fxn of applied potential on the SHE scale
+        nelect_orig = self.task_doc["calcs_reversed"][0]["output"]["outcar"]["nelect"]
+        contcar = self.task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
+            "structure"
+        ]
+        # Add the LVHAR keyword and set NSW to zero
+        incar_dict = self.fw_spec["_tasks"][0]["vasp_input_set"]
+        orig_struct = Structure.from_dict(self.fw_spec["_tasks"][0]["structure"])
+        orig_struct.sort()
+        orig_magmoms = orig_struct.site_properties["magmom"]
+        contcar_obj = Structure.from_dict(contcar)
+        contcar_obj.add_site_property("magmom", orig_magmoms)
+        contcar = contcar_obj.as_dict()
+        incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True}
+        incar_dict["structure"] = contcar
+        parents = []
+        all_fws = []
+        uuids = []
+        for nelect in np.arange(nelect_orig - 0.3, nelect_orig + 0.31, 0.1):  # SP FWs
+            new_uuid = uuid.uuid4()
+            uuids.append(new_uuid)
+            incar_dict["user_incar_settings"].update({"NELECT": nelect})
+            vasp_input_set = MOSurfaceSet.from_dict(incar_dict)
+            static_fw = OptimizeFW(
+                structure=Structure.from_dict(contcar),
+                max_force_threshold=None,
+                vasp_cmd=">>vasp_cmd<<",
+                db_file=">>db_file<<",
+                job_type="normal",
+                name=f"SP_{nelect}",
+                vasp_input_set=vasp_input_set,
+            )
+            static_fw.tasks[1].update({"gzip_output": False})
+            static_fw.tasks[3]["additional_fields"].update({"uuid": new_uuid})
+            parents.append(static_fw)
+            all_fws.append(static_fw)
+        # Analysis FW
+        edl_fw = Firework(
+            EDLAnalysis(
+                uuids=uuids, replace_uuid=self.fw_spec["uuid"], db_file=">>db_file<<"
+            ),
+            name="EDL_analysis",
+            parents=parents,
+        )
+        all_fws.append(edl_fw)
+        wf = Workflow(all_fws, name="EDL_WF")
+        return wf
+
     def run_task(self, fw_spec):
 
         # Variables
@@ -214,48 +263,9 @@ class ContinueOptimizeFW(FiretaskBase):
                 )
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
-                task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
-                # Logic to spawn a static set of single points with varying NELECT to simulate EDL and get free energy as fxn of applied potential on the SHE scale
-                nelect_orig = task_doc["calcs_reversed"][0]["output"]["outcar"][
-                    "nelect"
-                ]
-                contcar = task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
-                    "structure"
-                ]
-                # Add the LVHAR keyword and set NSW to zero
-                incar_dict = fw_spec["_tasks"][0]["vasp_input_set"]
-                orig_struct = Structure.from_dict(fw_spec["_tasks"][0]["structure"])
-                orig_struct.sort()
-                orig_magmoms = orig_struct.site_properties["magmom"]
-                incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True, "MAGMOM": orig_magmoms}
-                incar_dict["structure"] = contcar
-                parents = []
-                all_fws = []
-                uuids = []
-                for nelect in np.arange(nelect_orig - 2.4, nelect_orig + 2.4, 0.8):
-                    new_uuid = uuid.uuid4()
-                    uuids.append(new_uuid)
-                    incar_dict["user_incar_settings"].update({"NELECT": nelect})
-                    vasp_input_set = MOSurfaceSet.from_dict(incar_dict)
-                    static_fw = OptimizeFW(
-                        structure=Structure.from_dict(contcar),
-                        max_force_threshold=None,
-                        vasp_cmd=">>vasp_cmd<<",
-                        db_file=">>db_file<<",
-                        job_type="normal",
-                        name=f"SP_{nelect}",
-                        vasp_input_set=vasp_input_set,
-                    )
-                    static_fw.tasks[1].update({"gzip_output": False})
-                    static_fw.tasks[3]["additional_fields"].update({"uuid": new_uuid})
-                    parents.append(static_fw)
-                    all_fws.append(static_fw)
-                # Analysis FW
-                edl_fw = Firework(
-                    EDLAnalysis(uuids=uuids), name="EDL_analysis", parents=parents
-                )
-                all_fws.append(edl_fw)
-                wf = Workflow(all_fws, name="EDL_WF")
+                self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
+                self.fw_spec = fw_spec
+                wf = self.run_EDL()
                 return FWAction(
                     detours=[wf],
                     update_spec={
@@ -266,12 +276,16 @@ class ContinueOptimizeFW(FiretaskBase):
                     },
                 )
             elif fw_spec["is_adslab"]:
+                self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
+                self.fw_spec = fw_spec
+                wf = self.run_EDL()
                 return FWAction(
+                    detours=[wf],
                     update_spec={
                         fw_spec["name"]: {
                             "oriented_uuid": fw_spec["oriented_uuid"],
                             "slab_uuid": fw_spec["slab_uuid"],
                             "adslab_uuid": fw_spec["uuid"],
                         }
-                    }
+                    },
                 )
