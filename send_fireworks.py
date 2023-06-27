@@ -14,6 +14,7 @@ from ase.optimize import LBFGS
 import numpy as np
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator
 import torch
+import re
 
 # from ocpmodels.common.relaxation.ase_utils import OCPCalculator
 
@@ -85,10 +86,42 @@ class ML_int_relax(FiretaskBase):
 
 @explicit_serialize
 class analyze_ML_OER_results(FiretaskBase):
-
     def run_task(self, fw_spec):
+        # Partition the energies for the ones with degrees of freedom
+        ooh_dict = {k: v for k, v in fw_spec.items() if re.search("^OOH_", k)}
+        oh_dict = {k: v for k, v in fw_spec.items() if re.search("^OH_", k)}
+        # Get the lowest energy configuration
+        min_ooh_key = min(ooh_dict, key=ooh_dict.get)
+        min_oh_key = min(oh_dict, key=oh_dict.get)
+        E_ref = fw_spec["Clean_relaxed_energy"]
+        E_OH = (
+            oh_dict[min_oh_key] - E_ref - (-14.25994015 - (-0.5 * 6.77818501)) + 0.295
+        )
+        E_OOH = (
+            ooh_dict[min_ooh_key]
+            - E_ref
+            - (2 * (-14.25994015) - 1.5 * (-6.77818501))
+            + 0.377
+        )
+        E_Ox = fw_spec["Ox_relaxed_energy"] - E_ref - (-14.25994015 - -6.77818501) + 0.044
+        G_Ox_OH = E_Ox - E_OH
+        G_OOH_Ox = E_OOH - E_Ox
+        GO2 = 4.92 - E_OOH
+        G_OH = E_OH
+        overpotential = max(G_OH, GO2, G_OOH_Ox, G_Ox_OH) - 1.23
+        breakpoint()
 
-        return FWAction()
+        return FWAction(
+            stored_data={
+                "G_Ox": E_Ox,
+                "G_OOH": E_OOH,
+                "G_OH": E_OH,
+                "overpotential": overpotential,
+                "G_Ox_OH": E_Ox - E_OH,
+                "G_OOH_Ox": E_OOH - E_Ox,
+                "GO2": 4.92 - E_OOH,
+            }
+        )
 
 
 # depth_1_dirs = next(os.walk("./"))[1]
