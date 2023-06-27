@@ -21,10 +21,11 @@ import torch
 @explicit_serialize
 class ML_int_relax(FiretaskBase):
 
-    required_params = ["template_ckpt", "finetune_ckpt", "structure"]
+    required_params = ["label", "template_ckpt", "finetune_ckpt", "structure"]
 
     def run_task(self, fw_spec):
 
+        label = self["label"]
         template_ckpt = env_chk(self["template_ckpt"], fw_spec)
         finetune_ckpt = env_chk(self["finetune_ckpt"], fw_spec)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -45,7 +46,6 @@ class ML_int_relax(FiretaskBase):
             old_cp,
             "/home/jovyan/makesureINFfinetune_NRC_data_MAEwith_scaling-epoch=80-step=648-val_loss=0.1440.ckpt",
         )
-        breakpoint()
         # Here we load the checkpoint with the finetuned weights into an OCPCalculator
         ocp_calculator = OCPCalculator(checkpoint=finetune_ckpt)
         # We go over the old checkpoint and make the necessary updates
@@ -58,20 +58,29 @@ class ML_int_relax(FiretaskBase):
                 for atom in atoms
             ]
         )
-        tags[np.array([0, 51, 52, 53, 54])] = 2  # FIXME: Unhardcode
+        if "_" in label:
+            split_key = label.split("_")[0]
+        else:
+            split_key = label
+        if split_key == "OOH":
+            tags[np.array([0, 51, 52, 53, 54])] = 2
+        elif split_key == "OH":
+            tags[np.array([0, 51, 52, 53])] = 2
+        elif split_key == "Ox":
+            tags[np.array([50, 51, 52])] = 2
+        else:  # Clean
+            tags[np.array([50, 51])] = 2
         os.makedirs("data", exist_ok=True)
         atoms.set_calculator(ocp_calculator)
         atoms.set_pbc(True)
         atoms.set_tags(tags)
-        dyn = LBFGS(atoms, trajectory="data/test.traj")
+        dyn = LBFGS(atoms, trajectory=f"data/{label}.traj")
         dyn.run(fmax=0.03, steps=100)
         relaxed_energy = atoms.get_potential_energy()
         # We then relax the atomic structure and update_spec with the relaxed energy for the analysis
         # firetask
 
-        return FWAction(
-            update_spec={"relaxed_energy": relaxed_energy}
-        )  # FIXME: Make a fxn of intermediate name
+        return FWAction(update_spec={f"{label}_relaxed_energy": relaxed_energy})
 
 
 @explicit_serialize
@@ -84,32 +93,34 @@ class analyze_ML_OER_results(FiretaskBase):
         return FWAction()
 
 
-# depth_1_dirs = next(os.walk("./"))[1]
-# launchpad = LaunchPad(
-#    host="localhost",
-#    name="fw_oal",
-#    port=27017,
-#    username="fw_oal_admin",
-#    password="gfde223223222rft3",
-# )
-# parents = []
-# fws = []
-# for dir_ in depth_1_dirs:
-#    atoms = read(f"{dir_}/POSCAR")
-#    struct = AAA.get_structure(atoms)
-#    fw = Firework(
-#        ML_int_relax(
-#            structure=struct,
-#            finetune_ckpt=">>finetune_ckpt<<",
-#            template_ckpt=">>template_ckpt<<",
-#        ),
-#        name=f"{dir_}",
-#    )
-#    parents.append(fw)
-#    fws.append(fw)
-# analysis_fw = Firework(
-#    analyze_ML_OER_results(test="test"), name="OER_int_analysis", parents=parents
-# )
-# fws.append(analysis_fw)
-# wf = Workflow(fws, name="ML_int_relax_wf_Mo_Nb")
-# launchpad.add_wf(wf)
+depth_1_dirs = next(os.walk("./"))[1]
+launchpad = LaunchPad(
+    host="localhost",
+    name="fw_oal",
+    port=27017,
+    username="fw_oal_admin",
+    password="gfde223223222rft3",
+)
+parents = []
+fws = []
+for dir_ in depth_1_dirs:
+    atoms = read(f"{dir_}/POSCAR")
+    struct = AAA.get_structure(atoms)
+    fw = Firework(
+        ML_int_relax(
+            label=f"{dir_}",
+            structure=struct,
+            finetune_ckpt=">>finetune_ckpt<<",
+            template_ckpt=">>template_ckpt<<",
+        ),
+        name=f"{dir_}",
+    )
+    breakpoint()
+    parents.append(fw)
+    fws.append(fw)
+analysis_fw = Firework(
+    analyze_ML_OER_results(test="test"), name="OER_int_analysis", parents=parents
+)
+fws.append(analysis_fw)
+wf = Workflow(fws, name="ML_int_relax_wf_Mo_Nb")
+launchpad.add_wf(wf)
