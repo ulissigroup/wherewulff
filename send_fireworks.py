@@ -11,6 +11,7 @@ import os
 from ase.io import read
 from pymatgen.io.ase import AseAtomsAdaptor as AAA
 from ase.optimize import LBFGS
+import numpy as np
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator
 import torch
 
