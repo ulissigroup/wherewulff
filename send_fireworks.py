@@ -45,17 +45,32 @@ class ML_int_relax(FiretaskBase):
             "/home/jovyan/makesureINFfinetune_NRC_data_MAEwith_scaling-epoch=80-step=648-val_loss=0.1440.ckpt",
         )
         breakpoint()
+        # Here we load the checkpoint with the finetuned weights into an OCPCalculator
         ocp_calculator = OCPCalculator(checkpoint=finetune_ckpt)
         # We go over the old checkpoint and make the necessary updates
         structure = self["structure"]
         # Convert the serializable structure back to ASE for the relaxation
         atoms = AAA.get_atoms(structure)
-        # Here we load the checkpoint with the finetuned weights into an OCPCalculator
-
+        tags = np.array(
+            [
+                0 if atom.index in atoms.todict()["constraints"][0].get_indices() else 1
+                for atom in atoms
+            ]
+        )
+        tags[np.array([0, 51, 52, 53, 54])] = 2  # FIXME: Unhardcode
+        os.makedirs("data", exist_ok=True)
+        atoms.set_calculator(ocp_calculator)
+        atoms.set_pbc(True)
+        atoms.set_tags(tags)
+        dyn = LBFGS(atoms, trajectory="data/test.traj")
+        dyn.run(fmax=0.03, steps=100)
+        relaxed_energy = atoms.get_potential_energy()
         # We then relax the atomic structure and update_spec with the relaxed energy for the analysis
         # firetask
 
-        return FWAction(update_spec={})
+        return FWAction(
+            update_spec={"relaxed_energy": relaxed_energy}
+        )  # FIXME: Make a fxn of intermediate name
 
 
 @explicit_serialize
