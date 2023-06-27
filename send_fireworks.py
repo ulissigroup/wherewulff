@@ -85,10 +85,8 @@ class ML_int_relax(FiretaskBase):
 
 @explicit_serialize
 class analyze_ML_OER_results(FiretaskBase):
-    required_params = ["test"]
 
     def run_task(self, fw_spec):
-        test = self["test"]
 
         return FWAction()
 
