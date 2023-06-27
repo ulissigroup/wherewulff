@@ -93,34 +93,34 @@ class analyze_ML_OER_results(FiretaskBase):
         return FWAction()
 
 
-depth_1_dirs = next(os.walk("./"))[1]
-launchpad = LaunchPad(
-    host="localhost",
-    name="fw_oal",
-    port=27017,
-    username="fw_oal_admin",
-    password="gfde223223222rft3",
-)
-parents = []
-fws = []
-for dir_ in depth_1_dirs:
-    atoms = read(f"{dir_}/POSCAR")
-    struct = AAA.get_structure(atoms)
-    fw = Firework(
-        ML_int_relax(
-            label=f"{dir_}",
-            structure=struct,
-            finetune_ckpt=">>finetune_ckpt<<",
-            template_ckpt=">>template_ckpt<<",
-        ),
-        name=f"{dir_}",
-    )
-    breakpoint()
-    parents.append(fw)
-    fws.append(fw)
-analysis_fw = Firework(
-    analyze_ML_OER_results(test="test"), name="OER_int_analysis", parents=parents
-)
-fws.append(analysis_fw)
-wf = Workflow(fws, name="ML_int_relax_wf_Mo_Nb")
-launchpad.add_wf(wf)
+# depth_1_dirs = next(os.walk("./"))[1]
+# launchpad = LaunchPad(
+#    host="localhost",
+#    name="fw_oal",
+#    port=27017,
+#    username="fw_oal_admin",
+#    password="gfde223223222rft3",
+# )
+# parents = []
+# fws = []
+# for dir_ in depth_1_dirs:
+#    atoms = read(f"{dir_}/POSCAR")
+#    struct = AAA.get_structure(atoms)
+#    fw = Firework(
+#        ML_int_relax(
+#            label=f"{dir_}",
+#            structure=struct,
+#            finetune_ckpt=">>finetune_ckpt<<",
+#            template_ckpt=">>template_ckpt<<",
+#        ),
+#        name=f"{dir_}",
+#    )
+#    breakpoint()
+#    parents.append(fw)
+#    fws.append(fw)
+# analysis_fw = Firework(
+#    analyze_ML_OER_results(test="test"), name="OER_int_analysis", parents=parents
+# )
+# fws.append(analysis_fw)
+# wf = Workflow(fws, name="ML_int_relax_wf_Mo_Nb")
+# launchpad.add_wf(wf)
