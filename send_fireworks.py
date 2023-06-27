@@ -30,23 +30,23 @@ class ML_int_relax(FiretaskBase):
         template_ckpt = env_chk(self["template_ckpt"], fw_spec)
         finetune_ckpt = env_chk(self["finetune_ckpt"], fw_spec)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        old_cp = torch.load(template_ckpt, map_location=device)
-        new_cp = torch.load(finetune_ckpt, map_location=device)
+        # old_cp = torch.load(template_ckpt, map_location=device)
+        # new_cp = torch.load(finetune_ckpt, map_location=device)
         # We go over the old checkpoint and make the necessary updates
-        for param_name in old_cp["state_dict"]:
-            try:
-                # print(new_cp["state_dict"][param_name] - old_cp["state_dict"][param_name])
-                old_cp["state_dict"][param_name] = new_cp["state_dict"][
-                    "backbone" + param_name.split("module.module")[1]
-                ]
-            except KeyError:
-                old_cp["state_dict"][param_name] = new_cp["state_dict"][param_name]
+        # for param_name in old_cp["state_dict"]:
+        #    try:
+        #        # print(new_cp["state_dict"][param_name] - old_cp["state_dict"][param_name])
+        #        old_cp["state_dict"][param_name] = new_cp["state_dict"][
+        #            "backbone" + param_name.split("module.module")[1]
+        #        ]
+        #    except KeyError:
+        #        old_cp["state_dict"][param_name] = new_cp["state_dict"][param_name]
 
-        old_cp["config"]["model_attributes"]["qint_tags"] = [0, 1, 2]
-        torch.save(
-            old_cp,
-            "/home/jovyan/makesureINFfinetune_NRC_data_MAEwith_scaling-epoch=80-step=648-val_loss=0.1440.ckpt",
-        )
+        # old_cp["config"]["model_attributes"]["qint_tags"] = [0, 1, 2]
+        # torch.save(
+        #    old_cp,
+        #    "/home/jovyan/makesureINFfinetune_NRC_data_MAEwith_scaling-epoch=80-step=648-val_loss=0.1440.ckpt",
+        # )
         # Here we load the checkpoint with the finetuned weights into an OCPCalculator
         ocp_calculator = OCPCalculator(checkpoint=finetune_ckpt)
         # We go over the old checkpoint and make the necessary updates
@@ -103,7 +103,9 @@ class analyze_ML_OER_results(FiretaskBase):
             - (2 * (-14.25994015) - 1.5 * (-6.77818501))
             + 0.377
         )
-        E_Ox = fw_spec["Ox_relaxed_energy"] - E_ref - (-14.25994015 - -6.77818501) + 0.044
+        E_Ox = (
+            fw_spec["Ox_relaxed_energy"] - E_ref - (-14.25994015 - -6.77818501) + 0.044
+        )
         G_Ox_OH = E_Ox - E_OH
         G_OOH_Ox = E_OOH - E_Ox
         GO2 = 4.92 - E_OOH
