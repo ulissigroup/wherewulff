@@ -75,6 +75,7 @@ class ML_int_relax(FiretaskBase):
         atoms.set_calculator(ocp_calculator)
         atoms.set_pbc(True)
         atoms.set_tags(tags)
+        orig_structure = AAA.get_structure(atoms).copy()
         dyn = LBFGS(atoms, trajectory=f"data/{label}.traj")
         dyn.run(fmax=0.03, steps=100)
         relaxed_energy = atoms.get_potential_energy()
@@ -86,6 +87,7 @@ class ML_int_relax(FiretaskBase):
             update_spec={
                 f"{label}_relaxed_energy": relaxed_energy,
                 f"{label}_relaxed_structure": relaxed_structure,
+                f"{label}_orig_structure": orig_structure,
             }
         )
 
@@ -94,7 +96,10 @@ class ML_int_relax(FiretaskBase):
 class analyze_ML_OER_results(FiretaskBase):
     def run_task(self, fw_spec):
         # Partition the energies for the ones with degrees of freedom
-        ooh_dict = {k: v for k, v in fw_spec.items() if re.search("^OOH_", k)}
+        ooh_dict = {k: v for k, v in fw_spec.items() if re.search("^OOH_.*energy", k)}
+        ooh_structs = {
+            k: v for k, v in fw_spec.items() if re.search("^OOH_.*structure", k)
+        }
         # FIXME: Need to add logic for checking whether the OOH is de-protonated or not and exclude those candidates
         # before taking the minimum energy
         oh_dict = {k: v for k, v in fw_spec.items() if re.search("^OH_", k)}
