@@ -80,8 +80,14 @@ class ML_int_relax(FiretaskBase):
         relaxed_energy = atoms.get_potential_energy()
         # We then relax the atomic structure and update_spec with the relaxed energy for the analysis
         # firetask
+        relaxed_structure = AAA.get_structure(atoms)
 
-        return FWAction(update_spec={f"{label}_relaxed_energy": relaxed_energy})
+        return FWAction(
+            update_spec={
+                f"{label}_relaxed_energy": relaxed_energy,
+                f"{label}_relaxed_structure": relaxed_structure,
+            }
+        )
 
 
 @explicit_serialize
@@ -89,6 +95,8 @@ class analyze_ML_OER_results(FiretaskBase):
     def run_task(self, fw_spec):
         # Partition the energies for the ones with degrees of freedom
         ooh_dict = {k: v for k, v in fw_spec.items() if re.search("^OOH_", k)}
+        # FIXME: Need to add logic for checking whether the OOH is de-protonated or not and exclude those candidates
+        # before taking the minimum energy
         oh_dict = {k: v for k, v in fw_spec.items() if re.search("^OH_", k)}
         # Get the lowest energy configuration
         min_ooh_key = min(ooh_dict, key=ooh_dict.get)
@@ -111,7 +119,6 @@ class analyze_ML_OER_results(FiretaskBase):
         GO2 = 4.92 - E_OOH
         G_OH = E_OH
         overpotential = max(G_OH, GO2, G_OOH_Ox, G_Ox_OH) - 1.23
-        breakpoint()
 
         return FWAction(
             stored_data={
