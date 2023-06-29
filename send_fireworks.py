@@ -120,19 +120,19 @@ class analyze_ML_OER_results(FiretaskBase):
             new_sites = []
             # Check if there are any sites that are subject to PBC
             for site in fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r):
-                site.frac_coords[
-                    np.where(
-                        (np.round(site.frac_coords, 2) >= 1)
-                        | (np.round(site.frac_coords, 2) < 0)
-                    )
-                ] = np.mod(
+                if site.species_string != 'H':
                     site.frac_coords[
-                        (np.round(site.frac_coords, 2) >= 1)
-                        | (np.round(site.frac_coords, 2) < 0)
-                    ],
-                    1,
-                )
-
+                        np.where(
+                            (np.round(site.frac_coords, 2) >= 1)
+                            | (np.round(site.frac_coords, 2) < 0)
+                        )
+                    ] = np.mod(
+                        site.frac_coords[
+                            (np.round(site.frac_coords, 2) >= 1)
+                            | (np.round(site.frac_coords, 2) < 0)
+                        ],
+                        1,
+                    )
                 new_sites.append(site)
             ooh_indices = [orig_struct.index(s) for s in new_sites]
             relaxed_struct = ooh_relaxed_structs[
