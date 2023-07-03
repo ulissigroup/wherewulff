@@ -189,8 +189,8 @@ ref_dirs = {
     "Au-111-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_OH_1",
     "Au-111-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_O_1",
     "Au-111-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-reference",
-    "Au-111-Au-OOH_2": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OOH_2",
-    "Au-111-Au-OH_7": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OH_7",
+    "Au-111-Au-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OOH_2",
+    "Au-111-Au-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OH_7",
     "Au-111-Au-O_0": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-O_0",
     # Ag - 110
     "Ag_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_bulk",
@@ -497,8 +497,8 @@ def AdsSlab_FW(
             or "Au" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
-        #breakpoint()
-        fake_directory = ref_dirs[name]
+        # breakpoint()
+        fake_directory = ref_dirs[name.split("_")[0]]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
         fw.tasks[1] = RunVaspCustodian(vasp_cmd=vasp_cmd)
