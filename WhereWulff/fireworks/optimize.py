@@ -174,9 +174,24 @@ ref_dirs = {
     # Pt - 211
     "Pt_211 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_bulk",
     "Pt_211 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_slab",
-    # Au - 110
+    # Au - 110 # clean termination - bridge
     "Au_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_bulk",
     "Au_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_slab",
+    "Au-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_OH_1",
+    "Au-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_O_1",
+    "Au-110-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-reference",
+    "Au-110-Au-OOH_2": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OOH_2",
+    "Au-110-Au-OH_7": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OH_7",
+    "Au-110-Au-O_0": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-O_0",
+    # Au - 111 # clean termination - bridge
+    "Au_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_bulk",
+    "Au_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_slab",
+    "Au-111-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_OH_1",
+    "Au-111-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_O_1",
+    "Au-111-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-reference",
+    "Au-111-Au-OOH_2": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OOH_2",
+    "Au-111-Au-OH_7": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OH_7",
+    "Au-111-Au-O_0": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-O_0",
     # Ag - 110
     "Ag_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_bulk",
     "Ag_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_slab",
@@ -479,8 +494,10 @@ def AdsSlab_FW(
             or "Co" in name
             or "Ti" in name
             or "Pd" in name
+            or "Au" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
+        #breakpoint()
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
     else:
