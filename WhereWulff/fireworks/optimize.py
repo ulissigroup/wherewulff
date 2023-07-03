@@ -191,7 +191,7 @@ ref_dirs = {
     "Au-111-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-reference",
     "Au-111-Au-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OOH_2",
     "Au-111-Au-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OH_7",
-    "Au-111-Au-O_0": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-O_0",
+    "Au-111-Au-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-O_0",
     # Ag - 110
     "Ag_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_bulk",
     "Ag_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_slab",
