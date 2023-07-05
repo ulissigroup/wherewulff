@@ -6,6 +6,7 @@ from fireworks import (
     FiretaskBase,
     LaunchPad,
 )
+from atomate.vasp.database import VaspCalcDb
 from atomate.utils.utils import env_chk
 import os
 from ase.io import read
@@ -22,14 +23,26 @@ import re
 @explicit_serialize
 class ML_int_relax(FiretaskBase):
 
-    required_params = ["label", "template_ckpt", "finetune_ckpt", "structure"]
+    required_params = [
+        "label",
+        "uuid",
+        "is_bulk",
+        "template_ckpt",
+        "finetune_ckpt",
+        "structure",
+        "db_file",
+    ]
 
     def run_task(self, fw_spec):
 
         label = self["label"]
-        template_ckpt = env_chk(self["template_ckpt"], fw_spec)
+        uuid = self["uuid"]
+        is_bulk = self["is_bulk"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        # template_ckpt = env_chk(self["template_ckpt"], fw_spec)
         finetune_ckpt = env_chk(self["finetune_ckpt"], fw_spec)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # old_cp = torch.load(template_ckpt, map_location=device)
         # new_cp = torch.load(finetune_ckpt, map_location=device)
         # We go over the old checkpoint and make the necessary updates
@@ -53,28 +66,41 @@ class ML_int_relax(FiretaskBase):
         structure = self["structure"]
         # Convert the serializable structure back to ASE for the relaxation
         atoms = AAA.get_atoms(structure)
-        tags = np.array(
-            [
-                0 if atom.index in atoms.todict()["constraints"][0].get_indices() else 1
-                for atom in atoms
-            ]
-        )
-        if "_" in label:
-            split_key = label.split("_")[0]
-        else:
-            split_key = label
-        if split_key == "OOH":
-            tags[np.array([0, 51, 52, 53, 54])] = 2
-        elif split_key == "OH":
-            tags[np.array([0, 51, 52, 53])] = 2
-        elif split_key == "Ox":
-            tags[np.array([50, 51, 52])] = 2
-        else:  # Clean
-            tags[np.array([50, 51])] = 2
+        if is_bulk:
+            tags = np.array([0] * len(structure))
+            # Check the constraints
+        elif "constraints" in atoms.todict():
+            tags = np.array(
+                [
+                    0
+                    if atom.index in atoms.todict()["constraints"][0].get_indices()
+                    else 1
+                    for atom in atoms
+                ]
+            )
+            # TODO Logic for adsorbate tagging
+        elif "constraints" not in atoms.todict() and not fw_spec.get(
+            "is_adslab"
+        ):  # slab
+            tags = np.array([1] * len(structure))
+        # if "_" in label:
+        #    split_key = label.split("_")[0]
+        # else:
+        #    split_key = label
+        # if split_key == "OOH":
+        #    tags[np.array([0, 51, 52, 53, 54])] = 2
+        # elif split_key == "OH":
+        #    tags[np.array([0, 51, 52, 53])] = 2
+        # elif split_key == "Ox":
+        #    tags[np.array([50, 51, 52])] = 2
+        # else:  # Clean
+        #    tags[np.array([50, 51])] = 2
         os.makedirs("data", exist_ok=True)
         atoms.set_calculator(ocp_calculator)
         atoms.set_pbc(True)
         atoms.set_tags(tags)
+        # Make sure the tags don't come out as object dtype
+        atoms.arrays["tags"] = atoms.arrays["tags"].astype(int)
         orig_structure = AAA.get_structure(atoms).copy()
         dyn = LBFGS(atoms, trajectory=f"data/{label}.traj")
         dyn.run(fmax=0.03, steps=100)
@@ -82,13 +108,55 @@ class ML_int_relax(FiretaskBase):
         # We then relax the atomic structure and update_spec with the relaxed energy for the analysis
         # firetask
         relaxed_structure = AAA.get_structure(atoms)
+        relaxed_structure.remove_oxidation_states()
+        orig_structure.remove_oxidation_states()
+        # Insert the results into the task collection per the atomate schema and using the uuid
+        task_doc = {
+            "uuid": uuid,
+            "calcs_reversed": [
+                {
+                    "output": {
+                        "structure": None,
+                        "energy": 0,
+                        "ionic_steps": [
+                            {"e_0_energy": 0, "structure": None},
+                            {"e_0_energy": 0, "structure": None},
+                        ],
+                    }
+                }
+            ],
+        }
+        relaxed_forces = atoms.get_forces().tolist()
+        task_doc["calcs_reversed"][0]["output"][
+            "structure"
+        ] = relaxed_structure.as_dict()
+        task_doc["calcs_reversed"][0]["output"]["energy"] = relaxed_energy
+        task_doc["calcs_reversed"][0]["output"]["ionic_steps"][0][
+            "structure"
+        ] = orig_structure.as_dict()
+        task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
+            "structure"
+        ] = relaxed_structure.as_dict()
+        task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
+            "e_0_energy"
+        ] = relaxed_energy
+        task_doc["calcs_reversed"][0]["output"]["forces"] = relaxed_forces
+        if not is_bulk:
+            task_doc.update(
+                {
+                    "slab": fw_spec["slab"].as_dict(),
+                    "parent_structure": fw_spec["parent_structure"].as_dict(),
+                    "parent_structure_metadata": fw_spec["parent_structure_metadata"],
+                }
+            )
+        mmdb.db["tasks"].insert_one(task_doc)
 
         return FWAction(
-            update_spec={
-                f"{label}_relaxed_energy": relaxed_energy,
-                f"{label}_relaxed_structure": relaxed_structure,
-                f"{label}_orig_structure": orig_structure,
-            }
+            # update_spec={
+            #    f"{label}_relaxed_energy": relaxed_energy,
+            #    f"{label}_relaxed_structure": relaxed_structure,
+            #    f"{label}_orig_structure": orig_structure,
+            # }
         )
 
 
@@ -120,7 +188,7 @@ class analyze_ML_OER_results(FiretaskBase):
             new_sites = []
             # Check if there are any sites that are subject to PBC
             for site in fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r):
-                if site.species_string != 'H':
+                if site.species_string != "H":
                     site.frac_coords[
                         np.where(
                             (np.round(site.frac_coords, 2) >= 1)
