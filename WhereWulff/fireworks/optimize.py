@@ -7,6 +7,7 @@ import os
 
 from WhereWulff.dft_settings.settings import MOSurfaceSet
 from WhereWulff.firetasks.handlers import ContinueOptimizeFW
+from send_fireworks import ML_int_relax
 
 
 # Dictionary that holds the paths to the VASP input
@@ -229,6 +230,7 @@ def Bulk_FW(
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
+    run_ML=True,
 ):
     """
     Function to generate a bulk firework. Returns an OptimizeFW for the specified slab.
@@ -295,6 +297,24 @@ def Bulk_FW(
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
+    elif run_ML:
+        # We only need the ML_int_relax firetask and the ContinueOptimize Firetask
+        del fw.tasks[3]  # VaspToDb
+        fw.tasks[1] = ML_int_relax(
+            label=name,
+            uuid=fw_bulk_uuid,
+            template_ckpt=">>template_ckpt<<",
+            finetune_ckpt=">>finetune_ckpt<<",
+            structure=bulk,
+            is_bulk=True,
+            db_file=">>db_file<<",
+        )  # ML relaxation plus outputs insertion
+        fw.tasks.append(
+            ContinueOptimizeFW(
+                is_bulk=True, counter=0, db_file=db_file, vasp_cmd=vasp_cmd
+            )
+        )  # For message passing purposes
+        return fw
     else:
         # This is for submitting on Perlmutter, where there is an issue between custodian and the compiled vasp version
         # fw.tasks[1] = RunVaspDirect(
@@ -332,6 +352,7 @@ def Slab_FW(
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
+    run_ML=True,
 ):
     """
     Function to generate a slab firework. Returns an OptimizeFW for the specified slab.
@@ -398,6 +419,23 @@ def Slab_FW(
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
+    elif run_ML:
+        # We only need the ML_int_relax firetask and the ContinueOptimize Firetask
+        del fw.tasks[3]  # VaspToDb
+        fw.tasks[1] = ML_int_relax(
+            label=name,
+            uuid=fw_slab_uuid,
+            template_ckpt=">>template_ckpt<<",
+            finetune_ckpt=">>finetune_ckpt<<",
+            structure=slab,
+            is_bulk=False,
+            db_file=">>db_file<<",
+        )  # ML relaxation plus outputs insertion
+        fw.tasks.append(
+            ContinueOptimizeFW(
+                is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd
+            )
+        )  # For message passing purposes
     else:
         # fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
         # Switch-off GzipDir for WAVECAR transferring
@@ -405,28 +443,32 @@ def Slab_FW(
         # Switch-on WalltimeHandler in RunVaspCustodian
         if wall_time is not None:
             fw.tasks[1].update({"wall_time": wall_time})
+    if not run_ML:
+        # Append Continue-optimizeFW for wall-time handling
+        fw.tasks.append(
+            ContinueOptimizeFW(
+                is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd
+            )
+        )
 
-    # Append Continue-optimizeFW for wall-time handling
-    fw.tasks.append(
-        ContinueOptimizeFW(is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
-    )
-
-    # Add slab_uuid through VaspToDb
-    fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
-    fw.tasks[3].update(
-        {"defuse_unsuccessful": False}
-    )  # Continue with the workflow in the event an SCF has not converged
+        # Add slab_uuid through VaspToDb
+        fw.tasks[3]["additional_fields"].update({"uuid": fw_slab_uuid})
+        fw.tasks[3].update(
+            {"defuse_unsuccessful": False}
+        )  # Continue with the workflow in the event an SCF has not converged
 
     # Add slab metadata
     if add_slab_metadata:
         parent_structure_metadata = get_meta_from_structure(slab.oriented_unit_cell)
-        fw.tasks[3]["additional_fields"].update(
-            {
-                "slab": slab,
-                "parent_structure": slab.oriented_unit_cell,
-                "parent_structure_metadata": parent_structure_metadata,
-            }
-        )
+        meta_doc = {
+            "slab": slab,
+            "parent_structure": slab.oriented_unit_cell,
+            "parent_structure_metadata": parent_structure_metadata,
+        }
+        if run_ML:
+            fw.spec.update(meta_doc)  # Needs to be added to the task doc with results
+        else:
+            fw.tasks[3]["additional_fields"].update(meta_doc)
 
     return fw
 
@@ -445,6 +487,7 @@ def AdsSlab_FW(
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
+    run_ML=True,
 ):
     """
     Function to generate a ads_slab firework. Returns an OptimizeFW for the specified slab.
@@ -509,6 +552,23 @@ def AdsSlab_FW(
         # breakpoint()
         fake_directory = ref_dirs[name.split("_")[0]]
         fw.tasks[1] = RunVaspFake(ref_dir=fake_directory, check_potcar=False)
+    elif run_ML:
+        # We only need the ML_int_relax firetask and the ContinueOptimize Firetask
+        del fw.tasks[3]  # VaspToDb
+        fw.tasks[1] = ML_int_relax(
+            label=name,
+            uuid=ads_slab_uuid,
+            template_ckpt=">>template_ckpt<<",
+            finetune_ckpt=">>finetune_ckpt<<",
+            structure=slab,
+            is_bulk=False,
+            db_file=">>db_file<<",
+        )  # ML relaxation plus outputs insertion
+        fw.tasks.append(
+            ContinueOptimizeFW(
+                is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd
+            )
+        )  # For message passing purposes
     else:
         fw.tasks[1] = RunVaspCustodian(vasp_cmd=vasp_cmd)
         # Switch-off GzipDir for WAVECAR transferring
@@ -517,27 +577,30 @@ def AdsSlab_FW(
         # Switch-on WalltimeHandler in RunVaspCustodian
         if wall_time is not None:
             fw.tasks[1].update({"wall_time": wall_time})
-
-    # Append Continue-optimizeFW for wall-time handling
-    fw.tasks.append(
-        ContinueOptimizeFW(is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd)
-    )
-
-    # Add slab_uuid through VaspToDb
-    fw.tasks[3]["additional_fields"].update({"uuid": ads_slab_uuid})
-    fw.tasks[3].update(
-        {"defuse_unsuccessful": False}
-    )  # Continue with the workflow in the event an SCF has not converged
+    if not run_ML:
+        # Append Continue-optimizeFW for wall-time handling
+        fw.tasks.append(
+            ContinueOptimizeFW(
+                is_bulk=False, counter=0, db_file=db_file, vasp_cmd=vasp_cmd
+            )
+        )
+        # Add slab_uuid through VaspToDb
+        fw.tasks[3]["additional_fields"].update({"uuid": ads_slab_uuid})
+        fw.tasks[3].update(
+            {"defuse_unsuccessful": False}
+        )  # Continue with the workflow in the event an SCF has not converged
 
     # Add slab metadata
     if add_slab_metadata:
         parent_structure_metadata = get_meta_from_structure(slab.oriented_unit_cell)
-        fw.tasks[3]["additional_fields"].update(
-            {
-                "slab": slab,
-                "parent_structure": slab.oriented_unit_cell,
-                "parent_structure_metadata": parent_structure_metadata,
-            }
-        )
+        meta_doc = {
+            "slab": slab,
+            "parent_structure": slab.oriented_unit_cell,
+            "parent_structure_metadata": parent_structure_metadata,
+        }
+        if run_ML:
+            fw.spec.update(meta_doc)
+        else:
+            fw.tasks[3]["additional_fields"].update(meta_doc)
 
     return fw
