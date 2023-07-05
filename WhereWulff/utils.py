@@ -38,8 +38,10 @@ def find_most_stable_config(configs, checkpoint_path):
                 tags.append(1)  # surface
             else:
                 tags.append(2)  # adsorbate
-        #breakpoint()
+        # breakpoint()
         atoms.set_tags(tags)
+        # Make sure the tags array does not come out as a dtype object
+        atoms.arrays["tags"] = atoms.arrays["tags"].astype(int)
         adslab_atoms.append(atoms)
     graphs = a2g.convert_all(adslab_atoms)
 
