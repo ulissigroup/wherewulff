@@ -57,7 +57,7 @@ class ContinueOptimizeFW(FiretaskBase):
         contcar_obj = Structure.from_dict(contcar)
         contcar_obj.add_site_property("magmom", orig_magmoms)
         contcar = contcar_obj.as_dict()
-        incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True}
+        incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True, "LSOL": True}
         incar_dict["structure"] = contcar
         parents = []
         all_fws = []
@@ -263,11 +263,11 @@ class ContinueOptimizeFW(FiretaskBase):
                 )
 
             elif not is_bulk and not fw_spec.get("is_adslab"):
-                self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
-                self.fw_spec = fw_spec
-                wf = self.run_EDL()
+                #self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
+                #self.fw_spec = fw_spec
+                #wf = self.run_EDL()
                 return FWAction(
-                    detours=[wf],
+                    #detours=[wf],
                     update_spec={
                         "oriented_uuid": fw_spec["oriented_uuid"]
                         if "oriented_uuid" in fw_spec
@@ -276,11 +276,11 @@ class ContinueOptimizeFW(FiretaskBase):
                     },
                 )
             elif fw_spec["is_adslab"]:
-                self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
-                self.fw_spec = fw_spec
-                wf = self.run_EDL()
+                #self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
+                #self.fw_spec = fw_spec
+                #wf = self.run_EDL()
                 return FWAction(
-                    detours=[wf],
+                #    detours=[wf],
                     update_spec={
                         fw_spec["name"]: {
                             "oriented_uuid": fw_spec["oriented_uuid"],

@@ -48,13 +48,17 @@ class SurfaceCoverageML(object):
             mxidegen = MXideAdsorbateGenerator(
                 slab_ref, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"]
             )
+            mxidegen.slab.sort()
+            surface_prop = mxidegen.slab.site_properties["surface_properties"]
+            slab.sort()
+            slab.add_site_property("surface_properties", surface_prop)
 
             self.bulk_like, _ = mxidegen.get_bulk_like_adsites()
             _, self.X = mxidegen.bondlengths_dict, mxidegen.X
         else:  # Metals
             asf = AdsorbateSiteFinder(slab_ref)
             self.bulk_like = asf.find_adsorption_sites(
-                positions=["ontop"], put_inside=True, symm_reduce=0
+                positions=["bridge"], put_inside=True, symm_reduce=0
             )["all"]
             self.X = "not_oxide"
 
@@ -107,7 +111,7 @@ class SurfaceCoverageML(object):
         # Loop
         counter = 0
         occ_site_indices = []
-        while remaining_site_indices and counter < 1:
+        while remaining_site_indices:
             if len(remaining_site_indices) == len(self.bulk_like_shifted):
                 slab_ads = slab.copy()
                 previous_site_1, previous_site_2 = None, None
@@ -134,11 +138,13 @@ class SurfaceCoverageML(object):
             if site_1 is None and site_2 is None:
                 break
             if not is_metal:
-                slab_ads = add_adsorbates(
-                    slab_ads.copy(),
-                    [self.bulk_like_shifted[site_1], self.bulk_like_shifted[site_2]],
-                    adsorbate,
-                )
+                for site in [site_1, site_2]:
+                    if site is not None:
+                        slab_ads = add_adsorbates(
+                            slab_ads.copy(),
+                            [self.bulk_like_shifted[site]],
+                            adsorbate,
+                        )
             else:
                 for site in [site_1, site_2]:
                     if site is not None:
@@ -158,7 +164,6 @@ class SurfaceCoverageML(object):
             slab_ads, index = find_most_stable_config(
                 configs, checkpoint_path=self.checkpoint_path
             )
-        # breakpoint()
         # Cast the structure into a Slab object
         slab_ads = Slab(
             slab_ads.lattice,
@@ -460,6 +465,42 @@ def add_adsorbates(adslab, ads_coords, molecule, z_offset=[0, 0, 0.15]):
                 coords_are_cartesian=True,
                 properties=mol_site.properties,
             )
+
+    # Fill in the None values in the adslab because of addition of adsorbate
+    adslab.add_site_property(
+        "tags", [2 if x is None else x for x in adslab.site_properties["tags"]]
+    )
+    adslab.add_site_property(
+        "bulk_wyckoff",
+        ["None" if x is None else x for x in adslab.site_properties["bulk_wyckoff"]],
+    )
+    adslab.add_site_property(
+        "forces",
+        ["None" if x is None else x for x in adslab.site_properties["forces"]],
+    )
+    adslab.add_site_property(
+        "binding_site",
+        [False if x is None else x for x in adslab.site_properties["binding_site"]],
+    )
+    adslab.add_site_property(
+        "selective_dynamics",
+        [
+            [True, True, True] if x is None else x
+            for x in adslab.site_properties["selective_dynamics"]
+        ],
+    )
+    adslab.add_site_property(
+        "bulk_equivalent",
+        ["None" if x is None else x for x in adslab.site_properties["bulk_equivalent"]],
+    )
+    adslab.add_site_property(
+        "surface_properties",
+        [
+            "adsorbate" if x is None else x
+            for x in adslab.site_properties["surface_properties"]
+        ],
+    )
+
     return adslab
 
 
@@ -585,13 +626,15 @@ def SurfacePBX_WF(
     ads_slab_orig = {}
     adslabs = {}
     for adsorbate in adsorbates:
-        # breakpoint()
-        if (not checkpoint_path or len(adsorbate) == 1) and not is_metal:
-            adslabs, bulk_like_shifted = get_clockwise_rotations(
+        if (
+            not checkpoint_path or len(adsorbate) == 1
+        ):  # As before # FIXME: Make sure this works
+            adslab, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
             )
+            adslabs.update(adslab)
         else:
-            # TODO: Find the most stable config with adsorbate monolayer
+            # Find the most stable config with adsorbate monolayer
             surface_pbx_ml = SurfaceCoverageML(
                 slab_orig, slab, adsorbate, is_metal, checkpoint_path=checkpoint_path
             )
@@ -604,6 +647,7 @@ def SurfacePBX_WF(
     for adslab_label, adslab in adslabs.items():
         name = f"{slab.composition.reduced_formula}-{slab_miller_index}-{adslab_label}"
         ads_slab_uuid = str(uuid.uuid4())
+        adslab.remove_oxidation_states()  # for serialization purposes
         ads_slab_fw = AdsSlab_FW(
             adslab,
             name=name,

@@ -105,6 +105,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         slab_clean = Structure.from_dict(
             doc_clean["calcs_reversed"][-1]["output"]["structure"]
         )
+        slab_clean.remove_oxidation_states()
 
         slab_clean_energy = doc_clean["calcs_reversed"][-1]["output"]["energy"]
         slab_clean_comp = {
@@ -114,9 +115,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         # Find oriented_bulk thru uuid (since it is not decorated)
         # TODO: Mxide method should be compatible with decorated Elements (e.g. O2-)
         oriented_struct = Structure.from_dict(
-            mmdb.db["tasks"].find_one({"uuid": str(oriented_uuid)})["output"][
-                "structure"
-            ]
+            mmdb.db["tasks"].find_one({"uuid": str(oriented_uuid)})["calcs_reversed"][
+                0
+            ]["output"]["structure"]
         )
 
         oriented_wyckoffs = [
@@ -141,8 +142,9 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         dft_energy_oh_min = np.inf
         for n, ads_slab_uuid in enumerate(ads_slab_uuids):
             doc_ads = mmdb.collection.find_one({"uuid": ads_slab_uuid})
-            ads_task_label = doc_ads["task_label"]
-            adsorbate_label = ads_task_label.split("-")[2]  # OH_n or O_1
+            label = mmdb.db["fireworks"].find_one({"spec.uuid": ads_slab_uuid})["name"]
+            ads_task_label = label  # FIXME: Also add the label in the task_doc
+            adsorbate_label = ads_task_label.split("-")[3]  # OH_n or O_1
             if "OH_" in adsorbate_label:
                 dft_energy_oh = doc_ads["calcs_reversed"][-1]["output"]["energy"]
                 if dft_energy_oh <= dft_energy_oh_min:
@@ -155,7 +157,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
                 dft_energy_ox = doc_ads["calcs_reversed"][-1]["output"]["energy"]
                 # ads_task_label_ox = ads_task_label
                 ads_uuid_ox = ads_slab_uuid
-
         ads_slab_terminations.update({str(ads_uuid_oh_min): dft_energy_oh_min})
         ads_slab_terminations.update({str(ads_uuid_ox): dft_energy_ox})
 
@@ -259,11 +260,10 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         nH2O = slab_ox_composition["O"] - slab_clean_comp_O
         nH = slab_oh_composition["H"]
         nH_2 = 2.0 * nH
-
         # Graph Bounds - OER
         self.oer_std = self.oer_potential_std()
         self.oer_up = self.oer_potential_up()
-        #breakpoint()
+        # breakpoint()
         self.clean_2_OH = self._get_surface_potential_line(
             ads_slab_terminations[ads_uuid_oh_min], slab_clean_energy, nH=nH, nH2O=nH2O
         )
@@ -284,7 +284,6 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         summary_dict["oer_up"] = self.oer_up
         summary_dict["clean_2_OH"] = self.clean_2_OH
         summary_dict["OH_2_Ox"] = self.OH_2_Ox
-
         # Plot the surface PBX diagram!
         pbx_plot = self._get_surface_pbx_diagram()
         pbx_plot.savefig(f"{self.reduced_formula}_{self.miller_index}_pbx.png", dpi=300)
@@ -304,7 +303,7 @@ class SurfacePourbaixDiagramAnalyzer(FiretaskBase):
         logger.info(
             f"{self.reduced_formula}-({self.miller_index}) Surface Pourbaix Done!"
         )
-        #breakpoint()
+        # breakpoint()
         # Send the summary_dict to the child FW
         return FWAction(
             update_spec={

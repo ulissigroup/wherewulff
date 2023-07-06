@@ -75,7 +75,7 @@ class SlabAdsFireTask(FiretaskBase):
 
                 # Filter by surface contribution
                 filtered_slab_miller_indices = [
-                    k for k, v in wulff_metadata["area_fractions"].items() if v > 0.0
+                    k for k, v in wulff_metadata["area_fractions"].items() if v > -1
                 ]
                 # Create the set of reduced_formulas
                 # bulk_slab_keys = [
@@ -121,13 +121,13 @@ class SlabAdsFireTask(FiretaskBase):
                         "sites"
                     ]
                 ]
-                slab_forces = mmdb.db["tasks"].find_one({"uuid": slab_uuid})["output"][
-                    "forces"
-                ]
+                slab_forces = mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
+                    "calcs_reversed"
+                ][0]["output"]["forces"]
                 slab_struct = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["output"][
-                        "structure"
-                    ]
+                    mmdb.db["tasks"].find_one({"uuid": slab_uuid})["calcs_reversed"][0][
+                        "output"
+                    ]["structure"]
                 )
                 # Retrieve original structure from the root node via the uuid_lineage field
                 # in the spec of the terminal node
@@ -177,14 +177,14 @@ class SlabAdsFireTask(FiretaskBase):
 
                 # Oriented unit cell Structure output and input
                 orient_struct = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": oriented_uuid})["output"][
-                        "structure"
-                    ]
+                    mmdb.db["tasks"].find_one({"uuid": oriented_uuid})[
+                        "calcs_reversed"
+                    ][0]["output"]["structure"]
                 )
                 oriented_struct_orig = Structure.from_dict(
-                    mmdb.db["tasks"].find_one({"uuid": oriented_uuid})["input"][
-                        "structure"
-                    ]
+                    mmdb.db["fireworks"].find_one({"spec.uuid": oriented_uuid})["spec"][
+                        "_tasks"
+                    ][0]["structure"]
                 )
 
                 # Oriented unit cell site properties
@@ -225,8 +225,8 @@ class SlabAdsFireTask(FiretaskBase):
                             shift=0,
                             scale_factor=0,
                             energy=mmdb.db["tasks"].find_one({"uuid": slab_uuid})[
-                                "output"
-                            ]["energy"],
+                                "calcs_reversed"
+                            ][0]["output"]["energy"],
                             site_properties=slab_struct.site_properties,
                         ),
                         # Input

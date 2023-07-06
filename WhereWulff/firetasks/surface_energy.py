@@ -127,13 +127,13 @@ class SurfaceEnergyFireTask(FiretaskBase):
         self.oriented_struct = oriented_struct  # make the struct obj accessible to the non-stoichiometric method
         self.slab_struct = slab_struct  # make the struct obj accessible to the non-stoichiometric method
         # Calc. surface energy - Assumes symmetric
-        if (
-            not slab_obj.is_polar()
-            #    and slab_obj.is_symmetric()
-        ):
-            surface_energy = self.get_non_stoich_surface_energy(
-                slab_E, oriented_E, slab_Area
-            )
+        #if (
+        #    not slab_obj.is_polar()
+        #    #    and slab_obj.is_symmetric()
+        #):
+        surface_energy = self.get_non_stoich_surface_energy(
+            slab_E, oriented_E, slab_Area
+        )
 
         # Summary dict
         summary_dict["oriented_struct"] = oriented_struct.as_dict()
