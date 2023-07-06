@@ -66,23 +66,23 @@ class ML_int_relax(FiretaskBase):
         structure = self["structure"]
         # Convert the serializable structure back to ASE for the relaxation
         atoms = AAA.get_atoms(structure)
-        if is_bulk:
-            tags = np.array([0] * len(structure))
-            # Check the constraints
-        elif "constraints" in atoms.todict():
-            tags = np.array(
-                [
-                    0
-                    if atom.index in atoms.todict()["constraints"][0].get_indices()
-                    else 1
-                    for atom in atoms
-                ]
-            )
-            # TODO Logic for adsorbate tagging
-        elif "constraints" not in atoms.todict() and not fw_spec.get(
-            "is_adslab"
-        ):  # slab
-            tags = np.array([1] * len(structure))
+        # if is_bulk:
+        #    tags = np.array([0] * len(structure))
+        #    # Check the constraints
+        # elif "constraints" in atoms.todict():
+        #    tags = np.array(
+        #        [
+        #            0
+        #            if atom.index in atoms.todict()["constraints"][0].get_indices()
+        #            else 1
+        #            for atom in atoms
+        #        ]
+        #    )
+        #    # TODO Logic for adsorbate tagging
+        # elif "constraints" not in atoms.todict() and not fw_spec.get(
+        #    "is_adslab"
+        # ):  # slab
+        #    tags = np.array([1] * len(structure))
         # if "_" in label:
         #    split_key = label.split("_")[0]
         # else:
@@ -98,7 +98,23 @@ class ML_int_relax(FiretaskBase):
         os.makedirs("data", exist_ok=True)
         atoms.set_calculator(ocp_calculator)
         atoms.set_pbc(True)
-        atoms.set_tags(tags)
+        if is_bulk:  # Bulk
+            atoms.set_tags([0] * len(structure))
+        elif not is_bulk and not fw_spec.get("is_adslab"):  # Slab
+            if "constraints" in atoms.todict()["constraints"]:
+                tags = np.array(
+                    [
+                        0
+                        if atom.index in atoms.todict()["constraints"][0].get_indices()
+                        else 1
+                        for atom in atoms
+                    ]
+                )
+            else:
+                tags = np.array([1] * len(structure))
+            atoms.set_tags(tags)
+        else:  # Adslab
+            atoms.set_tags(atoms.todict()["tags"])
         # Make sure the tags don't come out as object dtype
         atoms.arrays["tags"] = atoms.arrays["tags"].astype(int)
         orig_structure = AAA.get_structure(atoms).copy()
