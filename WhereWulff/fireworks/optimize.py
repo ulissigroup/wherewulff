@@ -173,8 +173,8 @@ ref_dirs = {
     # Pt - 111 # clean termination - ontop
     "Pt_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_bulk",
     "Pt_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_slab",
-    "Pt-111-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_OH_1",
-    "Pt-111-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_O_1",
+    "Pt-111-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_OH_1",
+    "Pt-111-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_O_1",
     "Pt-111-Pt-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt-111-Pt-reference",
     "Pt-111-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt-111-Pt-OOH_2",
     "Pt-111-Pt-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt-111-Pt-OH_7",
