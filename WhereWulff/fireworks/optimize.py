@@ -227,6 +227,22 @@ ref_dirs = {
     "Ir-110-Ir-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir-110-Ir-reference",
     "Ir-110-Ir-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir-110-Ir-OOH",
     "Ir-110-Ir-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir-110-Ir-OH",
+    # Ir - 111 # *O termination - bridge
+    "Ir_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir_111_bulk",
+    "Ir_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir_111_slab",
+    "Ir-111-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir_111_OH",
+    "Ir-111-O": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir_111_O",
+    "Ir-111-Ir-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir-111-Ir-reference",
+    "Ir-111-Ir-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir-111-Ir-OOH",
+    "Ir-111-Ir-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_111_results/Ir-111-Ir-OH",
+    # Ir - 100 # *O termination - bridge
+    "Ir_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir_100_bulk",
+    "Ir_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir_100_slab",
+    "Ir-100-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir_100_OH",
+    "Ir-100-O": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir_100_O",
+    "Ir-100-Ir-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir-100-Ir-reference",
+    "Ir-100-Ir-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir-100-Ir-OOH",
+    "Ir-100-Ir-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_100_results/Ir-100-Ir-OH",
     # Pd - 110
     "Pd_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_110_results/Pd_110_bulk",
     "Pd_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_110_results/Pd_110_slab",
