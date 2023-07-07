@@ -520,6 +520,8 @@ def AdsSlab_FW(
             or "Pd" in name
             or "Au" in name
             or "Ag" in name
+            or "Pt" in name
+            or "Ir" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         # breakpoint()
