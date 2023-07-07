@@ -165,9 +165,6 @@ ref_dirs = {
     # Pt - 110
     "Pt_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_bulk",
     "Pt_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_slab",
-    # Pt - 100
-    "Pt_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_bulk",
-    "Pt_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_slab",
     # Pt - 111 # clean termination - ontop
     "Pt_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_bulk",
     "Pt_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_slab",
@@ -177,6 +174,14 @@ ref_dirs = {
     "Pt-111-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt-111-Pt-OOH_2",
     "Pt-111-Pt-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt-111-Pt-OH_7",
     "Pt-111-Pt-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt-111-Pt-O_0",
+    # Pt - 100 # *OH - ontop
+    "Pt_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_bulk",
+    "Pt_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_slab",
+    "Pt-100-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_OH_1",
+    "Pt-100-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_O_1",
+    "Pt-100-Pt-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt-100-Pt-reference",
+    "Pt-100-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt-100-Pt-OOH_2",
+    "Pt-100-Pt-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt-100-Pt-O_0",
     # Pt - 211
     "Pt_211 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_bulk",
     "Pt_211 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_slab",
