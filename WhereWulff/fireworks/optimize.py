@@ -219,9 +219,14 @@ ref_dirs = {
     # Ag - 110
     "Ag_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_bulk",
     "Ag_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_slab",
-    # Ir - 110
+    # Ir - 110 # *O termination - bridge
     "Ir_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_bulk",
     "Ir_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_slab",
+    "Ir-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_OH",
+    "Ir-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_O",
+    "Ir-110-Ir-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir-110-Ir-reference",
+    "Ir-110-Ir-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir-110-Ir-OOH",
+    "Ir-110-Ir-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir-110-Ir-OH",
     # Pd - 110
     "Pd_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_110_results/Pd_110_bulk",
     "Pd_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_110_results/Pd_110_slab",
