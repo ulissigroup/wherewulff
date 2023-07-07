@@ -26,10 +26,13 @@ class EDLAnalysis(FiretaskBase):
         USHEs = []
         avg_pots = []
         escfs = []
+        fermi_levels = []
         for uuid in uuids:
             task_doc = task_collection.find_one({"uuid": uuid})
             nelect = task_doc["calcs_reversed"][0]["output"]["outcar"]["nelect"]
+            nelects.append(nelect)
             efermi = task_doc["calcs_reversed"][0]["output"]["efermi"]
+            fermi_levels.append(efermi)
             escf = task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
                 "e_0_energy"
             ]
@@ -46,11 +49,14 @@ class EDLAnalysis(FiretaskBase):
                 np.array(xy_averaged_locpot)[(xaxis > 0) & (xaxis < 5)]
             )
             avg_pots.append(avg_pot)
-            workfunction = avg_pot - efermi
+        # FIXME: Need to add the fermi-shift for the charged slabs to reference to vacuum level in uncharged slab
+        ref_fermi = np.median(fermi_levels)
+        for i, uuid in enumerate(uuids):
+            fermi_shift = fermi_levels[i] - ref_fermi
+            workfunction = avg_pots[i] - (fermi_levels[i] + fermi_shift)
             USHE = -4.6 + workfunction
             USHEs.append(USHE)
             workfunctions.append(workfunction)
-            nelects.append(nelect)
         charges = np.array(nelects) - np.median(nelects)
         corrections = charges * np.array(USHEs) + charges * np.array(avg_pots)
         free_energies = np.array(escfs) + corrections
@@ -60,7 +66,13 @@ class EDLAnalysis(FiretaskBase):
             return Ghat
 
         Us = np.arange(min(USHEs), max(USHEs), 0.1)
-        fit_params = curve_fit(func, xdata=np.array(USHEs), ydata=free_energies)[0]
+        fit_params = curve_fit(
+            func,
+            xdata=np.array(USHEs),
+            ydata=free_energies,
+            maxfev=10000,
+            p0=[0.2, 0.2, -183],
+        )[0]
         print(fit_params)
         Ghats = func(Us, *fit_params)
         fig = plt.figure(figsize=(10.0, 10.0))
@@ -82,9 +94,9 @@ class EDLAnalysis(FiretaskBase):
         )
         # We need to find the free energy at the reaction conditions and then mutate
         # the free energy in the task doc of that interface
-        ionic_steps = mmdb.db["tasks"].find_one({"uuid": replace_uuid})["calcs_reversed"][
-            0
-        ]["output"]["ionic_steps"]
+        ionic_steps = mmdb.db["tasks"].find_one({"uuid": replace_uuid})[
+            "calcs_reversed"
+        ][0]["output"]["ionic_steps"]
         initial_energy = ionic_steps[-1]["e_0_energy"]
         final_energy = func([0.17], *fit_params)
         print(
