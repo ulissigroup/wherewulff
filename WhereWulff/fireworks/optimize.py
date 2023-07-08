@@ -165,8 +165,8 @@ ref_dirs = {
     # Pt - 110 # *OH - ontop
     "Pt_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_bulk",
     "Pt_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_slab",
-    "Pt-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_OH_1",
-    "Pt-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_O_1",
+    "Pt-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_OH_1",
+    "Pt-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_O_1",
     "Pt-110-Pt-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt-110-Pt-reference",
     "Pt-110-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt-110-Pt-OOH_2",
     "Pt-110-Pt-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt-110-Pt-O_0",
@@ -182,8 +182,8 @@ ref_dirs = {
     # Pt - 100 # *OH - ontop
     "Pt_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_bulk",
     "Pt_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_slab",
-    "Pt-100-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_OH_1",
-    "Pt-100-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_O_1",
+    "Pt-100-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_OH_1",
+    "Pt-100-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt_100_O_1",
     "Pt-100-Pt-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt-100-Pt-reference",
     "Pt-100-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt-100-Pt-OOH_2",
     "Pt-100-Pt-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_100_results/Pt-100-Pt-O_0",
@@ -259,6 +259,15 @@ ref_dirs = {
     "Pd-100-Pd-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-reference",
     "Pd-100-Pd-OOH_4": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OOH_4",
     "Pd-100-Pd-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OH_3",
+    # Pd - 111 # clean termination - bridge
+    "Pd_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd_111_bulk",
+    "Pd_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd_111_slab",
+    "Pd-111-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd_111_OH",
+    "Pd-111-O": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd_111_O",
+    "Pd-111-Pd-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-reference",
+    "Pd-111-Pd-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-OOH",
+    "Pd-111-Pd-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-OH",
+    "Pd-111-Pd-O": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-O",
 }
 
 
