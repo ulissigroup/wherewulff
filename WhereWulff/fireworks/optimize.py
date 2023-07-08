@@ -159,9 +159,6 @@ ref_dirs = {
     # FeSb2O6 - 110
     "Fe(SbO3)2_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/FeSbOx_110_results/FeSbOx_101_bulk",
     "Fe(SbO3)2_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/FeSbOx_110_results/FeSbOx_101_slab",
-    # Au - 100
-    "Au_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_bulk",
-    "Au_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_slab",
     # Pt - 110 # *OH - ontop
     "Pt_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_bulk",
     "Pt_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt_110_slab",
@@ -190,6 +187,14 @@ ref_dirs = {
     # Pt - 211
     "Pt_211 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_bulk",
     "Pt_211 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_211_results/Pt_211_slab",
+    # Au - 100 # *OH termination - bridge
+    "Au_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_bulk",
+    "Au_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_slab",
+    "Au-100-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_OH",
+    "Au-100-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au_100_O",
+    "Au-100-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au-100-Au-reference",
+    "Au-100-Au-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au-100-Au-OOH",
+    "Au-100-Au-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_100_results/Au-100-Au-O",
     # Au - 110 # clean termination - bridge
     "Au_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_bulk",
     "Au_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_slab",
