@@ -216,9 +216,14 @@ ref_dirs = {
     "Ag-100-Ag-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ag_100_results/Ag-100-Ag-reference",
     "Ag-100-Ag-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ag_100_results/Ag-100-Ag-OOH",
     "Ag-100-Ag-O": f"{os.environ['GITHUB_WORKSPACE']}/Ag_100_results/Ag-100-Ag-O",
-    # Ag - 110
+    # Ag - 110 # *OH termination - bridge
     "Ag_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_bulk",
     "Ag_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_slab",
+    "Ag-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_OH",
+    "Ag-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag_110_O",
+    "Ag-110-Ag-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag-110-Ag-reference",
+    "Ag-110-Ag-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag-110-Ag-OOH",
+    "Ag-110-Ag-O": f"{os.environ['GITHUB_WORKSPACE']}/Ag_110_results/Ag-110-Ag-O",
     # Ir - 110 # *O termination - bridge
     "Ir_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_bulk",
     "Ir_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ir_110_results/Ir_110_slab",
