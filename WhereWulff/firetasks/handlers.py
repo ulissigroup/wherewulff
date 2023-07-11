@@ -57,7 +57,7 @@ class ContinueOptimizeFW(FiretaskBase):
         contcar_obj = Structure.from_dict(contcar)
         contcar_obj.add_site_property("magmom", orig_magmoms)
         contcar = contcar_obj.as_dict()
-        incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True}
+        incar_dict["user_incar_settings"] = {"NSW": 0, "LVHAR": True, "LSOL": True}
         incar_dict["structure"] = contcar
         parents = []
         all_fws = []
