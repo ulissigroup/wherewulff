@@ -67,7 +67,7 @@ class ContinueOptimizeFW(FiretaskBase):
         parents = []
         all_fws = []
         uuids = []
-        for nelect in np.arange(nelect_orig - 2.41, nelect_orig + 2.41, 0.8):  # SP FWs
+        for nelect in np.arange(nelect_orig - 0.6, nelect_orig + 0.61, 0.2):  # SP FWs
             new_uuid = uuid.uuid4()
             uuids.append(new_uuid)
             incar_dict["user_incar_settings"].update({"NELECT": nelect})
