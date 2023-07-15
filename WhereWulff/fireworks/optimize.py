@@ -167,6 +167,14 @@ ref_dirs = {
     "Pt-110-Pt-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt-110-Pt-reference",
     "Pt-110-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt-110-Pt-OOH_2",
     "Pt-110-Pt-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results/Pt-110-Pt-O_0",
+    # Pt - 110 # *O - bridge
+    "Pt_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt_110_bulk",
+    "Pt_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt_110_slab",
+    "Pt-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt_110_OH",
+    "Pt-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt_110_O",
+    "Pt-110-Pt-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt-110-Pt-reference",
+    "Pt-110-Pt-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt-110-Pt-OOH",
+    "Pt-110-Pt-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pt_110_results_br/Pt-110-Pt-OH",
     # Pt - 111 # clean termination - ontop
     "Pt_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_bulk",
     "Pt_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pt_111_results/Pt_111_slab",
@@ -207,8 +215,8 @@ ref_dirs = {
     # Au - 111 # clean termination - bridge
     "Au_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_bulk",
     "Au_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_slab",
-    "Au-111-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_OH_1",
-    "Au-111-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_O_1",
+    "Au-111-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_OH_1",
+    "Au-111-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_O_1",
     "Au-111-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-reference",
     "Au-111-Au-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OOH_2",
     "Au-111-Au-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au-111-Au-OH_7",
