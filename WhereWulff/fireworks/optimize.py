@@ -206,8 +206,8 @@ ref_dirs = {
     # Au - 110 # clean termination - bridge
     "Au_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_bulk",
     "Au_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_slab",
-    "Au-110-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_OH_1",
-    "Au-110-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_O_1",
+    "Au-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_OH_1",
+    "Au-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_O_1",
     "Au-110-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-reference",
     "Au-110-Au-OOH_2": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OOH_2",
     "Au-110-Au-OH_7": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OH_7",
@@ -281,8 +281,8 @@ ref_dirs = {
     # Pd - 100 # *O termination - bridge
     "Pd_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_bulk",
     "Pd_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_slab",
-    "Pd-100-OH_1": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_OH_1",
-    "Pd-100-O_1": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_O_1",
+    "Pd-100-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_OH_1",
+    "Pd-100-O": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_O_1",
     "Pd-100-Pd-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-reference",
     "Pd-100-Pd-OOH_4": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OOH_4",
     "Pd-100-Pd-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OH_3",
