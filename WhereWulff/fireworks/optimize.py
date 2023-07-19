@@ -284,8 +284,8 @@ ref_dirs = {
     "Pd-100-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_OH_1",
     "Pd-100-O": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd_100_O_1",
     "Pd-100-Pd-reference": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-reference",
-    "Pd-100-Pd-OOH_4": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OOH_4",
-    "Pd-100-Pd-OH_3": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OH_3",
+    "Pd-100-Pd-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OOH_4",
+    "Pd-100-Pd-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_100_results/Pd-100-Pd-OH_3",
     # Pd - 111 # clean termination - bridge
     "Pd_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd_111_bulk",
     "Pd_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd_111_slab",
