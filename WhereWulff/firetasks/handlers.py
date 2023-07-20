@@ -15,6 +15,7 @@ from atomate.common.firetasks.glue_tasks import (
     DeleteFilesPrevFolder,
     GzipDir,
 )
+from atomate.vasp.firetasks.run_calc import RunVaspFake, RunVaspDirect, RunVaspCustodian
 
 from WhereWulff.dft_settings.settings import MOSurfaceSet
 from WhereWulff.common.glue_tasks import GzipPrevDir
@@ -61,7 +62,8 @@ class ContinueOptimizeFW(FiretaskBase):
             "NSW": 0,
             "LVHAR": True,
             "LSOL": True,
-            "LAMBDA_D_K": 3.0,
+            "LAMBDA_D_K": 3.2,  # Check with Jay
+            "EB_K": 80.0,  # Check with Jay
         }
         incar_dict["structure"] = contcar
         parents = []
@@ -81,6 +83,8 @@ class ContinueOptimizeFW(FiretaskBase):
                 name=f"SP_{nelect}",
                 vasp_input_set=vasp_input_set,
             )
+            # Run Vasp Direct
+            static_fw.tasks[1] = RunVaspDirect(vasp_cmd=">>vasp_cmd<<")
             static_fw.tasks[1].update({"gzip_output": False})
             static_fw.tasks[3]["additional_fields"].update({"uuid": new_uuid})
             parents.append(static_fw)
