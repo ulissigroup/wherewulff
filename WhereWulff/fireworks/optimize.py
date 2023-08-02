@@ -295,6 +295,30 @@ ref_dirs = {
     "Pd-111-Pd-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-OOH",
     "Pd-111-Pd-OH": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-OH",
     "Pd-111-Pd-O": f"{os.environ['GITHUB_WORKSPACE']}/Pd_111_results/Pd-111-Pd-O",
+    # Ru - 110 # *O termination - bridge
+    "Ru_110 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru_110_bulk",
+    "Ru_110 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru_110_slab",
+    "Ru-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru_110_OH",
+    "Ru-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru_110_O",
+    "Ru-110-Ru-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru-110-Ru-reference",
+    "Ru-110-Ru-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru-110-Ru-OOH",
+    "Ru-110-Ru-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_110_results/Ru-110-Ru-OH",
+    # Ru - 111 # *O termination - bridge
+    "Ru_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru_111_bulk",
+    "Ru_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru_111_slab",
+    "Ru-111-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru_111_OH",
+    "Ru-111-O": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru_111_O",
+    "Ru-111-Ru-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru-111-Ru-reference",
+    "Ru-111-Ru-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru-111-Ru-OOH",
+    "Ru-111-Ru-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_111_results/Ru-111-Ru-OH",
+    # Ru - 100 # *O termination - bridge
+    "Ru_100 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru_100_bulk",
+    "Ru_100 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru_100_slab",
+    "Ru-100-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru_100_OH",
+    "Ru-100-O": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru_100_O",
+    "Ru-100-Ru-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru-100-Ru-reference",
+    "Ru-100-Ru-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru-100-Ru-OOH",
+    "Ru-100-Ru-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru-100-Ru-OH",
 }
 
 
@@ -369,6 +393,7 @@ def Bulk_FW(
             or "Ag" in name
             or "Pd" in name
             or "Ir" in name
+            or "Ru" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
@@ -472,6 +497,7 @@ def Slab_FW(
             or "Ag" in name
             or "Pd" in name
             or "Ir" in name
+            or "Ru" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         fake_directory = ref_dirs[name]
@@ -584,6 +610,7 @@ def AdsSlab_FW(
             or "Ag" in name
             or "Pt" in name
             or "Ir" in name
+            or "Ru" in name
         )  # Hardcoded to RuO2,IrO2  inputs/outputs
         # Replace the RunVaspCustodian Firetask with RunVaspFake
         # breakpoint()
