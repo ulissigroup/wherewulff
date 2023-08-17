@@ -168,11 +168,11 @@ class ML_int_relax(FiretaskBase):
         mmdb.db["tasks"].insert_one(task_doc)
 
         return FWAction(
-            update_spec={
-                f"{label}_relaxed_energy": relaxed_energy,
-                f"{label}_relaxed_structure": relaxed_structure,
-                f"{label}_orig_structure": orig_structure,
-            }
+            #update_spec={
+            #    f"{label}_relaxed_energy": relaxed_energy,
+            #    f"{label}_relaxed_structure": relaxed_structure,
+            #    f"{label}_orig_structure": orig_structure,
+            #}
         )
 
 
