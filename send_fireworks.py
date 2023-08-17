@@ -292,7 +292,6 @@ class analyze_ML_OER_results(FiretaskBase):
         # Get the lowest energy configuration
         min_ooh_key = min(non_deprotonated_ooh, key=non_deprotonated_ooh.get)
         min_oh_key = min(non_deprotonated_oh, key=non_deprotonated_oh.get)
-        breakpoint()
         E_ref = fw_spec["Clean_relaxed_energy"]
         E_OH = (
             oh_dict[min_oh_key] - E_ref - (-14.25994015 - (-0.5 * 6.77818501)) + 0.295
