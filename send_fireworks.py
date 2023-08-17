@@ -101,7 +101,7 @@ class ML_int_relax(FiretaskBase):
         if is_bulk:  # Bulk
             atoms.set_tags([0] * len(structure))
         elif not is_bulk and not fw_spec.get("is_adslab"):  # Slab
-            if "constraints" in atoms.todict()["constraints"]:
+            if "constraints" in atoms.todict().keys():
                 tags = np.array(
                     [
                         0
@@ -127,45 +127,45 @@ class ML_int_relax(FiretaskBase):
         relaxed_structure.remove_oxidation_states()
         orig_structure.remove_oxidation_states()
         # Insert the results into the task collection per the atomate schema and using the uuid
-        # task_doc = {
-        #    "uuid": uuid,
-        #    "calcs_reversed": [
-        #        {
-        #            "output": {
-        #                "structure": None,
-        #                "energy": 0,
-        #                "ionic_steps": [
-        #                    {"e_0_energy": 0, "structure": None},
-        #                    {"e_0_energy": 0, "structure": None},
-        #                ],
-        #            }
-        #        }
-        #    ],
-        # }
-        # relaxed_forces = atoms.get_forces().tolist()
-        # task_doc["calcs_reversed"][0]["output"][
-        #    "structure"
-        # ] = relaxed_structure.as_dict()
-        # task_doc["calcs_reversed"][0]["output"]["energy"] = relaxed_energy
-        # task_doc["calcs_reversed"][0]["output"]["ionic_steps"][0][
-        #    "structure"
-        # ] = orig_structure.as_dict()
-        # task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
-        #    "structure"
-        # ] = relaxed_structure.as_dict()
-        # task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
-        #    "e_0_energy"
-        # ] = relaxed_energy
-        # task_doc["calcs_reversed"][0]["output"]["forces"] = relaxed_forces
-        # if not is_bulk:
-        #    task_doc.update(
-        #        {
-        #            "slab": fw_spec["slab"].as_dict(),
-        #            "parent_structure": fw_spec["parent_structure"].as_dict(),
-        #            "parent_structure_metadata": fw_spec["parent_structure_metadata"],
-        #        }
-        #    )
-        # mmdb.db["tasks"].insert_one(task_doc)
+        task_doc = {
+            "uuid": uuid,
+            "calcs_reversed": [
+                {
+                    "output": {
+                        "structure": None,
+                        "energy": 0,
+                        "ionic_steps": [
+                            {"e_0_energy": 0, "structure": None},
+                            {"e_0_energy": 0, "structure": None},
+                        ],
+                    }
+                }
+            ],
+        }
+        relaxed_forces = atoms.get_forces().tolist()
+        task_doc["calcs_reversed"][0]["output"][
+            "structure"
+        ] = relaxed_structure.as_dict()
+        task_doc["calcs_reversed"][0]["output"]["energy"] = relaxed_energy
+        task_doc["calcs_reversed"][0]["output"]["ionic_steps"][0][
+            "structure"
+        ] = orig_structure.as_dict()
+        task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
+            "structure"
+        ] = relaxed_structure.as_dict()
+        task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
+            "e_0_energy"
+        ] = relaxed_energy
+        task_doc["calcs_reversed"][0]["output"]["forces"] = relaxed_forces
+        if not is_bulk:
+            task_doc.update(
+                {
+                    "slab": fw_spec["slab"].as_dict(),
+                    "parent_structure": fw_spec["parent_structure"].as_dict(),
+                    "parent_structure_metadata": fw_spec["parent_structure_metadata"],
+                }
+            )
+        mmdb.db["tasks"].insert_one(task_doc)
 
         return FWAction(
             update_spec={
@@ -245,49 +245,55 @@ class analyze_ML_OER_results(FiretaskBase):
         }
         non_deprotonated_oh = {}
         for orig_key, orig_struct in oh_orig_structs.items():
-            # Locate the indices from the original structure
-            orig_struct.sort()
-            search_r = 1
-            # Find the hydrogen index
-            h_index = np.where(
-                np.array([site.species_string for site in orig_struct]) == "H"
-            )[0].item()
-            h_site = orig_struct[h_index]
-            while (
-                len(fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r)) < 2
-            ):
-                search_r += 0.01
-            new_sites = []
-            # Check if there are any sites that are subject to PBC
-            for site in fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r):
-                if site.species_string != "H":
-                    site.frac_coords[
-                        np.where(
-                            (np.round(site.frac_coords, 2) >= 1)
-                            | (np.round(site.frac_coords, 2) < 0)
-                        )
-                    ] = np.mod(
+            try:
+                # Locate the indices from the original structure
+                orig_struct.sort()
+                search_r = 1
+                # Find the hydrogen index
+                h_index = np.where(
+                    np.array([site.species_string for site in orig_struct]) == "H"
+                )[0].item()
+                h_site = orig_struct[h_index]
+                while (
+                    len(fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r))
+                    < 2
+                ):
+                    search_r += 0.01
+                new_sites = []
+                # Check if there are any sites that are subject to PBC
+                for site in fw_spec[orig_key].get_sites_in_sphere(
+                    h_site.coords, search_r
+                ):
+                    if site.species_string != "H":
                         site.frac_coords[
-                            (np.round(site.frac_coords, 2) >= 1)
-                            | (np.round(site.frac_coords, 2) < 0)
-                        ],
-                        1,
-                    )
-                new_sites.append(site)
-            oh_indices = [orig_struct.index(s) for s in new_sites]
-            relaxed_struct = oh_relaxed_structs[
-                orig_key.split("orig_structure")[0] + "relaxed_structure"
-            ]
-            relaxed_struct.sort()
-            # Check the pairwise bond distance between H and O (should be less than or equal to 1.1A)
-            HO_distance = relaxed_struct[h_index].distance(
-                relaxed_struct[[i for i in oh_indices if i != h_index][0]]
-            )
-            print("OH_check", HO_distance, orig_key)
-            if HO_distance < 1.1:
-                non_deprotonated_oh[
-                    orig_key.split("orig_structure")[0] + "relaxed_energy"
-                ] = fw_spec[orig_key.split("orig_structure")[0] + "relaxed_energy"]
+                            np.where(
+                                (np.round(site.frac_coords, 2) >= 1)
+                                | (np.round(site.frac_coords, 2) < 0)
+                            )
+                        ] = np.mod(
+                            site.frac_coords[
+                                (np.round(site.frac_coords, 2) >= 1)
+                                | (np.round(site.frac_coords, 2) < 0)
+                            ],
+                            1,
+                        )
+                    new_sites.append(site)
+                oh_indices = [orig_struct.index(s) for s in new_sites]
+                relaxed_struct = oh_relaxed_structs[
+                    orig_key.split("orig_structure")[0] + "relaxed_structure"
+                ]
+                relaxed_struct.sort()
+                # Check the pairwise bond distance between H and O (should be less than or equal to 1.1A)
+                HO_distance = relaxed_struct[h_index].distance(
+                    relaxed_struct[[i for i in oh_indices if i != h_index][0]]
+                )
+                print("OH_check", HO_distance, orig_key)
+                if HO_distance < 1.1:
+                    non_deprotonated_oh[
+                        orig_key.split("orig_structure")[0] + "relaxed_energy"
+                    ] = fw_spec[orig_key.split("orig_structure")[0] + "relaxed_energy"]
+            except:
+                continue
 
         # Get the lowest energy configuration
         min_ooh_key = min(non_deprotonated_ooh, key=non_deprotonated_ooh.get)
