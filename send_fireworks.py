@@ -293,17 +293,15 @@ class analyze_ML_OER_results(FiretaskBase):
         min_ooh_key = min(non_deprotonated_ooh, key=non_deprotonated_ooh.get)
         min_oh_key = min(non_deprotonated_oh, key=non_deprotonated_oh.get)
         E_ref = fw_spec["Clean_relaxed_energy"]
-        E_OH = (
-            oh_dict[min_oh_key] - E_ref - (-14.25994015 - (-0.5 * 6.77818501)) + 0.295
-        )
+        E_OH = oh_dict[min_oh_key] - E_ref - (-14.25994015 - (-0.5 * 6.77818501)) + 0.36
         E_OOH = (
             non_deprotonated_ooh[min_ooh_key]
             - E_ref
             - (2 * (-14.25994015) - 1.5 * (-6.77818501))
-            + 0.377
+            + 0.44
         )
         E_Ox = (
-            fw_spec["Ox_relaxed_energy"] - E_ref - (-14.25994015 - -6.77818501) + 0.044
+            fw_spec["Ox_relaxed_energy"] - E_ref - (-14.25994015 - -6.77818501) + 0.08
         )
         G_Ox_OH = E_Ox - E_OH
         G_OOH_Ox = E_OOH - E_Ox
