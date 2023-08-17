@@ -227,7 +227,7 @@ class analyze_ML_OER_results(FiretaskBase):
             HO_distance = relaxed_struct[h_index].distance(
                 relaxed_struct[[i for i in ooh_indices if i != h_index][0]]
             )
-            print(HO_distance, orig_key)
+            print("OOH_check", HO_distance, orig_key)
             if HO_distance < 1.1:
                 non_deprotonated_ooh[
                     orig_key.split("orig_structure")[0] + "relaxed_energy"
@@ -237,9 +237,62 @@ class analyze_ML_OER_results(FiretaskBase):
         oh_dict = {
             k: v for k, v in fw_spec.items() if re.search("^OH_.*relaxed_energy", k)
         }
+        oh_orig_structs = {
+            k: v for k, v in fw_spec.items() if re.search("^OH_.*orig_structure", k)
+        }
+        oh_relaxed_structs = {
+            k: v for k, v in fw_spec.items() if re.search("^OH_.*relaxed_structure", k)
+        }
+        non_deprotonated_oh = {}
+        for orig_key, orig_struct in oh_orig_structs.items():
+            # Locate the indices from the original structure
+            orig_struct.sort()
+            search_r = 1
+            # Find the hydrogen index
+            h_index = np.where(
+                np.array([site.species_string for site in orig_struct]) == "H"
+            )[0].item()
+            h_site = orig_struct[h_index]
+            while (
+                len(fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r)) < 2
+            ):
+                search_r += 0.01
+            new_sites = []
+            # Check if there are any sites that are subject to PBC
+            for site in fw_spec[orig_key].get_sites_in_sphere(h_site.coords, search_r):
+                if site.species_string != "H":
+                    site.frac_coords[
+                        np.where(
+                            (np.round(site.frac_coords, 2) >= 1)
+                            | (np.round(site.frac_coords, 2) < 0)
+                        )
+                    ] = np.mod(
+                        site.frac_coords[
+                            (np.round(site.frac_coords, 2) >= 1)
+                            | (np.round(site.frac_coords, 2) < 0)
+                        ],
+                        1,
+                    )
+                new_sites.append(site)
+            oh_indices = [orig_struct.index(s) for s in new_sites]
+            relaxed_struct = oh_relaxed_structs[
+                orig_key.split("orig_structure")[0] + "relaxed_structure"
+            ]
+            relaxed_struct.sort()
+            # Check the pairwise bond distance between H and O (should be less than or equal to 1.1A)
+            HO_distance = relaxed_struct[h_index].distance(
+                relaxed_struct[[i for i in oh_indices if i != h_index][0]]
+            )
+            print("OH_check", HO_distance, orig_key)
+            if HO_distance < 1.1:
+                non_deprotonated_oh[
+                    orig_key.split("orig_structure")[0] + "relaxed_energy"
+                ] = fw_spec[orig_key.split("orig_structure")[0] + "relaxed_energy"]
+
         # Get the lowest energy configuration
         min_ooh_key = min(non_deprotonated_ooh, key=non_deprotonated_ooh.get)
-        min_oh_key = min(oh_dict, key=oh_dict.get)
+        min_oh_key = min(non_deprotonated_oh, key=non_deprotonated_oh.get)
+        breakpoint()
         E_ref = fw_spec["Clean_relaxed_energy"]
         E_OH = (
             oh_dict[min_oh_key] - E_ref - (-14.25994015 - (-0.5 * 6.77818501)) + 0.295
