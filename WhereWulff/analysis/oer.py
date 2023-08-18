@@ -240,7 +240,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             eads_ooh = self.Eads_OOH(
                 oer_intermediates_energy["OOH"],
                 oer_intermediates_energy["reference"],
-                thermo_correction=None,
+                thermo_correction=0.44,
             )
             delta_g_oer_dict["g_ooh"] = eads_ooh
 
