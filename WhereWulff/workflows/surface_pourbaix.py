@@ -107,7 +107,6 @@ class SurfaceCoverageML(object):
 
         # Place the 1st adsorbate on that site
         square_distance_matrix = self._get_closest_neighbors(self.bulk_like_shifted)[1]
-
         # Loop
         counter = 0
         occ_site_indices = []
@@ -191,9 +190,9 @@ class SurfaceCoverageML(object):
         # model large supercells
         # We need to make sure we locate sites that are close to periodic images of previously placed
         # adsorbates
-        if len(remaining_site_indices) < len(self.bulk_like):
+        if len(remaining_site_indices) < len(self.bulk_like_shifted):
             periodic_neighbors = [
-                slab_ads.get_sites_in_sphere(self.bulk_like[i], 2.4)
+                slab_ads.get_sites_in_sphere(self.bulk_like_shifted[i], 2)
                 for i in remaining_site_indices
             ]
             periodic_mask = [
