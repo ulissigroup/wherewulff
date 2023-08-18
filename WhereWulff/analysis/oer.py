@@ -228,7 +228,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             eads_ooh_down = self.Eads_OOH(
                 oer_intermediates_energy["OOH_down"],
                 oer_intermediates_energy["reference"],
-                thermo_correction=0.377,
+                thermo_correction=0.44,
             )
             # Select between OOH_up and OOH_down
             if eads_ooh_up <= eads_ooh_down:
