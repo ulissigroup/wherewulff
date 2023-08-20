@@ -58,7 +58,7 @@ class SlabAdsFireTask(FiretaskBase):
         # streamline = self.get("streamline", False)
         wulff_uuid = fw_spec.get("wulff_uuid", None)
         run_fake = self.get("run_fake", False)
-        #run_fake = False
+        run_fake = False
         metal_site = self.get("metal_site", "")
         applied_potential = self.get("applied_potential", 1.6)
         applied_pH = self.get("applied_pH", 0.0)
