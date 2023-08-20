@@ -209,9 +209,9 @@ ref_dirs = {
     "Au-110-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_OH_1",
     "Au-110-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au_110_O_1",
     "Au-110-Au-reference": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-reference",
-    "Au-110-Au-OOH_2": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OOH_2",
-    "Au-110-Au-OH_7": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OH_7",
-    "Au-110-Au-O_0": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-O_0",
+    "Au-110-Au-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OOH_2",
+    "Au-110-Au-OH": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-OH_7",
+    "Au-110-Au-O": f"{os.environ['GITHUB_WORKSPACE']}/Au_110_results/Au-110-Au-O_0",
     # Au - 111 # clean termination - bridge
     "Au_111 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_bulk",
     "Au_111 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Au_111_results/Au_111_slab",
