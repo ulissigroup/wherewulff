@@ -85,7 +85,8 @@ class ContinueOptimizeFW(FiretaskBase):
                 vasp_input_set=vasp_input_set,
             )
             # Run Vasp Direct
-            static_fw.tasks[1] = RunVaspDirect(vasp_cmd=">>vasp_cmd<<")
+            #static_fw.tasks[1] = RunVaspDirect(vasp_cmd=">>vasp_cmd<<")
+            static_fw.tasks[1] = RunVaspCustodian(vasp_cmd=">>vasp_cmd<<")
             static_fw.tasks[1].update({"gzip_output": False})
             static_fw.tasks[3]["additional_fields"].update({"uuid": new_uuid})
             parents.append(static_fw)
