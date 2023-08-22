@@ -54,7 +54,7 @@ class SurfaceCoverageML(object):
         else:  # Metals
             asf = AdsorbateSiteFinder(slab_ref)
             self.bulk_like = asf.find_adsorption_sites(
-                positions=["bridge"], put_inside=True, symm_reduce=0
+                positions=["ontop"], put_inside=True, symm_reduce=0
             )["all"]
             self.X = "not_oxide"
 
