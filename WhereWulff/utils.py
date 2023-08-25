@@ -7,7 +7,7 @@ from ocpmodels.datasets import data_list_collater
 
 def find_most_stable_config(configs, checkpoint_path):
     # Init the OCP calculator
-    calc = OCPCalculator(checkpoint=checkpoint_path)
+    calc = OCPCalculator(checkpoint_path=checkpoint_path)
 
     # Init Atoms2Graph
     a2g = AtomsToGraphs(
