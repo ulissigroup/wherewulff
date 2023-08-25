@@ -61,6 +61,7 @@ class ContinueOptimizeFW(FiretaskBase):
         incar_dict["user_incar_settings"] = {
             "NSW": 0,
             "LVHAR": True,
+            "LHFCALC": True,
             "LSOL": True,
             "LAMBDA_D_K": 3.2,  # Check with Jay
             "EB_K": 80.0,  # Check with Jay
