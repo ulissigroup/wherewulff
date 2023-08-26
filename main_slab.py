@@ -8,18 +8,30 @@ LICENSE file in the root directory of this source tree.
 from WhereWulff.launchers.slabflows import SlabFlows
 
 # Import CIF file
-#cif_file = "./benchmark/mp_oxide_cifs/IrO2_136.cif"
-cif_file = "/home/jovyan/BaSnTi2Co6_bulk_stability/Template_BaSnTiO6.cif"
+# cif_file = "./benchmark/mp_oxide_cifs/IrO2_136.cif"
+# cif_file = "/home/jovyan/BaSnTi2Co6_bulk_stability/Template_BaSnTiO6.cif"
+cif_file = "perm_RuNbMo/POSCAR_struct_58.cif"
+
 
 # WhereWulff method and config
 cat_flows = SlabFlows(
     cif_file,
-    slab_repeat=[2,1,1],
-#    symmetrize=True,
-#    exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)],  # only 110 and 101
-    exclude_hkl=[(1, 1, 1), (1, 0, 0), (0, 1, 0), (0, 1, 1), (0, 0, 1), (1, 0, 1)],
-    run_fake=True,
-    metal_site="Ti",
+    max_index=1,
+    slab_repeat=[1, 1, 1],
+    symmetrize=False,
+    #    exclude_hkl=[(1, 0, 0), (1, 1, 1), (0, 0, 1)],  # only 110 and 101
+    exclude_hkl=[
+        (1, 1, 1),
+        (1, 0, 0),
+        (0, 1, 0),
+        (0, 0, 1),
+        #(0, 1, 1),
+        (1, 0, 1),
+        (1, 1, 0),
+    ],  # Only 011
+    run_fake=False,
+    #streamline=False,
+    metal_site="Ru",
 )
 
 # Get Launchpad

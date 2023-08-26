@@ -61,7 +61,7 @@ class ML_int_relax(FiretaskBase):
         #    "/home/jovyan/makesureINFfinetune_NRC_data_MAEwith_scaling-epoch=80-step=648-val_loss=0.1440.ckpt",
         # )
         # Here we load the checkpoint with the finetuned weights into an OCPCalculator
-        ocp_calculator = OCPCalculator(checkpoint=finetune_ckpt)
+        ocp_calculator = OCPCalculator(checkpoint_path=finetune_ckpt)
         # We go over the old checkpoint and make the necessary updates
         structure = self["structure"]
         # Convert the serializable structure back to ASE for the relaxation

@@ -110,12 +110,12 @@ class SlabFlows:
         self.applied_pH = applied_pH
 
         # ML used to streamline
-        #self.streamline = streamline
+        # self.streamline = streamline
         self.checkpoint_path = checkpoint_path
-        if self.checkpoint_path is None:
-            raise ValueError(
-                "If wish to streamline need to provide checkpoint absolute path on server"
-            )
+        #if self.checkpoint_path is None:
+        #    raise ValueError(
+        #        "If wish to streamline need to provide checkpoint absolute path on server"
+        #    )
 
     def _read_cif_file(self, bulk_structure, primitive=False):
         """Parse CIF file with PMG"""
@@ -184,11 +184,12 @@ class SlabFlows:
     def _get_slab_structures(self, ftol=0.01):
         """Returns a list of slab structures"""
         slab_list = []
+        breakpoint()
         for mi_index in self.miller_indices:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=4,  # fixed for test purposes
+                min_slab_size=2,  # fixed for test purposes
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,
@@ -201,7 +202,7 @@ class SlabFlows:
 
             else:
                 all_slabs = slab_gen.get_slabs(symmetrize=False, ftol=ftol)
-
+            breakpoint()
             slab_candidates = []
             for slab in all_slabs:
                 slab_formula = slab.composition.reduced_formula
@@ -263,7 +264,7 @@ class SlabFlows:
             metal_site=self.metal_site,
             applied_potential=self.applied_potential,
             applied_pH=self.applied_pH,
-            #streamline=self.streamline,
+            # streamline=self.streamline,
             checkpoint_path=self.checkpoint_path,
         )
         return ads_slab_wfs, parents_fws
