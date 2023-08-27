@@ -220,6 +220,7 @@ class OER_SingleSite(object):
             if self.checkpoint_path:  # streamline
                 ref_slabs = []
                 for active_site in self.ads_indices:
+                    breakpoint()
                     ref_slab_copy = ref_slab.copy()
                     ref_slab_copy.remove_sites(indices=[active_site])
                     ref_slabs.append(ref_slab_copy)
