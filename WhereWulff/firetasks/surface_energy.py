@@ -20,6 +20,7 @@ METAL_BULK_ENERGIES = {
     "Ti": -16.69,
     "Cr": -9.6530,
     "Ru": -9.2744,
+    "Mo": 0,
     #    "O": -7.48175514 - 0.27,
     #    "O": -4.28,  # taken from Theoretical Investigation of the Activity of Cobalt Oxides for the
     "O": -5.02,
