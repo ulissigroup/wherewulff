@@ -154,10 +154,10 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         # FIXME: Do we need this called in the constructor???
         # Get bulk-like adsorption sites on top surface where adsorbate binds to M site
-        # if "MX_adsites" in positions:
-        #    self.MX_adsites, self.MX_partitions = self.get_bulk_like_adsites()
-        # else:
-        #    self.MX_adsites, self.MX_partitions = [], []
+        if "MX_adsites" in positions:
+            self.MX_adsites, self.MX_partitions = self.get_bulk_like_adsites()
+        else:
+            self.MX_adsites, self.MX_partitions = [], []
 
         # Get bulk-like adsorption sites on top surface where
         # adsorbate binds to X site to form the desired molecule
@@ -587,7 +587,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 if (
                     len(surf_nn) >= cn
                 ):  # FIXME: I see cases where the bondlengths in the surface are too small to be applied to bulk sites
-                    #breakpoint()
+                    # breakpoint()
                     continue
                 for site in self.slab:
                     if site.species_string != self.X:
