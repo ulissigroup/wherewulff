@@ -626,7 +626,7 @@ def SurfacePBX_WF(
     adslabs = {}
     for adsorbate in adsorbates:
         # breakpoint()
-        if not checkpoint_path or len(adsorbate) == 1:
+        if (not checkpoint_path or len(adsorbate) == 1) and not is_metal:
             # breakpoint()
             adslab, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
