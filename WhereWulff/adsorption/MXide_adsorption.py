@@ -580,14 +580,14 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         bulksite_key = bulksite.bulk_wyckoff + bulksite.species_string
                         cn = len(
                             self.bulk.get_neighbors(
-                                bulksite, round(self.bondlengths_dict[bulksite_key], 2)
+                                bulksite,
+                                round(self.bondlengths_dict[bulksite_key], 2) + 0.05,
                             )
                         )
                         break
                 if (
-                    len(surf_nn) >= cn
+                    len(surf_nn) == cn
                 ):  # FIXME: I see cases where the bondlengths in the surface are too small to be applied to bulk sites
-                    # breakpoint()
                     continue
                 for site in self.slab:
                     if site.species_string != self.X:

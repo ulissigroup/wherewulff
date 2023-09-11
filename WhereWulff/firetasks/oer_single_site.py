@@ -55,6 +55,7 @@ class OERSingleSiteFireTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
+        breakpoint()
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
@@ -122,7 +123,7 @@ class OERSingleSiteFireTask(FiretaskBase):
             surface_coverage=surface_termination,
             checkpoint_path=checkpoint_path,
         )
-        #breakpoint()
+        # breakpoint()
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
