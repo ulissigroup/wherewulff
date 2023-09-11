@@ -45,6 +45,7 @@ class SurfaceCoverageML(object):
         self.checkpoint_path = checkpoint_path
         # Init Mxide
         if not is_metal:  # MXide
+            # breakpoint()
             mxidegen = MXideAdsorbateGenerator(
                 slab_ref, repeat=[1, 1, 1], verbose=False, positions=["MX_adsites"]
             )
@@ -61,8 +62,9 @@ class SurfaceCoverageML(object):
                 positions=["ontop"], put_inside=True, symm_reduce=0
             )["all"]
             self.X = "not_oxide"
-
+        # Make sure that the sites are in the corresponding order between the slab_ref and the relaxed slab
         # Perturb bulk_like_sites in case the slab model is optimized
+        slab_ref.sort()
         self.bulk_like_shifted = self._bulk_like_adsites_perturbation(
             slab_ref=slab_ref, slab=slab
         )
@@ -111,7 +113,7 @@ class SurfaceCoverageML(object):
         # Loop
         counter = 0
         occ_site_indices = []
-        while remaining_site_indices: #and counter < 2:  # 1/8 ML
+        while remaining_site_indices and counter < 1:  # 1/8 ML
             if len(remaining_site_indices) == len(self.bulk_like_shifted):
                 slab_ads = slab.copy()
                 previous_site_1, previous_site_2 = None, None
@@ -138,11 +140,14 @@ class SurfaceCoverageML(object):
             if site_1 is None and site_2 is None:
                 break
             if not is_metal:
-                slab_ads = add_adsorbates(
-                    slab_ads.copy(),
-                    [self.bulk_like_shifted[site_1], self.bulk_like_shifted[site_2]],
-                    adsorbate,
-                )
+                for site in [site_1, site_2]:
+                    if site is not None:
+                        # breakpoint()
+                        slab_ads = add_adsorbates(
+                            slab_ads.copy(),
+                            [self.bulk_like_shifted[site]],
+                            adsorbate,
+                        )
             else:
                 for site in [site_1, site_2]:
                     if site is not None:
@@ -192,7 +197,7 @@ class SurfaceCoverageML(object):
         # adsorbates
         if len(remaining_site_indices) < len(self.bulk_like):
             periodic_neighbors = [
-                slab_ads.get_sites_in_sphere(self.bulk_like[i], 2.4)
+                slab_ads.get_sites_in_sphere(self.bulk_like[i], 2)
                 for i in remaining_site_indices
             ]
             periodic_mask = [
@@ -508,8 +513,7 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
         repeat=[1, 1, 1],
         verbose=False,
         positions=["MX_adsites"],
-        relax_tol=0.025,
-        tol=1.2,
+        # relax_tol=0.025,
     )
 
     # Getting the bulk-like adsites on the original slab
@@ -623,6 +627,7 @@ def SurfacePBX_WF(
     for adsorbate in adsorbates:
         # breakpoint()
         if not checkpoint_path or len(adsorbate) == 1:
+            # breakpoint()
             adslab, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
             )
