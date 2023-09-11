@@ -61,7 +61,7 @@ class ContinueOptimizeFW(FiretaskBase):
         incar_dict["user_incar_settings"] = {
             "NSW": 0,
             "LVHAR": True,
-            #"LHFCALC": True,
+            # "LHFCALC": True,
             "LSOL": True,
             "LAMBDA_D_K": 3.2,  # Check with Jay
             "EB_K": 80.0,  # Check with Jay
@@ -86,7 +86,7 @@ class ContinueOptimizeFW(FiretaskBase):
                 vasp_input_set=vasp_input_set,
             )
             # Run Vasp Direct
-            #static_fw.tasks[1] = RunVaspDirect(vasp_cmd=">>vasp_cmd<<")
+            # static_fw.tasks[1] = RunVaspDirect(vasp_cmd=">>vasp_cmd<<")
             static_fw.tasks[1] = RunVaspCustodian(vasp_cmd=">>vasp_cmd<<")
             static_fw.tasks[1].update({"gzip_output": False})
             static_fw.tasks[3]["additional_fields"].update({"uuid": new_uuid})
@@ -290,9 +290,9 @@ class ContinueOptimizeFW(FiretaskBase):
             elif fw_spec["is_adslab"]:
                 self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
                 self.fw_spec = fw_spec
-                wf = self.run_EDL()
+                # wf = self.run_EDL()
                 return FWAction(
-                    detours=[wf],
+                    #    detours=[wf],
                     update_spec={
                         fw_spec["name"]: {
                             "oriented_uuid": fw_spec["oriented_uuid"],
