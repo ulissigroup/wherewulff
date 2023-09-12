@@ -113,7 +113,7 @@ class SurfaceCoverageML(object):
         # Loop
         counter = 0
         occ_site_indices = []
-        while remaining_site_indices and counter < 1:  # 1/8 ML
+        while remaining_site_indices:  # and counter < 1:  # 1/8 ML
             if len(remaining_site_indices) == len(self.bulk_like_shifted):
                 slab_ads = slab.copy()
                 previous_site_1, previous_site_2 = None, None
