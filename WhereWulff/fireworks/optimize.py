@@ -323,8 +323,8 @@ ref_dirs = {
     "Nb6MoRu9O32_011 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Nb6MoRu9O32/Nb6MoRu9O32_110_bulk",
     "Nb6MoRu9O32_011 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Nb6MoRu9O32/Nb6MoRu9O32_110_slab",
     # MoRuPtOx - 110 - Ru site
-    "MoRuPtOx_011 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_bulk",
-    "MoRuPtOx_011 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_slab",
+    "Mo2Ru13PtO32_011 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_bulk",
+    "Mo2Ru13PtO32_011 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_slab",
     "Mo2Ru13PtO32-011-OH": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_spbx_OH",
     "Mo2Ru13PtO32-011-O": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_spbx_Ox",
 }
