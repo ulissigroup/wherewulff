@@ -30,8 +30,10 @@ METAL_BULK_ENERGIES = {
     #    "Co": -8.48,  # Corrected for +U and DFT settings
     #    "Co": -7.00,
     "Co": -6.258,
+    "Pt": 0.,
     "Sn": -3.9923,
     "Sb": 0,
+    "Mo": 0,
 }  # ev/Atom from MP?
 
 

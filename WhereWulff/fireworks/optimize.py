@@ -319,6 +319,14 @@ ref_dirs = {
     "Ru-100-Ru-reference": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru-100-Ru-reference",
     "Ru-100-Ru-OOH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru-100-Ru-OOH",
     "Ru-100-Ru-OH": f"{os.environ['GITHUB_WORKSPACE']}/Ru_100_results/Ru-100-Ru-OH",
+    # Nb6MoRu9O32 - 110 - Ru site
+    "Nb6MoRu9O32_011 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/Nb6MoRu9O32/Nb6MoRu9O32_110_bulk",
+    "Nb6MoRu9O32_011 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/Nb6MoRu9O32/Nb6MoRu9O32_110_slab",
+    # MoRuPtOx - 110 - Ru site
+    "MoRuPtOx_011 bulk optimization": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_bulk",
+    "MoRuPtOx_011 slab optimization": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_slab",
+    "Mo2Ru13PtO32-011-OH": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_spbx_OH",
+    "Mo2Ru13PtO32-011-O": f"{os.environ['GITHUB_WORKSPACE']}/MoRuPtOx/MoRuPtOx_spbx_Ox",
 }
 
 
