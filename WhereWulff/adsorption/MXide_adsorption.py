@@ -581,7 +581,8 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                         bulksite_key = bulksite.bulk_wyckoff + bulksite.species_string
                         cn = len(
                             self.bulk.get_neighbors(
-                                bulksite, round(self.bondlengths_dict[bulksite_key], 2)
+                                bulksite,
+                                round(self.bondlengths_dict[bulksite_key], 2) + 0.05,
                             )
                         )
                         break
