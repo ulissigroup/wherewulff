@@ -61,6 +61,9 @@ class SurfaceCoverageML(object):
                 positions=["bridge"], put_inside=True, symm_reduce=0
             )["all"]
             self.X = "not_oxide"
+        # Make sure that the sites are in the corresponding order between the slab_ref and the relaxed slab
+        # Perturb bulk_like_sites in case the slab model is optimized
+        slab_ref.sort()
 
         # Perturb bulk_like_sites in case the slab model is optimized
         self.bulk_like_shifted = self._bulk_like_adsites_perturbation(
@@ -512,8 +515,8 @@ def get_clockwise_rotations(slab_ref, slab, molecule):
         repeat=[1, 1, 1],
         verbose=False,
         positions=["MX_adsites"],
-        relax_tol=0.025,
-        tol=1.2,
+        # relax_tol=0.025,
+        # tol=1.2,
     )
 
     # Getting the bulk-like adsites on the original slab
