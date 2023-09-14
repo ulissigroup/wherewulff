@@ -385,7 +385,7 @@ class OER_SingleSite(object):
         return clean_slab
 
     def _get_oer_intermediates(
-        self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=8
+        self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=16
     ):
         """Returns OH/Ox/OOH intermediates"""
         # Adsorbate manipulation
