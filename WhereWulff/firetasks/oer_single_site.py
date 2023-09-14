@@ -76,7 +76,8 @@ class OERSingleSiteFireTask(FiretaskBase):
         # applied_pH = 0  # pH conditions
         user_point = np.array([applied_pH, applied_potential])
         # ORR
-        user_point[1] = 0.9
+#        user_point[1] = 0.9
+        breakpoint()
 
         parent_dict = fw_spec[f"{reduced_formula}_{miller_index}_surface_pbx"]
         surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
