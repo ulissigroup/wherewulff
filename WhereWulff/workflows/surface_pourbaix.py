@@ -630,7 +630,7 @@ def SurfacePBX_WF(
     for adsorbate in adsorbates:
         if (
             not checkpoint_path or len(adsorbate) == 1
-        ):  # As before # FIXME: Make sure this works
+        ) and not is_metal:  # As before # FIXME: Make sure this works
             adslab, bulk_like_shifted = get_clockwise_rotations(
                 slab_orig, slab, adsorbate
             )
