@@ -128,51 +128,51 @@ class ML_int_relax(FiretaskBase):
         orig_structure.remove_oxidation_states()
         # Insert the results into the task collection per the atomate schema and using the uuid
         task_doc = {
-           "uuid": uuid,
-           "calcs_reversed": [
-               {
-                   "output": {
-                       "structure": None,
-                       "energy": 0,
-                       "ionic_steps": [
-                           {"e_0_energy": 0, "structure": None},
-                           {"e_0_energy": 0, "structure": None},
-                       ],
-                   }
-               }
-           ],
+            "uuid": uuid,
+            "calcs_reversed": [
+                {
+                    "output": {
+                        "structure": None,
+                        "energy": 0,
+                        "ionic_steps": [
+                            {"e_0_energy": 0, "structure": None},
+                            {"e_0_energy": 0, "structure": None},
+                        ],
+                    }
+                }
+            ],
         }
         relaxed_forces = atoms.get_forces().tolist()
         task_doc["calcs_reversed"][0]["output"][
-           "structure"
+            "structure"
         ] = relaxed_structure.as_dict()
         task_doc["calcs_reversed"][0]["output"]["energy"] = relaxed_energy
         task_doc["calcs_reversed"][0]["output"]["ionic_steps"][0][
-           "structure"
+            "structure"
         ] = orig_structure.as_dict()
         task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
-           "structure"
+            "structure"
         ] = relaxed_structure.as_dict()
         task_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1][
-           "e_0_energy"
+            "e_0_energy"
         ] = relaxed_energy
         task_doc["calcs_reversed"][0]["output"]["forces"] = relaxed_forces
         if not is_bulk:
-           task_doc.update(
-               {
-                   "slab": fw_spec["slab"].as_dict(),
-                   "parent_structure": fw_spec["parent_structure"].as_dict(),
-                   "parent_structure_metadata": fw_spec["parent_structure_metadata"],
-               }
-           )
+            task_doc.update(
+                {
+                    "slab": fw_spec["slab"].as_dict(),
+                    "parent_structure": fw_spec["parent_structure"].as_dict(),
+                    "parent_structure_metadata": fw_spec["parent_structure_metadata"],
+                }
+            )
         mmdb.db["tasks"].insert_one(task_doc)
 
         return FWAction(
-            update_spec={
-                f"{label}_relaxed_energy": relaxed_energy,
-                f"{label}_relaxed_structure": relaxed_structure,
-                f"{label}_orig_structure": orig_structure,
-            }
+            #    update_spec={
+            #        f"{label}_relaxed_energy": relaxed_energy,
+            #        f"{label}_relaxed_structure": relaxed_structure,
+            #        f"{label}_orig_structure": orig_structure,
+            #    }
         )
 
 
