@@ -140,6 +140,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         self.verbose = verbose
 
         self.relax_tol = relax_tol
+        slab.oriented_unit_cell.remove_oxidation_states()
         self.bulk = slab.oriented_unit_cell.copy()
         self.bondlengths_dict = self.get_bond_length(max_r=max_r, tol=tol)
 
@@ -161,12 +162,12 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
 
         # Get bulk-like adsorption sites on top surface where
         # adsorbate binds to X site to form the desired molecule
-        # if "mvk_adsites" in positions:
-        #    self.mvk_adsites, self.mvk_partitions = self.get_surface_Xsites()
-        # else:
-        #    self.mvk_adsites, self.mvk_partitions = [], []
-        # if self.verbose:
-        #    print("Total adsites: ", len(self.MX_adsites) + len(self.mvk_adsites))
+        if "mvk_adsites" in positions:
+            self.mvk_adsites, self.mvk_partitions = self.get_surface_Xsites()
+        else:
+            self.mvk_adsites, self.mvk_partitions = [], []
+        if self.verbose:
+            print("Total adsites: ", len(self.MX_adsites) + len(self.mvk_adsites))
 
         # Get CN of bulk Wyckoff position for BB analysis at surface later on
         bulk_wyckoff_cn = {}
@@ -569,35 +570,94 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         for surfsite in self.slab:
             if surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]:
                 surfsite_key = surfsite.bulk_wyckoff + surfsite.species_string
-                surf_nn = self.slab.get_neighbors(
-                    surfsite, round(self.bondlengths_dict[surfsite_key], 2)
-                )
+                search_r = 0.1
+                while all(
+                    [
+                        x.species_string == "O"
+                        for x in self.slab.get_neighbors(surfsite, search_r)
+                    ]
+                ):
+                    search_r += 0.01
+                oxygens = self.slab.get_neighbors(surfsite, search_r)
+                # We need to weed out the oxygens whose M - O bond lengths are
+                # more than 0.1 Ang from the average bulk M - O bondlength
+                surf_nn = [
+                    oxygen
+                    for oxygen in oxygens
+                    if abs(
+                        oxygen.distance(surfsite) - self.bondlengths_dict[surfsite_key]
+                    )
+                    < 0.1
+                ]
+                # surf_nn = self.slab.get_neighbors(
+                #    surfsite, round(self.bondlengths_dict[surfsite_key], 2)
+                # )
                 for bulksite in self.bulk:
                     if (
                         bulksite.bulk_wyckoff == surfsite.bulk_wyckoff
                         and bulksite.species_string == surfsite.species_string
                     ):
                         bulksite_key = bulksite.bulk_wyckoff + bulksite.species_string
+                        search_r_bulk = 0.1
+                        while all(
+                            [
+                                x.species_string == "O"
+                                for x in self.bulk.get_neighbors(
+                                    bulksite, search_r_bulk
+                                )
+                            ]
+                        ):
+                            search_r_bulk += 0.01
+                        bulk_oxygens = self.bulk.get_neighbors(bulksite, search_r_bulk)
+
                         cn = len(
-                            self.bulk.get_neighbors(
-                                bulksite,
-                                round(self.bondlengths_dict[bulksite_key], 2) + 0.05,
-                            )
+                            [
+                                oxygen
+                                for oxygen in bulk_oxygens
+                                if abs(
+                                    oxygen.distance(bulksite)
+                                    - self.bondlengths_dict[bulksite_key]
+                                )
+                                < 0.1
+                            ]
                         )
+
+                        # cn = len(
+                        #    self.bulk.get_neighbors(
+                        #        bulksite,
+                        #        round(self.bondlengths_dict[bulksite_key], 2) + 0.05,
+                        #    )
+                        # )
                         break
                 if (
                     len(surf_nn) == cn
                 ):  # FIXME: I see cases where the bondlengths in the surface are too small to be applied to bulk sites
+                    # breakpoint()
+                    print(self.slab.index(surfsite))
                     continue
                 for site in self.slab:
                     if site.species_string != self.X:
                         site_key = site.bulk_wyckoff + site.species_string
+                        search_r_frac = 0.1
+                        while all(
+                            [
+                                x.species_string == "O"
+                                for x in self.slab.get_neighbors(site, search_r_frac)
+                            ]
+                        ):
+                            search_r_frac += 0.01
                         bulk_frac_coords = [
                             nn.frac_coords
-                            for nn in self.slab.get_neighbors(
-                                site, round(self.bondlengths_dict[site_key], 2)
-                            )
+                            for nn in self.slab.get_neighbors(site, search_r_frac)
+                            if abs(nn.distance(site) - self.bondlengths_dict[site_key])
+                            < 0.1
                         ]
+                        # bulk_frac_coords = [
+                        #    nn.frac_coords
+                        #    for nn in self.slab.get_neighbors(
+                        #        site, round(self.bondlengths_dict[site_key], 2)
+                        #    )
+                        # ]
                         if len(bulk_frac_coords) == cn and (
                             surfsite.species_string == site.species_string
                         ):  # constrain to be same specie not only same CN
