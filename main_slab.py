@@ -15,13 +15,14 @@ from WhereWulff.launchers.slabflows import SlabFlows
 # cif_file = "POSCAR_RuPtMoOx_relaxed.cif"
 # cif_file = "perm/POSCAR_struct_0.cif"
 # cif_file = "POSCAR_RuNbMoOx_2009.cif"
-cif_file = "POSCAR_RuNbMoOx_1908.cif"
+# cif_file = "POSCAR_RuNbMoOx_1908.cif"
+cif_file = "POSCAR_RuNbMoOx_23.cif"
 # cif_file = "Au.cif"
 
 # WhereWulff method and config
 cat_flows = SlabFlows(
     cif_file,
-    add_magmoms=True,
+    add_magmoms=False,
     slab_repeat=[1, 1, 1],
     # slab_repeat=[4, 4, 1],
     selective_dynamics=True,
@@ -43,11 +44,11 @@ cat_flows = SlabFlows(
     # run_fake=False,
     run_fake=False,
     checkpoint_path=">>checkpoint_path<<",
-    #conventional_standard=False,
-    conventional_standard=True,
+    conventional_standard=False,
+    # conventional_standard=True,
     metal_site="Ru",
     # metal_site="Au",
-    is_metal=False,
+    # is_metal=False,
     # is_metal=True,
     applied_potential=1.5,
     # applied_potential=0.8,
