@@ -110,7 +110,7 @@ class SlabFlows:
         self.applied_pH = applied_pH
 
         # ML used to streamline
-        #self.streamline = streamline
+        # self.streamline = streamline
         self.checkpoint_path = checkpoint_path
         if self.checkpoint_path is None:
             raise ValueError(
@@ -188,7 +188,7 @@ class SlabFlows:
             slab_gen = SlabGenerator(
                 self.bulk_structure,
                 miller_index=mi_index,
-                min_slab_size=4,  # fixed for test purposes
+                min_slab_size=2,  # fixed for test purposes
                 min_vacuum_size=8,
                 in_unit_planes=True,
                 center_slab=True,
@@ -206,9 +206,11 @@ class SlabFlows:
             for slab in all_slabs:
                 slab_formula = slab.composition.reduced_formula
                 if (
-                    not slab.is_polar()
-                    and slab.is_symmetric()
-                    and slab_formula == self.bulk_formula  # Only for test purposes
+                    #    not slab.is_polar()
+                    #    and slab.is_symmetric()
+                    #    and
+                    slab_formula
+                    == self.bulk_formula  # Only for test purposes
                 ):
                     slab.make_supercell(self.slab_repeat)
                     slab_candidates.append(slab)
@@ -263,7 +265,7 @@ class SlabFlows:
             metal_site=self.metal_site,
             applied_potential=self.applied_potential,
             applied_pH=self.applied_pH,
-            #streamline=self.streamline,
+            # streamline=self.streamline,
             checkpoint_path=self.checkpoint_path,
         )
         return ads_slab_wfs, parents_fws
@@ -358,6 +360,7 @@ class SlabFlows:
             # oer_wf = self._get_oer_reactivity(parents=ads_slab_fws)
             # launchpad.add_wf(oer_wf)
             #            launchpad = LaunchPad()
+            breakpoint()
             launchpad.add_wf(ads_slab_wf)
 
             # Loop over OER
