@@ -587,7 +587,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     if abs(
                         oxygen.distance(surfsite) - self.bondlengths_dict[surfsite_key]
                     )
-                    < 0.1
+                    < 0.2
                 ]
                 # surf_nn = self.slab.get_neighbors(
                 #    surfsite, round(self.bondlengths_dict[surfsite_key], 2)
@@ -618,7 +618,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                                     oxygen.distance(bulksite)
                                     - self.bondlengths_dict[bulksite_key]
                                 )
-                                < 0.1
+                                < 0.2
                             ]
                         )
 
@@ -650,7 +650,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                             nn.frac_coords
                             for nn in self.slab.get_neighbors(site, search_r_frac)
                             if abs(nn.distance(site) - self.bondlengths_dict[site_key])
-                            < 0.1
+                            < 0.2
                         ]
                         # bulk_frac_coords = [
                         #    nn.frac_coords
