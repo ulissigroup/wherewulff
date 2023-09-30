@@ -60,6 +60,7 @@ H2O = Molecule(
         [2.226191, -8.287900, 2.667037],
         [2.226191, -9.143303, 2.156037],
     ],
+    site_properties={"magmom":[0.1,0.1,0.6], "binding_site":[False, False, True]}
 )
 
 # Deacon process
