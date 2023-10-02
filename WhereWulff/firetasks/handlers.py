@@ -277,9 +277,9 @@ class ContinueOptimizeFW(FiretaskBase):
             elif not is_bulk and not fw_spec.get("is_adslab"):
                 self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
                 self.fw_spec = fw_spec
-                wf = self.run_EDL()
+                #wf = self.run_EDL()
                 return FWAction(
-                    detours=[wf],
+                    #detours=[wf],
                     update_spec={
                         "oriented_uuid": fw_spec["oriented_uuid"]
                         if "oriented_uuid" in fw_spec
