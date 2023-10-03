@@ -53,7 +53,7 @@ class OER_SingleSite(object):
         # We need to remove oxidation states
         self.slab_clean.remove_oxidation_states()
         self.slab_clean.oriented_unit_cell.remove_oxidation_states()
-        #breakpoint()
+        # breakpoint()
 
         # Cache all the idx
         if not self.surface_coverage[0] == "clean":
@@ -80,7 +80,7 @@ class OER_SingleSite(object):
         # self.mxidegen = self._mxidegen() #FIXME: Not needed for metals
         if not self.surface_coverage[0] == "clean":
 
-            #breakpoint()
+            # breakpoint()
             # TODO: Logic for metals -> can just pick the site from the oxygen
             self.selected_site = self.slab[self.reactive_idx].coords
 
@@ -496,6 +496,11 @@ class OER_SingleSite(object):
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
+            # Pop out the H to get O2*
+            self.adsorbates["OOH_up"].remove(self.adsorbates["OOH_up"][2])
+            o2_star_intermediates = self._get_oer_intermediates(
+                self.adsorbates["OOH_up"], suffix="*"
+            )
             if self.checkpoint_path:
                 # Can commingle the OOH and pick only one
                 ooh_intermediates = {**ooh_down, **ooh_up}
@@ -517,10 +522,29 @@ class OER_SingleSite(object):
                     site_properties=slab_ads.site_properties,
                 )
                 ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
+                configs_o2_star = [
+                    Slab.from_dict(o2_star_intermediates[k])
+                    for k in o2_star_intermediates.keys()
+                ]
+                slab_ads_o2, slab_index = find_most_stable_config(
+                    configs_o2_star, self.checkpoint_path
+                )
+                slab_ads_o2 = Slab(
+                    slab_ads_o2.lattice,
+                    slab_ads_o2.species,
+                    slab_ads_o2.frac_coords,
+                    miller_index=configs[0].miller_index,
+                    oriented_unit_cell=configs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=slab_ads_o2.site_properties,
+                )
+                o2_star_intermediates = {f"o2_star_{slab_index}": slab_ads_o2.as_dict()}
                 oer_intermediates = {
                     **reference_dict,
                     **oh_intermediates,
                     **ooh_intermediates,
+                    **o2_star_intermediates,
                 }
             else:
                 oer_intermediates = {
@@ -539,6 +563,11 @@ class OER_SingleSite(object):
             ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
+            )
+            # Pop out the H to get O2*
+            self.adsorbates["OOH_up"].remove(self.adsorbates["OOH_up"][2])
+            o2_star_intermediates = self._get_oer_intermediates(
+                self.adsorbates["OOH_up"], suffix="*"
             )
             if self.checkpoint_path:
                 ooh_intermediates = {**ooh_down, **ooh_up}
@@ -560,10 +589,29 @@ class OER_SingleSite(object):
                     site_properties=slab_ads.site_properties,
                 )
                 ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
+                configs_o2_star = [
+                    Slab.from_dict(o2_star_intermediates[k])
+                    for k in o2_star_intermediates.keys()
+                ]
+                slab_ads_o2, slab_index = find_most_stable_config(
+                    configs_o2_star, self.checkpoint_path
+                )
+                slab_ads_o2 = Slab(
+                    slab_ads_o2.lattice,
+                    slab_ads_o2.species,
+                    slab_ads_o2.frac_coords,
+                    miller_index=configs[0].miller_index,
+                    oriented_unit_cell=configs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=slab_ads_o2.site_properties,
+                )
+                o2_star_intermediates = {f"o2_star_{slab_index}": slab_ads_o2.as_dict()}
                 oer_intermediates = {
                     **reference_dict,
                     **ox_intermediates,
                     **ooh_intermediates,
+                    **o2_star_intermediates,
                 }
             else:
                 oer_intermediates = {
@@ -580,6 +628,11 @@ class OER_SingleSite(object):
             ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
             ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
+            )
+            # Pop out the H to get O2*
+            self.adsorbates["OOH_up"].remove(self.adsorbates["OOH_up"][2])
+            o2_star_intermediates = self._get_oer_intermediates(
+                self.adsorbates["OOH_up"], suffix="*"
             )
             if self.checkpoint_path:
                 configs = [
@@ -620,11 +673,30 @@ class OER_SingleSite(object):
                     site_properties=slab_ads.site_properties,
                 )
                 ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
+                configs_o2_star = [
+                    Slab.from_dict(o2_star_intermediates[k])
+                    for k in o2_star_intermediates.keys()
+                ]
+                slab_ads_o2, slab_index = find_most_stable_config(
+                    configs_o2_star, self.checkpoint_path
+                )
+                slab_ads_o2 = Slab(
+                    slab_ads_o2.lattice,
+                    slab_ads_o2.species,
+                    slab_ads_o2.frac_coords,
+                    miller_index=configs[0].miller_index,
+                    oriented_unit_cell=configs[0].oriented_unit_cell,
+                    shift=0,
+                    scale_factor=0,
+                    site_properties=slab_ads_o2.site_properties,
+                )
+                o2_star_intermediates = {f"o2_star_{slab_index}": slab_ads_o2.as_dict()}
                 oer_intermediates = {
                     **reference_dict,
                     **ox_intermediates,
                     **oh_intermediates,
                     **ooh_intermediates,
+                    **o2_star_intermediates,
                 }
             else:
                 oer_intermediates = {
