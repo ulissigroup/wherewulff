@@ -55,7 +55,6 @@ class OERSingleSiteFireTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        breakpoint()
         # Variables
         reduced_formula = self["reduced_formula"]
         miller_index = self["miller_index"]
@@ -69,6 +68,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         vasp_cmd = self["vasp_cmd"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         run_fake = self.get("run_fake", False)
+        run_fake = False
         surface_pbx_uuid = self["surface_pbx_uuid"]
         # streamline = self.get("streamline", False)
 
