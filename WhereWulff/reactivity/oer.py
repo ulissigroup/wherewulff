@@ -53,7 +53,7 @@ class OER_SingleSite(object):
         # We need to remove oxidation states
         self.slab_clean.remove_oxidation_states()
         self.slab_clean.oriented_unit_cell.remove_oxidation_states()
-        #breakpoint()
+        # breakpoint()
 
         # Cache all the idx
         if not self.surface_coverage[0] == "clean":
@@ -74,15 +74,15 @@ class OER_SingleSite(object):
             self.ads_indices = active_sites_dict[self.metal_site]
         # TODO: Need to create all possible references and pick the most stable one (active site)
         # Generate slab reference to place the adsorbates
-        self.ref_slab, self.reactive_idx = self._get_reference_slab()
+        self.ref_slabs, self.reactive_idx = self._get_reference_slab()
 
         # Mxide method
         # self.mxidegen = self._mxidegen() #FIXME: Not needed for metals
         if not self.surface_coverage[0] == "clean":
 
-            #breakpoint()
+            # breakpoint()
             # TODO: Logic for metals -> can just pick the site from the oxygen
-            self.selected_site = self.slab[self.reactive_idx].coords
+            self.selected_sites = [self.slab[idx].coords for idx in self.reactive_idx]
 
         #    # Shifted bulk_like_sites
         #    self.bulk_like_dict = self._get_shifted_bulk_like_sites()
@@ -90,7 +90,7 @@ class OER_SingleSite(object):
         #    # Selected site
         #    self.selected_site = self.bulk_like_dict[self.reactive_idx]
         else:
-            self.selected_site = self.reactive_idx
+            self.selected_sites = self.reactive_idx
 
         # np seed
         np.random.seed(self.random_state)
@@ -220,28 +220,30 @@ class OER_SingleSite(object):
             if self.checkpoint_path:  # streamline
                 ref_slabs = []
                 for active_site in self.ads_indices:
-                    breakpoint()
                     ref_slab_copy = ref_slab.copy()
                     ref_slab_copy.remove_sites(indices=[active_site])
                     ref_slabs.append(ref_slab_copy)
-                ref_slab, stable_index = find_most_stable_config(
-                    ref_slabs, self.checkpoint_path
-                )
-                ref_slab = Slab(
-                    ref_slab.lattice,
-                    ref_slab.species,
-                    ref_slab.frac_coords,
-                    miller_index=ref_slabs[0].miller_index,
-                    oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
-                    shift=0,
-                    scale_factor=0,
-                    site_properties=ref_slab.site_properties,
-                )
+                # ref_slab, stable_index = find_most_stable_config(
+                #    ref_slabs, self.checkpoint_path
+                # ) # We generate a separate OER branch for each possible site
+                ref_slabs = [
+                    Slab(
+                        ref_slab.lattice,
+                        ref_slab.species,
+                        ref_slab.frac_coords,
+                        miller_index=ref_slabs[0].miller_index,
+                        oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
+                        shift=0,
+                        scale_factor=0,
+                        site_properties=ref_slab.site_properties,
+                    )
+                    for ref_slab in ref_slabs
+                ]
             else:  # random
                 reactive_site = np.random.choice(self.ads_indices)
                 ref_slab.remove_sites(indices=[reactive_site])
 
-            return ref_slab, self.ads_indices[stable_index]
+            return ref_slabs, self.ads_indices
 
         elif self.surface_coverage[0] == "oh":
             ref_slab = self.slab.copy()
@@ -385,7 +387,7 @@ class OER_SingleSite(object):
         return clean_slab
 
     def _get_oer_intermediates(
-        self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=16
+        self, adsorbate, suffix=None, axis_rotation=[0, 0, 1], n_rotations=32
     ):
         """Returns OH/Ox/OOH intermediates"""
         # Adsorbate manipulation
@@ -393,54 +395,63 @@ class OER_SingleSite(object):
         adsorbate_label = "".join([site.species_string for site in adsorbate])
         adsorbate_angles = self._get_angles(n_rotations=n_rotations)
 
-        # FIXME: Logic for metals can use the internal rotation on the slab
-        ads_slab = self.ref_slab.copy()
-        asf = AdsorbateSiteFinder(ads_slab)
-        slab_ads = asf.add_adsorbate(adsorbate, self.selected_site)
         intermediates_dict = {}
-        # Now rotate about the binding oxo position in case the adsorbate has rot deg freedom
-        if len(adsorbate) > 1:
-            binding_site_index = np.where(
-                np.array(slab_ads.site_properties["binding_site"]) == True
-            )[0].tolist()[-1]
-            rotate_site_indices = np.where(
-                np.array(slab_ads.site_properties["surface_properties"]) == "adsorbate"
-            )[0].tolist()[-len(adsorbate) :]
-            for i, ang in enumerate(adsorbate_angles):
-                slab_ads.rotate_sites(
-                    rotate_site_indices,
-                    ang,
-                    axis_rotation,
-                    slab_ads[binding_site_index].coords,
-                    to_unit_cell=False,
+        # FIXME: Logic for metals can use the internal rotation on the slab
+        reference_dict = {}
+        for ref_slab, selected_site, idx in zip(
+            self.ref_slabs, self.selected_sites, self.reactive_idx
+        ):
+            reference_dict[f"reference_{idx}"] = ref_slab.as_dict()
+            ads_slab = ref_slab.copy()
+            asf = AdsorbateSiteFinder(ads_slab)
+            slab_ads = asf.add_adsorbate(adsorbate, selected_site)
+            intermediates_dict[f"{idx}"] = {}
+            # Now rotate about the binding oxo position in case the adsorbate has rot deg freedom
+            if len(adsorbate) > 1:
+                binding_site_index = np.where(
+                    np.array(slab_ads.site_properties["binding_site"]) == True
+                )[0].tolist()[-1]
+                rotate_site_indices = np.where(
+                    np.array(slab_ads.site_properties["surface_properties"])
+                    == "adsorbate"
+                )[0].tolist()[-len(adsorbate) :]
+                for i, ang in enumerate(adsorbate_angles):
+                    slab_ads.rotate_sites(
+                        rotate_site_indices,
+                        ang,
+                        axis_rotation,
+                        slab_ads[binding_site_index].coords,
+                        to_unit_cell=False,
+                    )
+                    slab_ads_snap = slab_ads.copy()
+                    intermediates_dict[f"{idx}"].update(
+                        {f"{adsorbate_label}_{suffix}_{i}": slab_ads_snap.as_dict()}
+                    )
+            else:
+                intermediates_dict[f"{idx}"].update(
+                    {f"{adsorbate_label}_0": slab_ads.as_dict()}
                 )
-                slab_ads_snap = slab_ads.copy()
-                intermediates_dict.update(
-                    {f"{adsorbate_label}_{suffix}_{i}": slab_ads_snap.as_dict()}
-                )
-        else:
-            intermediates_dict.update({f"{adsorbate_label}_0": slab_ads.as_dict()})
 
-        # adsorbate_rotations = self.mxidegen.get_transformed_molecule(
-        #    adsorbate, axis=axis_rotation, angles_list=adsorbate_angles
-        # )
-        # Intermediates generation
-        # intermediates_dict = {}
-        # for ads_rot_idx in range(len(adsorbate_rotations)):
-        #    ads_slab = self.ref_slab.copy()
-        #    ads_slab = self._add_adsorbates(
-        #        ads_slab, self.selected_site, adsorbate_rotations[ads_rot_idx]
-        #    )
-        #    if suffix:
-        #        intermediates_dict.update(
-        #            {f"{adsorbate_label}_{suffix}_{ads_rot_idx}": ads_slab.as_dict()}
-        #        )
-        #    else:
-        #        intermediates_dict.update(
-        #            {f"{adsorbate_label}_{ads_rot_idx}": ads_slab.as_dict()}
-        #        )
+            # adsorbate_rotations = self.mxidegen.get_transformed_molecule(
+            #    adsorbate, axis=axis_rotation, angles_list=adsorbate_angles
+            # )
+            # Intermediates generation
+            # intermediates_dict = {}
+            # for ads_rot_idx in range(len(adsorbate_rotations)):
+            #    ads_slab = self.ref_slab.copy()
+            #    ads_slab = self._add_adsorbates(
+            #        ads_slab, self.selected_site, adsorbate_rotations[ads_rot_idx]
+            #    )
+            #    if suffix:
+            #        intermediates_dict.update(
+            #            {f"{adsorbate_label}_{suffix}_{ads_rot_idx}": ads_slab.as_dict()}
+            #        )
+            #    else:
+            #        intermediates_dict.update(
+            #            {f"{adsorbate_label}_{ads_rot_idx}": ads_slab.as_dict()}
+            #        )
 
-        return intermediates_dict
+        return reference_dict, intermediates_dict
 
     def _get_angles(self, n_rotations=4):
         """Returns the list of angles depeding on the n of rotations"""
@@ -467,69 +478,78 @@ class OER_SingleSite(object):
     def generate_oer_intermediates(self, suffix=None):
         """General method to get OER-WNA (single site) intermediantes"""
         # Get Reference slab (*)
-        reference_slab = self.ref_slab.as_dict()
-        reference_dict = {"reference": reference_slab}
+        # for ref_slab in self.ref_slabs:
+        #    reference_slab = ref_slab.as_dict()
+        #    reference_dict = {"reference": reference_slab}
 
         # Generate intermediantes depeding on Termination
         if self.surface_coverage[0] == "oxo":
-            oh_intermediates = self._get_oer_intermediates(self.adsorbates["OH"])
-            if self.checkpoint_path:
-                configs = [
-                    Slab.from_dict(oh_intermediates[k]) for k in oh_intermediates.keys()
-                ]
-                slab_ads, slab_index = find_most_stable_config(
-                    configs, self.checkpoint_path
-                )
-                # Cast the Struct to Slab so can add metadata
-                slab_ads = Slab(
-                    slab_ads.lattice,
-                    slab_ads.species,
-                    slab_ads.frac_coords,
-                    miller_index=configs[0].miller_index,
-                    oriented_unit_cell=configs[0].oriented_unit_cell,
-                    shift=0,
-                    scale_factor=0,
-                    site_properties=slab_ads.site_properties,
-                )
-
-                oh_intermediates = {f"OH_{slab_index}": slab_ads.as_dict()}
-            ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
-            ooh_down = self._get_oer_intermediates(
-                self.adsorbates["OOH_down"], suffix="down"
+            ref_dict, oh_intermediates = self._get_oer_intermediates(
+                self.adsorbates["OH"]
             )
-            if self.checkpoint_path:
-                # Can commingle the OOH and pick only one
-                ooh_intermediates = {**ooh_down, **ooh_up}
-                configs = [
-                    Slab.from_dict(ooh_intermediates[k])
-                    for k in ooh_intermediates.keys()
-                ]
-                slab_ads, slab_index = find_most_stable_config(
-                    configs, self.checkpoint_path
+            oh_int_stab = {}
+            ooh_int_stab = {}
+            for site in oh_intermediates:
+                if self.checkpoint_path:
+                    configs = [
+                        Slab.from_dict(oh_intermediates[site][k])
+                        for k in oh_intermediates[site].keys()
+                    ]
+                    slab_ads, slab_index = find_most_stable_config(
+                        configs, self.checkpoint_path
+                    )
+                    # Cast the Struct to Slab so can add metadata
+                    slab_ads = Slab(
+                        slab_ads.lattice,
+                        slab_ads.species,
+                        slab_ads.frac_coords,
+                        miller_index=configs[0].miller_index,
+                        oriented_unit_cell=configs[0].oriented_unit_cell,
+                        shift=0,
+                        scale_factor=0,
+                        site_properties=slab_ads.site_properties,
+                    )
+                    oh_int_stab[f"OH_{site}_{slab_index}"] = slab_ads.as_dict()
+                _, ooh_up = self._get_oer_intermediates(
+                    self.adsorbates["OOH_up"], suffix="up"
                 )
-                slab_ads = Slab(
-                    slab_ads.lattice,
-                    slab_ads.species,
-                    slab_ads.frac_coords,
-                    miller_index=configs[0].miller_index,
-                    oriented_unit_cell=configs[0].oriented_unit_cell,
-                    shift=0,
-                    scale_factor=0,
-                    site_properties=slab_ads.site_properties,
+                _, ooh_down = self._get_oer_intermediates(
+                    self.adsorbates["OOH_down"], suffix="down"
                 )
-                ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
-                oer_intermediates = {
-                    **reference_dict,
-                    **oh_intermediates,
-                    **ooh_intermediates,
-                }
-            else:
-                oer_intermediates = {
-                    **reference_dict,
-                    **oh_intermediates,
-                    **ooh_up,
-                    **ooh_down,
-                }
+                if self.checkpoint_path:
+                    # Can commingle the OOH and pick only one
+                    ooh_intermediates = {**ooh_down[site], **ooh_up[site]}
+                    configs = [
+                        Slab.from_dict(ooh_intermediates[k])
+                        for k in ooh_intermediates.keys()
+                    ]
+                    slab_ads, slab_index = find_most_stable_config(
+                        configs, self.checkpoint_path
+                    )
+                    slab_ads = Slab(
+                        slab_ads.lattice,
+                        slab_ads.species,
+                        slab_ads.frac_coords,
+                        miller_index=configs[0].miller_index,
+                        oriented_unit_cell=configs[0].oriented_unit_cell,
+                        shift=0,
+                        scale_factor=0,
+                        site_properties=slab_ads.site_properties,
+                    )
+                    ooh_int_stab[f"OOH_{site}_{slab_index}"] = slab_ads.as_dict()
+            breakpoint()
+            oer_intermediates = {
+                **ref_dict,
+                **oh_int_stab,
+                **ooh_int_stab,
+            }
+            # else:
+            #    oer_intermediates = {
+            #        **reference_dict,
+            #        **oh_intermediates,
+            #        **ooh_up,
+            #        **ooh_down,
+            #    }
 
             return oer_intermediates
 

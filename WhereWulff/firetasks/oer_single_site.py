@@ -76,8 +76,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         # applied_pH = 0  # pH conditions
         user_point = np.array([applied_pH, applied_potential])
         # ORR
-#        user_point[1] = 0.9
-        breakpoint()
+        #        user_point[1] = 0.9
 
         parent_dict = fw_spec[f"{reduced_formula}_{miller_index}_surface_pbx"]
         surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
@@ -123,29 +122,37 @@ class OERSingleSiteFireTask(FiretaskBase):
             surface_coverage=surface_termination,
             checkpoint_path=checkpoint_path,
         )
-        #breakpoint()
         oer_intermediates_dict = oer_wna.generate_oer_intermediates()
 
         # Logger
         logger.info(
             f"{reduced_formula}-{miller_index} at (pH = {applied_pH}, V = {applied_potential} is: {surface_termination}"
         )
-
-        # OER_WF
-        oer_wf = OERSingleSite_WF(
-            oer_dict=oer_intermediates_dict,
-            slab=clean_surface,
-            metal_site=metal_site,
-            slab_uuid=parent_dict["slab_uuid"],
-            oriented_uuid=parent_dict["oriented_uuid"],
-            surface_termination=surface_termination,
-            vasp_cmd=vasp_cmd,
-            db_file=db_file,
-            run_fake=run_fake,
-            surface_pbx_uuid=surface_pbx_uuid,
-        )
-
-        return FWAction(detours=[oer_wf])
+        oer_wfs = []
+        # OER_WF # We need a workflow for each ref_slab
+        for site in oer_wna.ads_indices:
+            oer_intermediates = {
+                k: v for k, v in oer_intermediates_dict.items() if str(site) in k
+            }  # Segment by site
+            oer_wf = OERSingleSite_WF(
+                oer_dict=oer_intermediates,
+                slab=clean_surface,
+                metal_site=metal_site,
+                slab_uuid=parent_dict["slab_uuid"],
+                oriented_uuid=parent_dict["oriented_uuid"],
+                surface_termination=surface_termination,
+                vasp_cmd=vasp_cmd,
+                db_file=db_file,
+                run_fake=run_fake,
+                surface_pbx_uuid=surface_pbx_uuid,
+            )
+            oer_wf.name = oer_wf.name + f"_{site}"
+            for fw in oer_wf.fws:
+                if 'Analysis' in fw.name:
+                    fw.name = fw.name + f"_{site}"
+            oer_wfs.append(oer_wf)
+        breakpoint()
+        return FWAction(detours=oer_wfs)
 
     def _get_surface_stable_termination(self, user_point, clean_2_oh, oh_2_ox):
         """
