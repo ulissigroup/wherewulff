@@ -537,7 +537,6 @@ class OER_SingleSite(object):
                         site_properties=slab_ads.site_properties,
                     )
                     ooh_int_stab[f"OOH_{site}_{slab_index}"] = slab_ads.as_dict()
-            breakpoint()
             oer_intermediates = {
                 **ref_dict,
                 **oh_int_stab,
