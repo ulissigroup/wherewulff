@@ -100,7 +100,7 @@ class ML_int_relax(FiretaskBase):
         atoms.set_pbc(True)
         if is_bulk:  # Bulk
             atoms.set_tags(
-                [1] * len(structure)
+                [0] * len(structure)
             )  # This needs to be set to 1 if using the pre-trained model since they did not trained on tagged bulks
         elif not is_bulk and not fw_spec.get("is_adslab"):  # Slab
             if "constraints" in atoms.todict().keys():
