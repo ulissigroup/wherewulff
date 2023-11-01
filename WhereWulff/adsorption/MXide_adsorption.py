@@ -236,7 +236,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 if nn.species_string == self.X
             ]
             dist = round(max(distances), 2)  # To avoid precision-related discrepancies
-            site_key = site.bulk_wyckoff + site.species_string
+            site_key = site.species_string
 
             if (
                 site_key in max_bond_lengths_dict
@@ -569,7 +569,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
         ]
         for surfsite in self.slab:
             if surfsite.species_string != self.X and surfsite.frac_coords[2] > com[2]:
-                surfsite_key = surfsite.bulk_wyckoff + surfsite.species_string
+                surfsite_key = surfsite.species_string
                 search_r = 0.1
                 while all(
                     [
@@ -581,23 +581,21 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 oxygens = self.slab.get_neighbors(surfsite, search_r)
                 # We need to weed out the oxygens whose M - O bond lengths are
                 # more than 0.1 Ang from the average bulk M - O bondlength
+                breakpoint()
                 surf_nn = [
                     oxygen
                     for oxygen in oxygens
                     if abs(
                         oxygen.distance(surfsite) - self.bondlengths_dict[surfsite_key]
                     )
-                    < 0.2
+                    < 0.3
                 ]
                 # surf_nn = self.slab.get_neighbors(
                 #    surfsite, round(self.bondlengths_dict[surfsite_key], 2)
                 # )
                 for bulksite in self.bulk:
-                    if (
-                        bulksite.bulk_wyckoff == surfsite.bulk_wyckoff
-                        and bulksite.species_string == surfsite.species_string
-                    ):
-                        bulksite_key = bulksite.bulk_wyckoff + bulksite.species_string
+                    if bulksite.species_string == surfsite.species_string:
+                        bulksite_key = bulksite.species_string
                         search_r_bulk = 0.1
                         while all(
                             [
@@ -618,7 +616,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                                     oxygen.distance(bulksite)
                                     - self.bondlengths_dict[bulksite_key]
                                 )
-                                < 0.2
+                                < 0.3
                             ]
                         )
 
@@ -637,7 +635,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                     continue
                 for site in self.slab:
                     if site.species_string != self.X:
-                        site_key = site.bulk_wyckoff + site.species_string
+                        site_key = site.species_string
                         search_r_frac = 0.1
                         while all(
                             [
@@ -650,7 +648,7 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                             nn.frac_coords
                             for nn in self.slab.get_neighbors(site, search_r_frac)
                             if abs(nn.distance(site) - self.bondlengths_dict[site_key])
-                            < 0.2
+                            < 0.3
                         ]
                         # bulk_frac_coords = [
                         #    nn.frac_coords
