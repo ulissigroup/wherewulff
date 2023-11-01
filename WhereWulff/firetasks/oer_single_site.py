@@ -148,10 +148,9 @@ class OERSingleSiteFireTask(FiretaskBase):
             )
             oer_wf.name = oer_wf.name + f"_{site}"
             for fw in oer_wf.fws:
-                if 'Analysis' in fw.name:
+                if "Analysis" in fw.name:
                     fw.name = fw.name + f"_{site}"
             oer_wfs.append(oer_wf)
-        breakpoint()
         return FWAction(detours=oer_wfs)
 
     def _get_surface_stable_termination(self, user_point, clean_2_oh, oh_2_ox):
