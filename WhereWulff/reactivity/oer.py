@@ -518,7 +518,7 @@ class OER_SingleSite(object):
                 )
                 if self.checkpoint_path:
                     # Can commingle the OOH and pick only one
-                    ooh_intermediates = {**ooh_down[site]}#, **ooh_up[site]}
+                    ooh_intermediates = {**ooh_down[site], **ooh_up[site]}
                     configs = [
                         Slab.from_dict(ooh_intermediates[k])
                         for k in ooh_intermediates.keys()
