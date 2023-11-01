@@ -581,7 +581,6 @@ class MXideAdsorbateGenerator(AdsorbateSiteFinder):
                 oxygens = self.slab.get_neighbors(surfsite, search_r)
                 # We need to weed out the oxygens whose M - O bond lengths are
                 # more than 0.1 Ang from the average bulk M - O bondlength
-                breakpoint()
                 surf_nn = [
                     oxygen
                     for oxygen in oxygens
