@@ -218,7 +218,7 @@ class SpinDistanceEdge(torch.nn.Module):
         #out_emb_channels: int,
         #out_channels: int,
         #num_layers: int,
-        num_gaussian: int, 
+        num_gaussians: int, 
         act: str = "silu",
         gaussian_trainable = False, 
 
@@ -241,11 +241,11 @@ class SpinDistanceEdge(torch.nn.Module):
         self.gaussian = GaussianBasis(
                         start = 0.0,
                         stop = 5.0,
-                        num_gaussians = num_gaussian,
+                        num_gaussians = num_gaussians,
                         trainable = gaussian_trainable,
                         )
 
-        self.lin_spin = nn.Linear(num_rbf + num_gaussian, num_radial, bias=True)
+        self.lin_spin = nn.Linear(num_rbf + num_gaussians, num_radial, bias=True)
 
         self.layers_rbf = torch.nn.ModuleList(
             [
@@ -256,7 +256,7 @@ class SpinDistanceEdge(torch.nn.Module):
 
         self.layers_gaussian = torch.nn.ModuleList(
             [
-                ResidualLayer(num_gaussian, act)
+                ResidualLayer(num_gaussians, act)
                 for _ in range(num_layers_gaussian)
             ]
         )
@@ -314,7 +314,7 @@ class SpinDistanceEdge(torch.nn.Module):
         #!stack |rbf, gaussian|
         rbf = torch.cat((_rbf, _gaussian),dim=1)  #[n_edges, n_rbf(rbf+gaussian)]
 
-        #!maybe, lin_spin:  input dim: num_rbf+num_gaussian, output dim: num_rbf
+        #!maybe, lin_spin:  input dim: num_rbf+num_gaussians, output dim: num_rbf
         return self.act(self.lin_spin(rbf))
 
 class DimeNetPlusPlus(torch.nn.Module):
@@ -361,6 +361,9 @@ class DimeNetPlusPlus(torch.nn.Module):
         num_after_skip: int = 2,
         num_output_layers: int = 3,
         act: str = "silu",
+
+        #!mag
+        num_gaussians: int=50,
     ) -> None:
         act = activation_resolver(act)
 
@@ -377,7 +380,7 @@ class DimeNetPlusPlus(torch.nn.Module):
         #self.rbf = BesselBasisLayer(num_radial, cutoff, envelope_exponent)
         self.rbf = SpinDistanceEdge(
                         num_radial = num_radial,
-                        num_gaussian = 50,  #!mag use 50 as default
+                        num_gaussians = num_gaussians,  #!mag use 50 as default
                         act = act,
                         gaussian_trainable = False, 
                         cutoff  = cutoff,
@@ -502,6 +505,9 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
         num_before_skip: int = 1,
         num_after_skip: int = 2,
         num_output_layers: int = 3,
+
+        #!mag 
+        num_gaussians: int=50,
     ) -> None:
         self.num_targets = num_targets
         self.regress_forces = regress_forces

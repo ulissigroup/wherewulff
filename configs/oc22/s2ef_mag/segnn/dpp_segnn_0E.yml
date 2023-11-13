@@ -17,7 +17,7 @@ model:
   otf_graph: True
 
 #new
-  num_gaussian: 50
+  num_gaussians: 50
   
 optim:
   batch_size: 3

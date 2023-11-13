@@ -16,6 +16,9 @@ model:
   use_pbc: True
   otf_graph: True
 
+#new
+  num_gaussians: 50
+
 optim:
   batch_size: 3
   eval_batch_size: 3
