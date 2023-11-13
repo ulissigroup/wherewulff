@@ -1,0 +1,24 @@
+trainer: mag
+
+dataset:
+  train:
+    src: /pscratch/sd/w/wenxu/jobs/OCP/dataset/chgnet_data/split/train_5w_0.5
+    normalize_labels: False
+  val:
+    src: /pscratch/sd/w/wenxu/jobs/OCP/dataset/chgnet_data/split/val_5w_0.5
+
+logger: wandb
+
+task:
+  dataset: oc22_lmdb
+  description: "Regressing to energies and forces for DFT trajectories from OCP"
+  type: regression
+  metric: mae
+  primary_metric: forces_mae
+  labels:
+    - potential energy
+  grad_input: atomic forces
+  train_on_free_atoms: True
+  eval_on_free_atoms: True
+  prediction_dtype: float32
+
