@@ -290,130 +290,139 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             f"{self.reduced_formula}-{self.miller_index} -> (overpotential: {overpotential}, PDS: {pds_step})"
         )
 
-        # def func(U_SHE, C, U_0, E_0):
-        #    Ghat = -0.5 * C * (U_SHE - U_0) ** 2 + E_0
-        #    return Ghat
+        def func(U_SHE, C, U_0, E_0):
+            Ghat = -0.5 * C * (U_SHE - U_0) ** 2 + E_0
+            return Ghat
 
-        # Gs_OH_fxn_U = None
-        # Gs_Ox_fxn_U = None
-        ## EDL calcs and plots
-        # for edl_uuid in ads_slab_uuids:
-        #    fw = mmdb.db["fireworks"].find_one(
-        #        {
-        #            "$and": [
-        #                {"spec._tasks.0.replace_uuid": edl_uuid},
-        #                {"name": {"$regex": ".*EDL_analysis.*"}},
-        #            ]
-        #        }
-        #    )
-        #    launch_id = fw["launches"][0]
-        #    name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid})["name"]
-        #    # regex
-        #    edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
-        #        "action"
-        #    ]["stored_data"]
-        #    Us = np.linspace(0, 1, 100)
-        #    fit_params = edl_results["fit_params"]
-        #    if re.match(".*-O_.*", name):
-        #        Gs_Ox_fxn_U = np.array(func(Us, *fit_params))
-        #    elif re.match(".*-reference.*", name):
-        #        Gs_reference_fxn_U = np.array(func(Us, *fit_params))
-        #    elif re.match(".*-OOH.*", name):
-        #        Gs_OOH_fxn_U = np.array(func(Us, *fit_params))
-        #    elif re.match(".*-OH.*", name):
-        #        Gs_OH_fxn_U = np.array(func(Us, *fit_params))
+        Gs_OH_fxn_U = None
+        Gs_Ox_fxn_U = None
+        # EDL calcs and plots
+        for edl_uuid in ads_slab_uuids:
+            fw = mmdb.db["fireworks"].find_one(
+                {
+                    "$and": [
+                        {"spec._tasks.0.replace_uuid": edl_uuid},
+                        {"name": {"$regex": ".*EDL_analysis.*"}},
+                    ]
+                }
+            )
+            launch_id = fw["launches"][0]
+            name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid})["name"]
+            # regex
+            edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
+                "action"
+            ]["stored_data"]
+            Us = np.linspace(0, 1, 100)
+            fit_params = edl_results["fit_params"]
+            if re.match(".*-O_.*", name):
+                Gs_Ox_fxn_U = np.array(func(Us, *fit_params))
+            elif re.match(".*-reference.*", name):
+                Gs_reference_fxn_U = np.array(func(Us, *fit_params))
+            elif re.match(".*-OOH.*", name):
+                Gs_OOH_fxn_U = np.array(func(Us, *fit_params))
+            elif re.match(".*-OH.*", name):
+                Gs_OH_fxn_U = np.array(func(Us, *fit_params))
+            elif re.match(".*o2_star.*", name):
+                Gs_o2_star_fxn_U = np.array(func(Us, *fit_params))
 
-        # if (
-        #    Gs_OH_fxn_U is None
-        # ):  # means termination was *OH and have to retrieve from previous calc
-        #    edl_uuid_oh = min(
-        #        doc_termination["ads_slab_terminations"],
-        #        key=doc_termination["ads_slab_terminations"].get,
-        #    )
-        #    fw = mmdb.db["fireworks"].find_one(
-        #        {
-        #            "$and": [
-        #                {"spec._tasks.0.replace_uuid": edl_uuid_oh},
-        #                {"name": {"$regex": ".*EDL_analysis.*"}},
-        #            ]
-        #        }
-        #    )
-        #    launch_id = fw["launches"][0]
-        #    name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid_oh})["name"]
-        #    # regex
-        #    edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
-        #        "action"
-        #    ]["stored_data"]
-        #    Us = np.linspace(0, 1, 100)
-        #    fit_params = edl_results["fit_params"]
-        #    Gs_OH_fxn_U = np.array(func(Us, *fit_params))
-        #    breakpoint()
-        # elif Gs_Ox_fxn_U is None:
-        #    edl_uuid_ox = max(
-        #        doc_termination["ads_slab_terminations"],
-        #        key=doc_termination["ads_slab_terminations"].get,
-        #    )
-        #    fw = mmdb.db["fireworks"].find_one(
-        #        {
-        #            "$and": [
-        #                {"spec._tasks.0.replace_uuid": edl_uuid_ox},
-        #                {"name": {"$regex": ".*EDL_analysis.*"}},
-        #            ]
-        #        }
-        #    )
-        #    launch_id = fw["launches"][0]
-        #    name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid_ox})["name"]
-        #    # regex
-        #    edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
-        #        "action"
-        #    ]["stored_data"]
-        #    Us = np.linspace(0, 1, 100)
-        #    fit_params = edl_results["fit_params"]
-        #    Gs_Ox_fxn_U = np.array(func(Us, *fit_params))
+        if (
+            Gs_OH_fxn_U is None
+        ):  # means termination was *OH and have to retrieve from previous calc
+            edl_uuid_oh = min(
+                doc_termination["ads_slab_terminations"],
+                key=doc_termination["ads_slab_terminations"].get,
+            )
+            fw = mmdb.db["fireworks"].find_one(
+                {
+                    "$and": [
+                        {"spec._tasks.0.replace_uuid": edl_uuid_oh},
+                        {"name": {"$regex": ".*EDL_analysis.*"}},
+                    ]
+                }
+            )
+            launch_id = fw["launches"][0]
+            name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid_oh})["name"]
+            # regex
+            edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
+                "action"
+            ]["stored_data"]
+            Us = np.linspace(0, 1, 100)
+            fit_params = edl_results["fit_params"]
+            Gs_OH_fxn_U = np.array(func(Us, *fit_params))
+        elif Gs_Ox_fxn_U is None:
+            edl_uuid_ox = max(
+                doc_termination["ads_slab_terminations"],
+                key=doc_termination["ads_slab_terminations"].get,
+            )
+            fw = mmdb.db["fireworks"].find_one(
+                {
+                    "$and": [
+                        {"spec._tasks.0.replace_uuid": edl_uuid_ox},
+                        {"name": {"$regex": ".*EDL_analysis.*"}},
+                    ]
+                }
+            )
+            launch_id = fw["launches"][0]
+            name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid_ox})["name"]
+            # regex
+            edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
+                "action"
+            ]["stored_data"]
+            Us = np.linspace(0, 1, 100)
+            fit_params = edl_results["fit_params"]
+            Gs_Ox_fxn_U = np.array(func(Us, *fit_params))
 
-        ## Compute binding energies as fxn of U
-        # Eads_Ox_fxn_U = (
-        #    Gs_Ox_fxn_U
-        #    - Gs_reference_fxn_U
-        #    - (self.ref_energies["H2O"] - self.ref_energies["H2"])
-        # ) + 0.044
+        # Compute binding energies as fxn of U
+        Eads_Ox_fxn_U = (
+            Gs_Ox_fxn_U
+            - Gs_reference_fxn_U
+            - (self.ref_energies["H2O"] - self.ref_energies["H2"])
+        ) + 0.044
 
-        # Eads_OOH_fxn_U = (
-        #    Gs_OOH_fxn_U
-        #    - Gs_reference_fxn_U
-        #    - ((2 * self.ref_energies["H2O"]) - (1.5 * self.ref_energies["H2"]))
-        #    + 0.377
-        # )
-        # Eads_OH_fxn_U = (
-        #    Gs_OH_fxn_U
-        #    - Gs_reference_fxn_U
-        #    - (self.ref_energies["H2O"] - (0.5 * self.ref_energies["H2"]))
-        #    + 0.295
-        # )
-        # Gs_Ox_OH = Eads_Ox_fxn_U - Eads_OH_fxn_U
-        # Gs_OOH_Ox = Eads_OOH_fxn_U - Eads_Ox_fxn_U
-        # GO2 = 4.92 - Eads_OOH_fxn_U
+        Eads_OOH_fxn_U = (
+            Gs_OOH_fxn_U
+            - Gs_reference_fxn_U
+            - ((2 * self.ref_energies["H2O"]) - (1.5 * self.ref_energies["H2"]))
+            + 0.377
+        )
+        Eads_OH_fxn_U = (
+            Gs_OH_fxn_U
+            - Gs_reference_fxn_U
+            - (self.ref_energies["H2O"] - (0.5 * self.ref_energies["H2"]))
+            + 0.295
+        )
+        Eads_o2_star_fxn_U = (
+            Gs_o2_star_fxn_U
+            - Gs_reference_fxn_U
+            - (2 * self.ref_energies["H2O"] - 2 * self.ref_energies["H2"])
+        )
+        Gs_Ox_OH = Eads_Ox_fxn_U - Eads_OH_fxn_U
+        Gs_OOH_Ox = Eads_OOH_fxn_U - Eads_Ox_fxn_U
+        Gs_o2_star_OOH = Eads_o2_star_fxn_U - Eads_OOH_fxn_U
+        Gs_star_o2_star = 4.92 - Eads_o2_star_fxn_U
+        GO2 = 4.92 - Eads_OOH_fxn_U
 
-        # stacked_Gs = np.vstack((Eads_OH_fxn_U, Gs_Ox_OH, Gs_OOH_Ox, GO2))
-        # eta_fxn_U = 1.23 - stacked_Gs.min(axis=0)
-        # from matplotlib import pyplot as plt
+        stacked_Gs = np.vstack((Eads_OH_fxn_U, Gs_Ox_OH, Gs_OOH_Ox, Gs_o2_star_OOH, Gs_star_o2_star))
+        eta_fxn_U = 1.23 - stacked_Gs.min(axis=0)
+        breakpoint()
+        from matplotlib import pyplot as plt
 
-        # fig_eta = plt.figure(figsize=(10.0, 10.0))
-        # ax_eta = fig_eta.add_subplot(111)
-        # ax_eta.plot(Us, eta_fxn_U, "b-")
-        # ax_eta.set_xlabel("U SHE (V)")
-        # ax_eta.set_ylabel("Overpotential (V RHE)")
-        # fig_eta.savefig("eta_fxn_U.png")
-        # fig_pds = plt.figure(figsize=(10.0, 10.0))
-        # ax_pds = fig_pds.add_subplot(111)
-        # ax_pds.plot(Us, GO2, "r-", label="GO2")
-        # ax_pds.plot(Us, Gs_OOH_Ox, "b-", label="GOOH-GOx")
-        # ax_pds.plot(Us, Eads_OH_fxn_U, "m-", label="GOH")
-        # ax_pds.plot(Us, Gs_Ox_OH, "g", label="GOx-GOH")
-        # ax_pds.set_xlabel("U SHE (V)")
-        # ax_pds.set_ylabel("Elementary Reaction Free Energy (eV)")
-        # ax_pds.legend(loc="best")
-        # fig_pds.savefig("PDS_fxn_U.png")
+        fig_eta = plt.figure(figsize=(10.0, 10.0))
+        ax_eta = fig_eta.add_subplot(111)
+        ax_eta.plot(Us, eta_fxn_U, "b-")
+        ax_eta.set_xlabel("U SHE (V)")
+        ax_eta.set_ylabel("Overpotential (V RHE)")
+        fig_eta.savefig("eta_fxn_U.png")
+        fig_pds = plt.figure(figsize=(10.0, 10.0))
+        ax_pds = fig_pds.add_subplot(111)
+        ax_pds.plot(Us, GO2, "r-", label="GO2")
+        ax_pds.plot(Us, Gs_OOH_Ox, "b-", label="GOOH-GOx")
+        ax_pds.plot(Us, Eads_OH_fxn_U, "m-", label="GOH")
+        ax_pds.plot(Us, Gs_Ox_OH, "g", label="GOx-GOH")
+        ax_pds.set_xlabel("U SHE (V)")
+        ax_pds.set_ylabel("Elementary Reaction Free Energy (eV)")
+        ax_pds.legend(loc="best")
+        fig_pds.savefig("PDS_fxn_U.png")
 
         # Send the summary_dict to the child FW (?)
         return FWAction(
