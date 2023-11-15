@@ -42,6 +42,8 @@ class SurfaceCoverageML(object):
 
     def __init__(self, slab_ref, slab, adsorbate, is_metal, checkpoint_path):
 
+        breakpoint()
+
         self.checkpoint_path = checkpoint_path
         # Init Mxide
         if not is_metal:  # MXide
