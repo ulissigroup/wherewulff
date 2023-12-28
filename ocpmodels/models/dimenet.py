@@ -200,12 +200,12 @@ class DimeNetWrap(DimeNet, BaseModel):
             P += output_block(x, rbf, i, num_nodes=pos.size(0))
 
         energy = P.sum(dim=0) if batch is None else scatter(P, batch, dim=0)
-        return energy
+        return energy, P
 
     def forward(self, data):
         if self.regress_forces:
             data.pos.requires_grad_(True)
-        energy = self._forward(data)
+        energy, P = self._forward(data)
 
         if self.regress_forces:
             forces = -1 * (
@@ -218,7 +218,7 @@ class DimeNetWrap(DimeNet, BaseModel):
             )
             return energy, forces
         else:
-            return energy
+            return energy, P
 
     @property
     def num_params(self) -> int:

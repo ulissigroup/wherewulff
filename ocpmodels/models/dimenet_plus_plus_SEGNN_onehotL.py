@@ -39,7 +39,7 @@ from torch import nn
 from torch_geometric.nn.inits import glorot_orthogonal
 from torch_geometric.nn.models.dimenet import (
     BesselBasisLayer,
-    EmbeddingBlock,
+    # EmbeddingBlock,
     ResidualLayer,
     SphericalBasisLayer,
 )
@@ -51,15 +51,205 @@ from ocpmodels.common.registry import registry
 from ocpmodels.common.utils import conditional_grad
 from ocpmodels.models.base import BaseModel
 
+
 try:
     import sympy as sym
 except ImportError:
     sym = None
 
-
 #!mag
 from functools import reduce
 from .gemnet.layers.base_layers import Dense
+from .gemnet.layers.base_layers import ResidualLayer as OCPResidualLayer
+from .gemnet.layers.radial_basis import RadialBasis
+from .gemnet_oc.layers.radial_basis import GaussianBasis
+
+
+from torch.nn import Embedding, Linear
+from typing import Callable, Dict, Optional, Tuple, Union
+from torch import Tensor
+
+# from ocpmodels.datasets.embeddings import SPIN_ONEHOT_EMBEDDINGS
+from math import sqrt
+
+# TODO
+# 1.先不改变dimensionality.
+# 2. 测试onehot
+# 3. 测试onehot + linear
+# 4. 测试learnable embedding.
+def encode_to_one_hot(values):
+    # Map the values to indices: -1 -> 0, 0 -> 1, 1 -> 2
+    indices = values + 1
+
+    # Number of classes for one-hot encoding (3 classes: -1, 0, 1)
+    num_classes = 3
+
+    # Perform one-hot encoding
+    one_hot = torch.nn.functional.one_hot(indices, num_classes=num_classes)
+
+    return one_hot
+
+
+# #1. one-hot without linear layer.
+# class EmbeddingBlock(torch.nn.Module):
+#     def __init__(self, num_radial: int, hidden_channels: int, act: Callable):
+#         super().__init__()
+#         self.act = act
+
+#         #wx, this should be learnable
+#         self.emb = Embedding(95, hidden_channels)
+
+#         # #wx, onehot should not be learnable
+#         # self.spin_emb = torch.zeros(3, len(SPIN_ONEHOT_EMBEDDINGS[1]))
+#         # for i in range(100):
+#         #     self.embedding[i] = torch.tensor(embeddings[i + 1])
+
+#         self.lin_rbf = Linear(num_radial, hidden_channels)
+#         #!wx, origin: 3*hidden_channels
+#         #!wx, need more layers?
+#         self.lin = Linear(3 * hidden_channels+3*2, hidden_channels)
+
+#         self.reset_parameters()
+
+#     def reset_parameters(self):
+#         self.emb.weight.data.uniform_(-sqrt(3), sqrt(3))
+#         self.lin_rbf.reset_parameters()
+#         self.lin.reset_parameters()
+
+#     def forward(self, x: Tensor, s: Tensor, rbf: Tensor, i: Tensor, j: Tensor) -> Tensor:
+#         #import pdb
+#         #pdb.set_trace()
+#         x = self.emb(x) #samples*hidden_channels, samples in a batch
+
+#         #assume magmom value located at z
+#         self.spin_emb = encode_to_one_hot(s)
+
+#         rbf = self.act(self.lin_rbf(rbf))
+#         #return self.act(self.lin(torch.cat([x[i], x[j], rbf], dim=-1)))
+#         return self.act(
+#                 self.lin(
+#                     torch.cat([
+#                         torch.cat([x[i], self.spin_emb[i]], dim=-1),
+#                         torch.cat([x[j], self.spin_emb[j]], dim=-1),
+#                         rbf],
+#                         dim=-1)))
+
+
+# 2. one-hot with linear layers.
+# HP, spin_hidden_channels
+class EmbeddingBlock(torch.nn.Module):
+    def __init__(
+        self,
+        num_radial: int,
+        hidden_channels: int,
+        act: Callable,
+        spin_hidden_channels=3,
+    ):
+        super().__init__()
+        self.act = act
+
+        # wx, this should be learnable
+        self.emb = Embedding(95, hidden_channels)
+
+        # #wx, onehot should not be learnable
+        # self.spin_emb = torch.zeros(3, len(SPIN_ONEHOT_EMBEDDINGS[1]))
+        # for i in range(100):
+        #     self.embedding[i] = torch.tensor(embeddings[i + 1])
+        self.spin_fc = Linear(3, spin_hidden_channels)
+
+        self.lin_rbf = Linear(num_radial, hidden_channels)
+        #!wx, origin: 3*hidden_channels
+        #!wx, need more layers?
+        self.lin = Linear(
+            3 * hidden_channels + spin_hidden_channels * 2, hidden_channels
+        )
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.emb.weight.data.uniform_(-sqrt(3), sqrt(3))
+        self.lin_rbf.reset_parameters()
+        self.lin.reset_parameters()
+        self.spin_fc.reset_parameters()
+
+    def forward(
+        self, x: Tensor, s: Tensor, rbf: Tensor, i: Tensor, j: Tensor
+    ) -> Tensor:
+        # import pdb
+        # pdb.set_trace()
+        x = self.emb(x)  # samples*hidden_channels, samples in a batch
+
+        # assume magmom value located at z
+        # linear + spin
+        # import pdb
+        # pdb.set_trace()
+        self.spin_emb = encode_to_one_hot(s)
+        self.spin_emb = self.spin_emb.to(dtype=self.spin_fc.weight.dtype)
+        spin_feat = self.spin_fc(self.spin_emb)
+
+        rbf = self.act(self.lin_rbf(rbf))
+        # return self.act(self.lin(torch.cat([x[i], x[j], rbf], dim=-1)))
+        return self.act(
+            self.lin(
+                torch.cat(
+                    [
+                        torch.cat([x[i], spin_feat[i]], dim=-1),
+                        torch.cat([x[j], spin_feat[j]], dim=-1),
+                        rbf,
+                    ],
+                    dim=-1,
+                )
+            )
+        )
+
+
+# 3. embedding
+# #HP, spin_hidden_channels
+# class EmbeddingBlock(torch.nn.Module):
+#     def __init__(self, num_radial: int, hidden_channels: int, act: Callable, spin_hidden_channels=3):
+#         super().__init__()
+#         self.act = act
+
+#         #wx, this should be learnable
+#         self.emb = Embedding(95, hidden_channels)
+
+
+#         self.spin_emb = Embedding(3, spin_hidden_channels)
+
+
+#         self.lin_rbf = Linear(num_radial, hidden_channels)
+#         #!wx, origin: 3*hidden_channels
+#         #!wx, need more layers?
+#         self.lin = Linear(3 * hidden_channels + spin_hidden_channels*2, hidden_channels)
+
+#         self.reset_parameters()
+
+#     def reset_parameters(self):
+#         self.emb.weight.data.uniform_(-sqrt(3), sqrt(3))
+#         self.lin_rbf.reset_parameters()
+#         self.lin.reset_parameters()
+#         #wx
+#         self.spin_emb.weight.data.uniform_(-sqrt(3), sqrt(3))
+
+#     def forward(self, x: Tensor, s: Tensor, rbf: Tensor, i: Tensor, j: Tensor) -> Tensor:
+#         #import pdb
+#         #pdb.set_trace()
+#         x = self.emb(x) #samples*hidden_channels, samples in a batch
+
+#         #assume magmom value located at z
+#         #linear + spin
+#         s_indices = s + 1
+#         spin_feat =  self.spin_emb(s_indices)
+
+#         rbf = self.act(self.lin_rbf(rbf))
+#         #return self.act(self.lin(torch.cat([x[i], x[j], rbf], dim=-1)))
+#         return self.act(
+#                 self.lin(
+#                     torch.cat([
+#                         torch.cat([x[i], spin_feat[i]], dim=-1),
+#                         torch.cat([x[j], spin_feat[j]], dim=-1),
+#                         rbf],
+#                         dim=-1)))
 
 
 class InteractionPPBlock(torch.nn.Module):
@@ -137,6 +327,7 @@ class InteractionPPBlock(torch.nn.Module):
         x_ji = self.act(self.lin_ji(x))
         x_kj = self.act(self.lin_kj(x))
 
+        #!mag rbf is eji. according to dimnet++
         # Transformation via Bessel basis.
         rbf = self.lin_rbf1(rbf)
         rbf = self.lin_rbf2(rbf)
@@ -204,6 +395,116 @@ class OutputPPBlock(torch.nn.Module):
         return self.lin(x)
 
 
+#!mag introducing spin-distance edge.
+class SpinDistanceEdge(torch.nn.Module):
+    def __init__(
+        self,
+        num_radial: int,
+        # hidden_channels: int,
+        # out_emb_channels: int,
+        # out_channels: int,
+        # num_layers: int,
+        num_gaussians: int,
+        act: str = "silu",
+        gaussian_trainable=False,
+        cutoff: float = 5.0,
+        envelope_exponent: int = 5,
+        num_layers_rbf=2,
+        num_layers_gaussian=2,
+    ) -> None:
+        act = activation_resolver(act)
+        super(SpinDistanceEdge, self).__init__()
+        self.act = act
+
+        #!mag, set num_rbf = num_radial
+        num_rbf = num_radial
+
+        self._rbf = BesselBasisLayer(num_rbf, cutoff, envelope_exponent)
+
+        #!mag gaussian
+        self.gaussian = GaussianBasis(
+            start=0.0,
+            stop=5.0,
+            num_gaussians=num_gaussians,
+            trainable=gaussian_trainable,
+        )
+
+        self.lin_spin = nn.Linear(
+            num_rbf + num_gaussians, num_radial, bias=True
+        )
+
+        self.layers_rbf = torch.nn.ModuleList(
+            [ResidualLayer(num_rbf, act) for _ in range(num_layers_rbf)]
+        )
+
+        self.layers_gaussian = torch.nn.ModuleList(
+            [
+                ResidualLayer(num_gaussians, act)
+                for _ in range(num_layers_gaussian)
+            ]
+        )
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+
+        self._rbf.reset_parameters()
+
+        #!guassian didn't implement reset_parameters()
+        # self.gaussian.reset_parameters()
+
+        #!mag
+        glorot_orthogonal(self.lin_spin.weight, scale=2.0)
+
+        self.lin_spin.bias.data.fill_(0)
+
+        for res_layer in self.layers_rbf:
+            res_layer.reset_parameters()
+
+        for res_layer in self.layers_gaussian:
+            res_layer.reset_parameters()
+
+    def forward(self, dist, magft_cat, i, j):
+        """_summary_
+
+        Args:
+            dist (_type_): _description_
+            magft_cat (_type_): concatenated magmom features.
+            i (_type_): indices
+            j (_type_): indices
+
+        Returns:
+            _type_: _description_
+        """
+
+        # import pdb
+        # pdb.set_trace()
+
+        _rbf = self._rbf(dist)
+
+        #! compute (S_i ./dot S_j) and remove 1st dimension
+        _gaussian = self.gaussian(
+            (magft_cat[i] * magft_cat[j]).sum(dim=1, keepdim=True)
+        )
+
+        #!mag, mlps(_rbf) and mlps(gaussian)
+        for layer in self.layers_rbf:
+            _rbf = layer(_rbf)
+
+        for layer in self.layers_gaussian:
+            _gaussian = layer(_gaussian)
+
+        _gaussian = _gaussian.squeeze(1)
+
+        #!stack |rbf, gaussian|
+        rbf = torch.cat(
+            (_rbf, _gaussian), dim=1
+        )  # [n_edges, n_rbf(rbf+gaussian)]
+
+        #!maybe, lin_spin:  input dim: num_rbf+num_gaussians, output dim: num_rbf
+        return self.act(self.lin_spin(rbf))
+
+
 class DimeNetPlusPlus(torch.nn.Module):
     r"""DimeNet++ implementation based on https://github.com/klicperajo/dimenet.
 
@@ -248,6 +549,9 @@ class DimeNetPlusPlus(torch.nn.Module):
         num_after_skip: int = 2,
         num_output_layers: int = 3,
         act: str = "silu",
+        #!mag
+        num_gaussians: int = 50,
+        spin_hidden_channels: int = 3,
     ) -> None:
         act = activation_resolver(act)
 
@@ -260,14 +564,41 @@ class DimeNetPlusPlus(torch.nn.Module):
 
         self.num_blocks = num_blocks
 
-        self.rbf = BesselBasisLayer(num_radial, cutoff, envelope_exponent)
+        #!mag
+        # self.rbf = BesselBasisLayer(num_radial, cutoff, envelope_exponent)
+        self.rbf = SpinDistanceEdge(
+            num_radial=num_radial,
+            num_gaussians=num_gaussians,  #!mag use 50 as default
+            act=act,
+            gaussian_trainable=False,
+            cutoff=cutoff,
+            envelope_exponent=envelope_exponent,
+            num_layers_rbf=2,
+            num_layers_gaussian=2,
+        )
+
         self.sbf = SphericalBasisLayer(
             num_spherical, num_radial, cutoff, envelope_exponent
         )
 
-        self.emb = EmbeddingBlock(num_radial, hidden_channels, act)
+        self.emb = EmbeddingBlock(
+            num_radial, hidden_channels, act, spin_hidden_channels
+        )
 
         self.output_blocks = torch.nn.ModuleList(
+            [
+                OutputPPBlock(
+                    num_radial,
+                    hidden_channels,
+                    out_emb_channels,
+                    out_channels,
+                    num_output_layers,
+                    act,
+                )
+                for _ in range(num_blocks + 1)
+            ]
+        )
+        self.output_blocks_mag = torch.nn.ModuleList(
             [
                 OutputPPBlock(
                     num_radial,
@@ -298,18 +629,19 @@ class DimeNetPlusPlus(torch.nn.Module):
         )
 
         #!mag, for regressing magmom
-        self.out_block_mag = OutputPPBlock(
-            num_radial,
-            hidden_channels,
-            out_emb_channels,
-            out_channels,
-            num_output_layers,
-            act,
-        )
+        # self.out_block_mag = OutputPPBlock(
+        #    num_radial,
+        #    hidden_channels,
+        #    out_emb_channels,
+        #    out_channels,
+        #    num_output_layers,
+        #    act,
+        # )
 
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
+
         self.rbf.reset_parameters()
         self.emb.reset_parameters()
         for out in self.output_blocks:
@@ -318,7 +650,9 @@ class DimeNetPlusPlus(torch.nn.Module):
             interaction.reset_parameters()
 
         #!mag
-        self.out_block_mag.reset_parameters()
+        for out_mag in self.output_blocks_mag:
+            out_mag.reset_parameters()
+        # self.out_block_mag.reset_parameters()
 
     def triplets(self, edge_index, cell_offsets, num_nodes: int):
         row, col = edge_index  # j->i
@@ -354,7 +688,7 @@ class DimeNetPlusPlus(torch.nn.Module):
         raise NotImplementedError
 
 
-@registry.register_model("dimenetplusplus")
+@registry.register_model("dimenetplusplus_SEGNN_onehotL")
 class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
     def __init__(
         self,
@@ -376,6 +710,9 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
         num_before_skip: int = 1,
         num_after_skip: int = 2,
         num_output_layers: int = 3,
+        #!mag
+        num_gaussians: int = 50,
+        spin_hidden_channels: int = 3,
     ) -> None:
         self.num_targets = num_targets
         self.regress_forces = regress_forces
@@ -398,6 +735,7 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
             num_before_skip=num_before_skip,
             num_after_skip=num_after_skip,
             num_output_layers=num_output_layers,
+            spin_hidden_channels=spin_hidden_channels,
         )
 
     @conditional_grad(torch.enable_grad())
@@ -442,36 +780,57 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
         b = torch.cross(pos_ji, pos_kj).norm(dim=-1)
         angle = torch.atan2(b, a)
 
-        rbf = self.rbf(dist)
+        #!mag
+        magft_cat = data.magft
+
+        magft_cat = magft_cat.to(dist.device)
+
+        rbf = self.rbf(dist, magft_cat, i, j)
+
         sbf = self.sbf(dist, angle, idx_kj)
 
+        # data.magft[:,-1].long()
         # Embedding block.
-        x = self.emb(data.atomic_numbers.long(), rbf, i, j)
+        x = self.emb(
+            data.atomic_numbers.long(), data.magft[:, -1].long(), rbf, i, j
+        )
+        # data.atomic_numbers.log()是很长的，需要找到对应的很长的spin
+
         P = self.output_blocks[0](x, rbf, i, num_nodes=pos.size(0))
+        M = self.output_blocks_mag[0](x, rbf, i, num_nodes=pos.size(0))
+        # Think we should just have another variable that shares the energy weights #YURI
+        # _M = self.out_block_mag(x, rbf, i, num_nodes=pos.size(0))
 
         # Interaction blocks.
         _iter = 0
-
-        for interaction_block, output_block in zip(
-            self.interaction_blocks, self.output_blocks[1:]
+        for interaction_block, output_block, output_block_mag in zip(
+            self.interaction_blocks,
+            self.output_blocks[1:],
+            self.output_blocks_mag[1:],
         ):
+            #!mag, x referes to m_ji in certian iterations
             x = interaction_block(x, rbf, sbf, idx_kj, idx_ji)
-            P += output_block(x, rbf, i, num_nodes=pos.size(0))
 
-            ##!mag
-            # _iter+=1
+            #!mag, output_block takes m_ji and rbf return t_i, P is t_i
+            P += output_block(x, rbf, i, num_nodes=pos.size(0))
+            M += output_block_mag(x, rbf, i, num_nodes=pos.size(0))
+            # _M += output_block(x, rbf, i, num_nodes=pos.size(0))
+
+            #!mag, output magmom at last interaction block
+            # _iter += 1
             # if _iter == self.num_blocks - 1:
             #    _M = self.out_block_mag(x, rbf, i, num_nodes=pos.size(0))
 
+        #!mag, output energy for each system but magmom for each atom
         energy = P.sum(dim=0) if batch is None else scatter(P, batch, dim=0)
 
-        #!mag
-        return energy, P, x
+        return energy, M, x
 
     def forward(self, data):
         if self.regress_forces:
             data.pos.requires_grad_(True)
-        energy, P, x = self._forward(data)
+
+        energy, M, x = self._forward(data)
 
         if self.regress_forces:
             forces = -1 * (
@@ -482,10 +841,9 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
                     create_graph=True,
                 )[0]
             )
-            #!mag
-            return energy, P, forces
+            return energy, M, x
         else:
-            return energy, P, x
+            return energy, M, x
 
     @property
     def num_params(self) -> int:

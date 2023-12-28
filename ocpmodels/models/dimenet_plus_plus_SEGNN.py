@@ -52,7 +52,6 @@ from ocpmodels.common.utils import conditional_grad
 from ocpmodels.models.base import BaseModel
 
 
-
 try:
     import sympy as sym
 except ImportError:
@@ -214,44 +213,41 @@ class SpinDistanceEdge(torch.nn.Module):
     def __init__(
         self,
         num_radial: int,
-        #hidden_channels: int,
-        #out_emb_channels: int,
-        #out_channels: int,
-        #num_layers: int,
-        num_gaussians: int, 
+        # hidden_channels: int,
+        # out_emb_channels: int,
+        # out_channels: int,
+        # num_layers: int,
+        num_gaussians: int,
         act: str = "silu",
-        gaussian_trainable = False, 
-
+        gaussian_trainable=False,
         cutoff: float = 5.0,
         envelope_exponent: int = 5,
-        num_layers_rbf = 2,
-        num_layers_gaussian = 2,
-
+        num_layers_rbf=2,
+        num_layers_gaussian=2,
     ) -> None:
         act = activation_resolver(act)
         super(SpinDistanceEdge, self).__init__()
         self.act = act
-        
+
         #!mag, set num_rbf = num_radial
         num_rbf = num_radial
 
         self._rbf = BesselBasisLayer(num_rbf, cutoff, envelope_exponent)
 
-        #!mag gaussian 
+        #!mag gaussian
         self.gaussian = GaussianBasis(
-                        start = 0.0,
-                        stop = 5.0,
-                        num_gaussians = num_gaussians,
-                        trainable = gaussian_trainable,
-                        )
+            start=0.0,
+            stop=5.0,
+            num_gaussians=num_gaussians,
+            trainable=gaussian_trainable,
+        )
 
-        self.lin_spin = nn.Linear(num_rbf + num_gaussians, num_radial, bias=True)
+        self.lin_spin = nn.Linear(
+            num_rbf + num_gaussians, num_radial, bias=True
+        )
 
         self.layers_rbf = torch.nn.ModuleList(
-            [
-                ResidualLayer(num_rbf, act)
-                for _ in range(num_layers_rbf)
-            ]
+            [ResidualLayer(num_rbf, act) for _ in range(num_layers_rbf)]
         )
 
         self.layers_gaussian = torch.nn.ModuleList(
@@ -266,7 +262,7 @@ class SpinDistanceEdge(torch.nn.Module):
     def reset_parameters(self):
 
         self._rbf.reset_parameters()
-        
+
         #!guassian didn't implement reset_parameters()
         # self.gaussian.reset_parameters()
 
@@ -276,10 +272,10 @@ class SpinDistanceEdge(torch.nn.Module):
         self.lin_spin.bias.data.fill_(0)
 
         for res_layer in self.layers_rbf:
-            res_layer.reset_parameters()    
+            res_layer.reset_parameters()
 
         for res_layer in self.layers_gaussian:
-            res_layer.reset_parameters()    
+            res_layer.reset_parameters()
 
     def forward(self, dist, magft_cat, i, j):
         """_summary_
@@ -300,7 +296,9 @@ class SpinDistanceEdge(torch.nn.Module):
         _rbf = self._rbf(dist)
 
         #! compute (S_i ./dot S_j) and remove 1st dimension
-        _gaussian = self.gaussian((magft_cat[i]*magft_cat[j]).sum(dim=1, keepdim=True))
+        _gaussian = self.gaussian(
+            (magft_cat[i] * magft_cat[j]).sum(dim=1, keepdim=True)
+        )
 
         #!mag, mlps(_rbf) and mlps(gaussian)
         for layer in self.layers_rbf:
@@ -312,10 +310,13 @@ class SpinDistanceEdge(torch.nn.Module):
         _gaussian = _gaussian.squeeze(1)
 
         #!stack |rbf, gaussian|
-        rbf = torch.cat((_rbf, _gaussian),dim=1)  #[n_edges, n_rbf(rbf+gaussian)]
+        rbf = torch.cat(
+            (_rbf, _gaussian), dim=1
+        )  # [n_edges, n_rbf(rbf+gaussian)]
 
         #!maybe, lin_spin:  input dim: num_rbf+num_gaussians, output dim: num_rbf
         return self.act(self.lin_spin(rbf))
+
 
 class DimeNetPlusPlus(torch.nn.Module):
     r"""DimeNet++ implementation based on https://github.com/klicperajo/dimenet.
@@ -361,9 +362,8 @@ class DimeNetPlusPlus(torch.nn.Module):
         num_after_skip: int = 2,
         num_output_layers: int = 3,
         act: str = "silu",
-
         #!mag
-        num_gaussians: int=50,
+        num_gaussians: int = 50,
     ) -> None:
         act = activation_resolver(act)
 
@@ -377,16 +377,17 @@ class DimeNetPlusPlus(torch.nn.Module):
         self.num_blocks = num_blocks
 
         #!mag
-        #self.rbf = BesselBasisLayer(num_radial, cutoff, envelope_exponent)
+        # self.rbf = BesselBasisLayer(num_radial, cutoff, envelope_exponent)
         self.rbf = SpinDistanceEdge(
-                        num_radial = num_radial,
-                        num_gaussians = num_gaussians,  #!mag use 50 as default
-                        act = act,
-                        gaussian_trainable = False, 
-                        cutoff  = cutoff,
-                        envelope_exponent = envelope_exponent,
-                        num_layers_rbf = 2,
-                        num_layers_gaussian = 2)
+            num_radial=num_radial,
+            num_gaussians=num_gaussians,  #!mag use 50 as default
+            act=act,
+            gaussian_trainable=False,
+            cutoff=cutoff,
+            envelope_exponent=envelope_exponent,
+            num_layers_rbf=2,
+            num_layers_gaussian=2,
+        )
 
         self.sbf = SphericalBasisLayer(
             num_spherical, num_radial, cutoff, envelope_exponent
@@ -425,14 +426,14 @@ class DimeNetPlusPlus(torch.nn.Module):
         )
 
         #!mag, for regressing magmom
-        self.out_block_mag =  OutputPPBlock(
-                    num_radial,
-                    hidden_channels,
-                    out_emb_channels,
-                    out_channels,
-                    num_output_layers,
-                    act,
-                )
+        self.out_block_mag = OutputPPBlock(
+            num_radial,
+            hidden_channels,
+            out_emb_channels,
+            out_channels,
+            num_output_layers,
+            act,
+        )
 
         self.reset_parameters()
 
@@ -447,7 +448,6 @@ class DimeNetPlusPlus(torch.nn.Module):
 
         #!mag
         self.out_block_mag.reset_parameters()
-    
 
     def triplets(self, edge_index, cell_offsets, num_nodes: int):
         row, col = edge_index  # j->i
@@ -505,9 +505,8 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
         num_before_skip: int = 1,
         num_after_skip: int = 2,
         num_output_layers: int = 3,
-
-        #!mag 
-        num_gaussians: int=50,
+        #!mag
+        num_gaussians: int = 50,
     ) -> None:
         self.num_targets = num_targets
         self.regress_forces = regress_forces
@@ -586,33 +585,36 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
         # Embedding block.
         x = self.emb(data.atomic_numbers.long(), rbf, i, j)
         P = self.output_blocks[0](x, rbf, i, num_nodes=pos.size(0))
+        # Think we should just have another variable that shares the energy weights #YURI
+        # _M = self.out_block_mag(x, rbf, i, num_nodes=pos.size(0))
 
         # Interaction blocks.
         _iter = 0
         for interaction_block, output_block in zip(
             self.interaction_blocks, self.output_blocks[1:]
-        ):  
+        ):
             #!mag, x referes to m_ji in certian iterations
             x = interaction_block(x, rbf, sbf, idx_kj, idx_ji)
 
             #!mag, output_block takes m_ji and rbf return t_i, P is t_i
             P += output_block(x, rbf, i, num_nodes=pos.size(0))
+            # _M += output_block(x, rbf, i, num_nodes=pos.size(0))
 
             #!mag, output magmom at last interaction block
-            _iter+=1
-            if _iter == self.num_blocks - 1:
-                _M = self.out_block_mag(x, rbf, i, num_nodes=pos.size(0))
+            # _iter += 1
+            # if _iter == self.num_blocks - 1:
+            #    _M = self.out_block_mag(x, rbf, i, num_nodes=pos.size(0))
 
         #!mag, output energy for each system but magmom for each atom
         energy = P.sum(dim=0) if batch is None else scatter(P, batch, dim=0)
 
-        return energy, _M
+        return energy, P, x
 
     def forward(self, data):
         if self.regress_forces:
             data.pos.requires_grad_(True)
 
-        energy, _M = self._forward(data)
+        energy, P, x = self._forward(data)
 
         if self.regress_forces:
             forces = -1 * (
@@ -623,9 +625,9 @@ class DimeNetPlusPlusWrap(DimeNetPlusPlus, BaseModel):
                     create_graph=True,
                 )[0]
             )
-            return energy, _M, forces
+            return energy, P, forces
         else:
-            return energy, _M
+            return energy, P, x
 
     @property
     def num_params(self) -> int:
