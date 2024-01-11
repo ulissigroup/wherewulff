@@ -62,9 +62,9 @@ class ContinueOptimizeFW(FiretaskBase):
             "NSW": 0,
             "LVHAR": True,
             # "LHFCALC": True,
-            "LSOL": True,
-            "LAMBDA_D_K": 3.2,  # Check with Jay
-            "EB_K": 80.0,  # Check with Jay
+            #"LSOL": True,
+            #"LAMBDA_D_K": 3.2,  # Check with Jay
+            #"EB_K": 80.0,  # Check with Jay
             "ISMEAR": 2,  # For metals
         }
         incar_dict["structure"] = contcar
