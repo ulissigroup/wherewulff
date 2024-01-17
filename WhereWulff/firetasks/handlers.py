@@ -62,9 +62,10 @@ class ContinueOptimizeFW(FiretaskBase):
             "NSW": 0,
             "LVHAR": True,
             # "LHFCALC": True,
-            #"LSOL": True,
-            #"LAMBDA_D_K": 3.2,  # Check with Jay
-            #"EB_K": 80.0,  # Check with Jay
+            "LSOL": True,
+            "LAMBDA_D_K": 3.2,  # Check with Jay
+            "EB_K": 80.0,  # Check with Jay
+            "TAU": 0,  # cavitation energy
             "ISMEAR": 2,  # For metals
         }
         incar_dict["structure"] = contcar
@@ -274,12 +275,12 @@ class ContinueOptimizeFW(FiretaskBase):
                     update_spec={"oriented_uuid": fw_spec["uuid"]}, propagate=True
                 )
 
-            elif not is_bulk and not fw_spec.get("is_adslab"):
+            elif not is_bulk and not fw_spec.get("is_adslab"):  # slab
                 self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
                 self.fw_spec = fw_spec
-                #wf = self.run_EDL()
+                wf = self.run_EDL()
                 return FWAction(
-                    #detours=[wf],
+                    detours=[wf],
                     update_spec={
                         "oriented_uuid": fw_spec["oriented_uuid"]
                         if "oriented_uuid" in fw_spec
@@ -287,12 +288,12 @@ class ContinueOptimizeFW(FiretaskBase):
                         "slab_uuid": fw_spec["uuid"],
                     },
                 )
-            elif fw_spec["is_adslab"]:
+            elif fw_spec["is_adslab"]:  # adslab
                 self.task_doc = db["tasks"].find_one({"uuid": fw_spec["uuid"]})
                 self.fw_spec = fw_spec
-                # wf = self.run_EDL()
+                wf = self.run_EDL()
                 return FWAction(
-                    #    detours=[wf],
+                    detours=[wf],
                     update_spec={
                         fw_spec["name"]: {
                             "oriented_uuid": fw_spec["oriented_uuid"],
