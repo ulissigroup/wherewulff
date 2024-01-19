@@ -28,8 +28,22 @@ class EDLAnalysis(FiretaskBase):
         escfs = []
         fermi_levels = []
         for uuid in uuids:
-            task_doc = task_collection.find_one({"uuid": uuid})
+            breakpoint()
+            # Need to find the latest task_id based on uuid and fw_id
+            try:
+                launch_id = mmdb.db["fireworks"].find_one(
+                    {"spec._tasks.3.additional_fields.uuid": uuid}
+                )["launches"][0]
+            except IndexError:
+                launch_id = mmdb.db["fireworks"].find_one(
+                    {"spec._tasks.3.additional_fields.uuid": uuid}
+                )["archived_launches"][-1]
+            task_id = mmdb.db["launches"].find_one({"launch_id": launch_id})["action"][
+                "stored_data"
+            ]["task_id"]
+            task_doc = task_collection.find_one({"task_id": task_id})
             nelect = task_doc["calcs_reversed"][0]["output"]["outcar"]["nelect"]
+            breakpoint()
             nelects.append(nelect)
             efermi = task_doc["calcs_reversed"][0]["output"]["efermi"]
             fermi_levels.append(efermi)
@@ -51,28 +65,40 @@ class EDLAnalysis(FiretaskBase):
             avg_pots.append(avg_pot)
         # FIXME: Need to add the fermi-shift for the charged slabs to reference to vacuum level in uncharged slab
         ref_fermi = np.median(fermi_levels)
+        fermi_shifts = []
+        breakpoint()
         for i, uuid in enumerate(uuids):
-            fermi_shift = fermi_levels[i] - ref_fermi
-            workfunction = avg_pots[i] - (fermi_levels[i] + fermi_shift)
+            fermi_shift = -avg_pots[i]
+            fermi_shifts.append(fermi_shift)
+            shifted_fermi = fermi_levels[i] + fermi_shift
+            workfunction = 0 - shifted_fermi
             USHE = -4.6 + workfunction
             USHEs.append(USHE)
             workfunctions.append(workfunction)
         charges = np.array(nelects) - np.median(nelects)
-        corrections = charges * np.array(USHEs) + charges * np.array(avg_pots)
+        corrections = (
+            # charges * np.array(USHEs) +
+            # charges * np.array(avg_pots)
+            # + np.array(fermi_shifts) * charges
+            (-np.array(avg_pots) * charges)
+            + np.array(workfunctions) * charges
+        )
         free_energies = np.array(escfs) + corrections
         # Fit the free energies and the USHEs
         def func(USHE, C, U0, E0):
             Ghat = -0.5 * C * (USHE - U0) ** 2 + E0
             return Ghat
 
-        Us = np.arange(min(USHEs), max(USHEs), 0.1)
+        breakpoint()
+        Us = np.arange(min(USHEs), max(USHEs), 0.01)
         fit_params = curve_fit(
             func,
             xdata=np.array(USHEs),
             ydata=free_energies,
             maxfev=10000,
-            p0=[0.2, 0.2, -183],
+            # p0=[0.5, 0.2, -500],
         )[0]
+        breakpoint()
         print(fit_params)
         Ghats = func(Us, *fit_params)
         fig = plt.figure(figsize=(10.0, 10.0))
@@ -94,19 +120,19 @@ class EDLAnalysis(FiretaskBase):
         )
         # We need to find the free energy at the reaction conditions and then mutate
         # the free energy in the task doc of that interface
-        ionic_steps = mmdb.db["tasks"].find_one({"uuid": replace_uuid})[
-            "calcs_reversed"
-        ][0]["output"]["ionic_steps"]
-        initial_energy = ionic_steps[-1]["e_0_energy"]
-        final_energy = func([0.17], *fit_params)
-        print(
-            f"Comparing doc with uuid: {replace_uuid} from {initial_energy} eV to {final_energy} eV"
-        )
+        # ionic_steps = mmdb.db["tasks"].find_one({"uuid": replace_uuid})[
+        #    "calcs_reversed"
+        # ][0]["output"]["ionic_steps"]
+        # initial_energy = ionic_steps[-1]["e_0_energy"]
+        # final_energy = func([0.17], *fit_params)
+        # print(
+        #    f"Comparing doc with uuid: {replace_uuid} from {initial_energy} eV to {final_energy} eV"
+        # )
         fig.savefig("PZC_plot.png")
         return FWAction(
             stored_data={
-                "initial_energy": initial_energy,
-                "energy_at_RC": final_energy,
+                #        "initial_energy": initial_energy,
+                #        "energy_at_RC": final_energy,
                 "USHEs": USHEs,
                 "Ghats": free_energies,
                 "wfs": workfunctions,
