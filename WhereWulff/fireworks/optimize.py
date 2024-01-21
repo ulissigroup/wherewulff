@@ -415,8 +415,8 @@ def Bulk_FW(
         # Switch-off GzipDir for WAVECAR transferring
         fw.tasks[1].update({"gzip_output": False})
         # Switch-on WalltimeHandler in RunVaspCustodian
-        if wall_time is not None:
-            fw.tasks[1].update({"wall_time": 43200})
+        #if wall_time is not None:
+        #    fw.tasks[1].update({"wall_time": 43200})
 
     # Append Continue-optimizeFW for wall-time handling and use for uuid message
     # passing
@@ -515,8 +515,8 @@ def Slab_FW(
         # Switch-off GzipDir for WAVECAR transferring
         fw.tasks[1].update({"gzip_output": False})
         # Switch-on WalltimeHandler in RunVaspCustodian
-        if wall_time is not None:
-            fw.tasks[1].update({"wall_time": wall_time})
+        #if wall_time is not None:
+        #    fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
@@ -630,8 +630,8 @@ def AdsSlab_FW(
         # fw.tasks[1] = RunVaspDirect(vasp_cmd=vasp_cmd)
         fw.tasks[1].update({"gzip_output": False})
         # Switch-on WalltimeHandler in RunVaspCustodian
-        if wall_time is not None:
-            fw.tasks[1].update({"wall_time": wall_time})
+        #if wall_time is not None:
+        #    fw.tasks[1].update({"wall_time": wall_time})
 
     # Append Continue-optimizeFW for wall-time handling
     fw.tasks.append(
