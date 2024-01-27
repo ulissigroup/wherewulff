@@ -130,6 +130,7 @@ class ML_int_relax(FiretaskBase):
         orig_structure.remove_oxidation_states()
         # Insert the results into the task collection per the atomate schema and using the uuid
         task_doc = {
+            "task_id": uuid,
             "uuid": uuid,
             "calcs_reversed": [
                 {
