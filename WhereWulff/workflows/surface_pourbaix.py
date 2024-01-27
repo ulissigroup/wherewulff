@@ -8,7 +8,6 @@ from ase.constraints import FixAtoms
 from atomate.vasp.config import DB_FILE, VASP_CMD
 from fireworks import Workflow
 from ocpmodels.common.utils import setup_imports
-from ocpmodels.trainers import ForcesTrainer
 from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
