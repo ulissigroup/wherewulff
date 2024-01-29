@@ -522,7 +522,7 @@ class OER_SingleSite(object):
                         scale_factor=0,
                         site_properties=slab_ads.site_properties,
                     )
-                    oh_int_stab[f"OH_{site}_{slab_index}"] = slab_ads.as_dict()
+                    oh_int_stab[f"OH_{site}_{slab_index.item()}"] = slab_ads.as_dict()
                 _, ooh_up = self._get_oer_intermediates(
                     self.adsorbates["OOH_up"], suffix="up"
                 )
@@ -549,7 +549,7 @@ class OER_SingleSite(object):
                         scale_factor=0,
                         site_properties=slab_ads.site_properties,
                     )
-                    ooh_int_stab[f"OOH_{site}_{slab_index}"] = slab_ads.as_dict()
+                    ooh_int_stab[f"OOH_{site}_{slab_index.item()}"] = slab_ads.as_dict()
             oer_intermediates = {
                 **ref_dict,
                 **oh_int_stab,
@@ -613,7 +613,7 @@ class OER_SingleSite(object):
                         site_properties=slab_ads.site_properties,
                     )
                     # ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
-                    ooh_int_stab[f"OOH_{site}_{slab_index}"] = slab_ads.as_dict()
+                    ooh_int_stab[f"OOH_{site}_{slab_index.item()}"] = slab_ads.as_dict()
             oer_intermediates = {
                 **ref_dict,
                 **ox_int_stab,
@@ -655,7 +655,7 @@ class OER_SingleSite(object):
                     site_properties=slab_ads.site_properties,
                 )
 
-                oh_intermediates = {f"OH_{slab_index}": slab_ads.as_dict()}
+                oh_intermediates = {f"OH_{slab_index.item()}": slab_ads.as_dict()}
                 ooh_intermediates = {**ooh_down, **ooh_up}
                 configs = [
                     Slab.from_dict(ooh_intermediates[k])
@@ -674,7 +674,7 @@ class OER_SingleSite(object):
                     scale_factor=0,
                     site_properties=slab_ads.site_properties,
                 )
-                ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
+                ooh_intermediates = {f"OOH_{slab_index.item()}": slab_ads.as_dict()}
                 oer_intermediates = {
                     **reference_dict,
                     **ox_intermediates,
