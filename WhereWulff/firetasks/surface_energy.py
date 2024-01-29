@@ -33,7 +33,8 @@ METAL_BULK_ENERGIES = {
     "Co": -6.258,
     "Sn": -3.9923,
     "Sb": 0,
-    "Nb":0
+    "Nb":0,
+    "Mn":0
 }  # ev/Atom from MP?
 
 
