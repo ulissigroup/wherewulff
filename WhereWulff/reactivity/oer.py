@@ -270,27 +270,40 @@ class OER_SingleSite(object):
                     ref_slab_copy.remove_sites(indices=reactive_site)
                     reactive_sites.append(reactive_site)
                     ref_slabs.append(ref_slab_copy)
-                ref_slab, stable_index = find_most_stable_config(
-                    ref_slabs, self.checkpoint_path
-                )
-                ref_slab = Slab(
-                    ref_slab.lattice,
-                    ref_slab.species,
-                    ref_slab.frac_coords,
-                    miller_index=ref_slabs[0].miller_index,
-                    oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
-                    shift=0,
-                    scale_factor=0,
-                    site_properties=ref_slab.site_properties,
-                )
-                reactive_site = reactive_sites[stable_index]
-                reactive_site_oxygen = oxygens_on_target[stable_index]
+                # ref_slab, stable_index = find_most_stable_config(
+                #    ref_slabs, self.checkpoint_path
+                # )
+                ref_slabs = [
+                    Slab(
+                        ref_slab.lattice,
+                        ref_slab.species,
+                        ref_slab.frac_coords,
+                        miller_index=ref_slabs[0].miller_index,
+                        oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
+                        shift=0,
+                        scale_factor=0,
+                        site_properties=ref_slab.site_properties,
+                    )
+                    for ref_slab in ref_slabs
+                ]
+                # ref_slab = Slab(
+                #    ref_slab.lattice,
+                #    ref_slab.species,
+                #    ref_slab.frac_coords,
+                #    miller_index=ref_slabs[0].miller_index,
+                #    oriented_unit_cell=ref_slabs[0].oriented_unit_cell,
+                #    shift=0,
+                #    scale_factor=0,
+                #    site_properties=ref_slab.site_properties,
+                # )
+                # reactive_site = reactive_sites[stable_index]
+                # reactive_site_oxygen = oxygens_on_target[stable_index]
             else:
                 reactive_site_oxygen = np.random.choice(ads_indices_oxygen)
                 hyd_site = self._find_nearest_hydrogen(reactive_site_oxygen)
                 reactive_site = [reactive_site_oxygen, hyd_site]
                 ref_slab.remove_sites(indices=reactive_site)
-            return ref_slab, reactive_site_oxygen
+            return ref_slabs, oxygens_on_target
         else:  # clean termination?
             ref_slab = self.slab_clean.copy()
             # Orig magmoms for the adslabs
@@ -553,45 +566,67 @@ class OER_SingleSite(object):
             return oer_intermediates
 
         elif self.surface_coverage[0] == "oh":
-            ox_intermediates = self._get_oer_intermediates(
+            ref_dict, ox_intermediates = self._get_oer_intermediates(
                 self.adsorbates["Ox"], n_rotations=1
             )
-            ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
-            ooh_down = self._get_oer_intermediates(
+            _, ooh_up = self._get_oer_intermediates(
+                self.adsorbates["OOH_up"], suffix="up"
+            )
+            _, ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
-            if self.checkpoint_path:
-                ooh_intermediates = {**ooh_down, **ooh_up}
-                configs = [
-                    Slab.from_dict(ooh_intermediates[k])
-                    for k in ooh_intermediates.keys()
-                ]
-                slab_ads, slab_index = find_most_stable_config(
-                    configs, self.checkpoint_path
-                )
-                slab_ads = Slab(
-                    slab_ads.lattice,
-                    slab_ads.species,
-                    slab_ads.frac_coords,
-                    miller_index=configs[0].miller_index,
-                    oriented_unit_cell=configs[0].oriented_unit_cell,
-                    shift=0,
-                    scale_factor=0,
-                    site_properties=slab_ads.site_properties,
-                )
-                ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
-                oer_intermediates = {
-                    **reference_dict,
-                    **ox_intermediates,
-                    **ooh_intermediates,
-                }
-            else:
-                oer_intermediates = {
-                    **reference_dict,
-                    **ox_intermediates,
-                    **ooh_up,
-                    **ooh_down,
-                }
+            ox_int_stab = {}
+            ooh_int_stab = {}
+            for site in ox_intermediates:
+                if self.checkpoint_path:
+                    configs_ox = [Slab.from_dict(ox_intermediates[site]["O_0"])]
+                    slab_ads_ox, slab_index_o = find_most_stable_config(
+                        configs_ox, self.checkpoint_path
+                    )  # just so we can decorate with tags
+                    slab_ads_o = Slab(
+                        slab_ads_ox.lattice,
+                        slab_ads_ox.species,
+                        slab_ads_ox.frac_coords,
+                        miller_index=configs_ox[0].miller_index,
+                        oriented_unit_cell=configs_ox[0].oriented_unit_cell,
+                        shift=0,
+                        scale_factor=0,
+                        site_properties=slab_ads_ox.site_properties,
+                    )
+                    ox_int_stab[f"O_{site}_0"] = slab_ads_o.as_dict()
+                    ooh_intermediates = {**ooh_down[site], **ooh_up[site]}
+                    configs = [
+                        Slab.from_dict(ooh_intermediates[k])
+                        for k in ooh_intermediates.keys()
+                    ]
+                    slab_ads, slab_index = find_most_stable_config(
+                        configs, self.checkpoint_path
+                    )
+                    slab_ads = Slab(
+                        slab_ads.lattice,
+                        slab_ads.species,
+                        slab_ads.frac_coords,
+                        miller_index=configs[0].miller_index,
+                        oriented_unit_cell=configs[0].oriented_unit_cell,
+                        shift=0,
+                        scale_factor=0,
+                        site_properties=slab_ads.site_properties,
+                    )
+                    # ooh_intermediates = {f"OOH_{slab_index}": slab_ads.as_dict()}
+                    ooh_int_stab[f"OOH_{site}_{slab_index}"] = slab_ads.as_dict()
+            oer_intermediates = {
+                **ref_dict,
+                **ox_int_stab,
+                **ooh_int_stab,
+            }
+            # breakpoint()
+            # else:
+            #    oer_intermediates = {
+            #        **reference_dict,
+            #        **ox_intermediates,
+            #        **ooh_up,
+            #        **ooh_down,
+            #    }
         else:  # clean termination
             ox_intermediates = self._get_oer_intermediates(
                 self.adsorbates["Ox"], n_rotations=1
