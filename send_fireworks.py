@@ -11,7 +11,7 @@ from atomate.utils.utils import env_chk
 import os
 from ase.io import read
 from pymatgen.io.ase import AseAtomsAdaptor as AAA
-from ase.optimize import LBFGS
+from ase.optimize import BFGS, BFGS
 import numpy as np
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator
 import torch
@@ -120,7 +120,7 @@ class ML_int_relax(FiretaskBase):
         # Make sure the tags don't come out as object dtype
         atoms.arrays["tags"] = atoms.arrays["tags"].astype(int)
         orig_structure = AAA.get_structure(atoms).copy()
-        dyn = LBFGS(atoms, trajectory=f"data/{label}.traj")
+        dyn = BFGS(atoms, trajectory=f"data/{label}.traj")
         dyn.run(fmax=0.03, steps=100)
         relaxed_energy = atoms.get_potential_energy()
         # We then relax the atomic structure and update_spec with the relaxed energy for the analysis
