@@ -78,14 +78,14 @@ class OERSingleSiteFireTask(FiretaskBase):
         # ORR
         #        user_point[1] = 0.9
 
-        parent_dict = fw_spec[f"{reduced_formula}_{miller_index}_surface_pbx"]
+        parent_dict = fw_spec[f"{self['slab_orig'].composition.reduced_formula}_{miller_index}_surface_pbx"]
         surface_pbx_uuid = parent_dict["surface_pbx_uuid"]
 
         # Connect to DB
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # Get PBX collection from DB
-        pbx_collection = mmdb.db[f"{reduced_formula}-{miller_index}_surface_pbx"]
+        pbx_collection = mmdb.db[f"{self['slab_orig'].composition.reduced_formula}-{miller_index}_surface_pbx"] # To handle non-stoichiometry
         pbx_doc = pbx_collection.find_one({"surface_pbx_uuid": surface_pbx_uuid})
 
         # Decide most stable termination at given (V, pH)
@@ -96,7 +96,6 @@ class OERSingleSiteFireTask(FiretaskBase):
             user_point, clean_2_oh_list, oh_2_ox_list
         )
 
-        # breakpoint()
         # Retrieve the surface termination clean/OH/Ox geometries
         clean_surface = Slab.from_dict(pbx_doc["slab_clean"])
         stable_surface = Slab.from_dict(pbx_doc[f"slab_{surface_termination}"])
@@ -130,7 +129,7 @@ class OERSingleSiteFireTask(FiretaskBase):
         )
         oer_wfs = []
         # OER_WF # We need a workflow for each ref_slab
-        for site in oer_wna.ads_indices:
+        for site in oer_wna.reactive_idx:
             oer_intermediates = {
                 k: v for k, v in oer_intermediates_dict.items() if str(site) in k
             }  # Segment by site
