@@ -55,6 +55,11 @@ def find_most_stable_config(configs, checkpoint_path):
     predictions = calc.trainer.predict(batch, per_image=False, disable_tqdm=True)[
         "energy"
     ]
-    stable_index = predictions.sort().indices[0]
+    if len(predictions.shape) >= 2:
+        predictions = predictions.squeeze(1)
+        stable_index = predictions.sort().indices[0]
+    else:
+        stable_index = predictions.sort().indices[0]
+
     slab_ads = AAA.get_structure(adslab_atoms[stable_index])
     return slab_ads, stable_index
