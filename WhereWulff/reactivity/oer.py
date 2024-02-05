@@ -89,8 +89,8 @@ class OER_SingleSite(object):
 
         #    # Selected site
         #    self.selected_site = self.bulk_like_dict[self.reactive_idx]
-        else:
-            self.selected_sites = self.reactive_idx
+        else:  # clean coverage
+            self.selected_sites = [self.bulk_like_sites[self.reactive_idx[0]]]
 
         # np seed
         np.random.seed(self.random_state)
@@ -310,10 +310,11 @@ class OER_SingleSite(object):
             ref_slab.add_site_property(
                 "magmom", self.slab_orig.site_properties["magmom"]
             )
+            reactive_idx = np.random.choice(np.arange(len(self.bulk_like_sites)))
             reactive_site = self.bulk_like_sites[
                 np.random.choice(np.arange(len(self.bulk_like_sites)))
             ]
-            return ref_slab, reactive_site
+            return [ref_slab], [reactive_idx]
 
     def _mxidegen(self, repeat=[1, 1, 1], verbose=False):
         """Returns the MXide Method for the ref_slab"""
@@ -628,17 +629,38 @@ class OER_SingleSite(object):
             #        **ooh_down,
             #    }
         else:  # clean termination
-            ox_intermediates = self._get_oer_intermediates(
+            ref_slab, ox_intermediates = self._get_oer_intermediates(
                 self.adsorbates["Ox"], n_rotations=1
             )
-            oh_intermediates = self._get_oer_intermediates(self.adsorbates["OH"])
-            ooh_up = self._get_oer_intermediates(self.adsorbates["OOH_up"], suffix="up")
-            ooh_down = self._get_oer_intermediates(
+            _, oh_intermediates = self._get_oer_intermediates(self.adsorbates["OH"])
+            _, ooh_up = self._get_oer_intermediates(
+                self.adsorbates["OOH_up"], suffix="up"
+            )
+            _, ooh_down = self._get_oer_intermediates(
                 self.adsorbates["OOH_down"], suffix="down"
             )
+            configs_ox = [
+                Slab.from_dict(ox_intermediates[str(self.reactive_idx[0])]["O_0"])
+            ]
+            slab_ads_ox, slab_index_o = find_most_stable_config(
+                configs_ox, self.checkpoint_path
+            )  # just so we can decorate with tags
+            slab_ads_o = Slab(
+                slab_ads_ox.lattice,
+                slab_ads_ox.species,
+                slab_ads_ox.frac_coords,
+                miller_index=configs_ox[0].miller_index,
+                oriented_unit_cell=configs_ox[0].oriented_unit_cell,
+                shift=0,
+                scale_factor=0,
+                site_properties=slab_ads_ox.site_properties,
+            )
+            ox_int_stab = {}
+            ox_int_stab[f"O_{self.reactive_idx[0]}_0"] = slab_ads_o.as_dict()
             if self.checkpoint_path:
                 configs = [
-                    Slab.from_dict(oh_intermediates[k]) for k in oh_intermediates.keys()
+                    Slab.from_dict(oh_intermediates[str(self.reactive_idx[0])][k])
+                    for k in oh_intermediates[str(self.reactive_idx[0])].keys()
                 ]
                 slab_ads, slab_index = find_most_stable_config(
                     configs, self.checkpoint_path
@@ -655,8 +677,13 @@ class OER_SingleSite(object):
                     site_properties=slab_ads.site_properties,
                 )
 
-                oh_intermediates = {f"OH_{slab_index.item()}": slab_ads.as_dict()}
-                ooh_intermediates = {**ooh_down, **ooh_up}
+                oh_intermediates = {
+                    f"OH_{self.reactive_idx[0]}_{slab_index.item()}": slab_ads.as_dict()
+                }
+                ooh_intermediates = {
+                    **ooh_down[str(self.reactive_idx[0])],
+                    **ooh_up[str(self.reactive_idx[0])],
+                }
                 configs = [
                     Slab.from_dict(ooh_intermediates[k])
                     for k in ooh_intermediates.keys()
@@ -674,10 +701,12 @@ class OER_SingleSite(object):
                     scale_factor=0,
                     site_properties=slab_ads.site_properties,
                 )
-                ooh_intermediates = {f"OOH_{slab_index.item()}": slab_ads.as_dict()}
+                ooh_intermediates = {
+                    f"OOH_{self.reactive_idx[0]}_{slab_index.item()}": slab_ads.as_dict()
+                }
                 oer_intermediates = {
-                    **reference_dict,
-                    **ox_intermediates,
+                    **ref_slab,
+                    **ox_int_stab,
                     **oh_intermediates,
                     **ooh_intermediates,
                 }
