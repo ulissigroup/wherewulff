@@ -120,7 +120,7 @@ class ML_int_relax(FiretaskBase):
         # Make sure the tags don't come out as object dtype
         atoms.arrays["tags"] = atoms.arrays["tags"].astype(int)
         orig_structure = AAA.get_structure(atoms).copy()
-        dyn = BFGS(atoms, trajectory=f"data/{label}.traj")
+        dyn = BFGS(atoms, trajectory=f"data/{label}.traj", maxstep=0.05)
         dyn.run(fmax=0.03, steps=100)
         relaxed_energy = atoms.get_potential_energy()
         # We then relax the atomic structure and update_spec with the relaxed energy for the analysis
