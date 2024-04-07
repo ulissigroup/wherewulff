@@ -335,7 +335,7 @@ def Bulk_FW(
     name="",
     vasp_input_set=None,
     parents=None,
-    wall_time=43200,
+    wall_time=86400,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -348,7 +348,7 @@ def Bulk_FW(
         name              (string)          : name of firework
         parents           (default: None)   : parent FWs
         add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
-        wall_time         (default: 43200) : 2 days in seconds
+        wall_time         (default: 86400) : 2 days in seconds
         vasp_cmd                            : vasp_comand
         db_file                             : Path to the dabase file
 
@@ -416,7 +416,7 @@ def Bulk_FW(
         fw.tasks[1].update({"gzip_output": False})
         # Switch-on WalltimeHandler in RunVaspCustodian
         #if wall_time is not None:
-        #    fw.tasks[1].update({"wall_time": 43200})
+        #    fw.tasks[1].update({"wall_time": 86400})
 
     # Append Continue-optimizeFW for wall-time handling and use for uuid message
     # passing
@@ -439,7 +439,7 @@ def Slab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=43200,
+    wall_time=86400,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -452,7 +452,7 @@ def Slab_FW(
         name              (string)          : name of firework
         parents           (default: None)   : parent FWs
         add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
-        wall_time         (default: 43200) : 2 days in seconds
+        wall_time         (default: 86400) : 2 days in seconds
         vasp_cmd                            : vasp_comand
         db_file                             : Path to the dabase file
 
@@ -553,7 +553,7 @@ def AdsSlab_FW(
     parents=None,
     vasp_input_set=None,
     add_slab_metadata=True,
-    wall_time=43200,
+    wall_time=86400,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     run_fake=False,
@@ -566,7 +566,7 @@ def AdsSlab_FW(
         name              (string)          : name of firework
         parents           (default: None)   : parent FWs
         add_slab_metadata (default: True)   : Whether to add slab metadata to task doc.
-        wall_time         (default: 43200) : 2 days in seconds
+        wall_time         (default: 86400) : 2 days in seconds
         vasp_cmd                            : vasp_comand
         db_file                             : Path to the dabase file
 
