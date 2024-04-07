@@ -32,7 +32,7 @@ OOH_down = Molecule(
 )
 # CH3OH, CH3O, CH2O, CHO adsorbates
 #### METHANOL ######
-struct_methanol = Structure.from_file("POSCAR_methanol_vasp_opt")
+struct_methanol = Structure.from_file("/home/jovyan/wherewulff/WhereWulff/adsorption/POSCAR_methanol_vasp_opt")
 # Recenter and make the Oxygen specie that first atom in line
 cart_coords = struct_methanol.cart_coords
 center_cart_coords = cart_coords - cart_coords[-1]
@@ -43,7 +43,7 @@ mol_methanol.add_site_property(
 )
 mol_methanol.add_site_property("magmom", [0.6, 0.1, 0.1, 0.1, 0.1, 0.1])
 #### METHOXY ######
-struct_methoxy = Structure.from_file("POSCAR_relaxed_tilted_methoxy")
+struct_methoxy = Structure.from_file("/home/jovyan/wherewulff/WhereWulff/adsorption/POSCAR_relaxed_tilted_methoxy")
 # Recenter and make the Oxygen specie that first atom in line
 cart_coords = struct_methoxy.cart_coords
 center_cart_coords = cart_coords - cart_coords[-1]
@@ -52,7 +52,7 @@ mol_methoxy = Molecule(species, np.array([x for x in reversed(center_cart_coords
 mol_methoxy.add_site_property("binding_site", [True, False, False, False, False])
 mol_methoxy.add_site_property("magmom", [0.6, 0.1, 0.1, 0.1, 0.1])
 #### FORMALDEHYDE ######
-struct_formaldehyde = Structure.from_file("POSCAR_relaxed_tilted_formaldehyde")
+struct_formaldehyde = Structure.from_file("/home/jovyan/wherewulff/WhereWulff/adsorption/POSCAR_relaxed_tilted_formaldehyde")
 # Recenter and make the Oxygen specie that first atom in line
 cart_coords = struct_formaldehyde.cart_coords
 center_cart_coords = cart_coords - cart_coords[-1]
@@ -63,7 +63,7 @@ mol_formaldehyde = Molecule(
 mol_formaldehyde.add_site_property("binding_site", [True, False, False, False])
 mol_formaldehyde.add_site_property("magmom", [0.6, 0.1, 0.1, 0.1])
 #### CHO ######
-struct_CHO = Structure.from_file("POSCAR_relaxed_tilted_CHO")
+struct_CHO = Structure.from_file("/home/jovyan/wherewulff/WhereWulff/adsorption/POSCAR_relaxed_tilted_CHO")
 # Recenter and make the Oxygen specie that first atom in line
 cart_coords = struct_CHO.cart_coords
 center_cart_coords = cart_coords - cart_coords[-1]
