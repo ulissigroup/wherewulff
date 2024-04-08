@@ -88,7 +88,14 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         }
 
         # OER variables
-        self.ref_energies = {"H2O": -14.25994015, "H2": -6.77818501}
+        self.ref_energies = {
+            "H2O": -14.25994015,
+            "H2": -6.77818501,
+            "CH3OH": -30.21579748,
+            "CH3O": -24.49706421,
+            "CH2O": -22.19383915,
+            "CHO": -17.22150005,
+        }
 
         # Reactivity uuid
         oer_single_site_uuid = uuid.uuid4()
@@ -191,7 +198,34 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 ][-1]["e_0_energy"]
                 oer_intermediates_uuid["o2_star"] = adsorbate_label
                 oer_intermediates_energy["o2_star"] = dft_energy_o2_star
-
+            # Methanol
+            if re.match(".*ch3oh.*", adsorbate_label.lower()):
+                dft_energy_methanol = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
+                oer_intermediates_uuid["CH3OH"] = adsorbate_label.lower()
+                oer_intermediates_energy["CH3OH"] = dft_energy_methanol
+            # Methoxy
+            if re.match(".*ch3o.*", adsorbate_label.lower()):
+                dft_energy_methanol = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
+                oer_intermediates_uuid["CH3O"] = adsorbate_label.lower()
+                oer_intermediates_energy["CH3O"] = dft_energy_methanol
+            # Formaldehyde
+            if re.match(".*ch2o.*", adsorbate_label.lower()):
+                dft_energy_methanol = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
+                oer_intermediates_uuid["CH2O"] = adsorbate_label.lower()
+                oer_intermediates_energy["CH2O"] = dft_energy_methanol
+            # CHO
+            if re.match(".*cho.*", adsorbate_label.lower()):
+                dft_energy_methanol = doc_oer["calcs_reversed"][0]["output"][
+                    "ionic_steps"
+                ][-1]["e_0_energy"]
+                oer_intermediates_uuid["CHO"] = adsorbate_label.lower()
+                oer_intermediates_energy["CHO"] = dft_energy_methanol
         # Add termination as OER intermediate
         if surface_termination == "ox":
             oer_intermediates_energy["Ox"] = stable_termination.energy
@@ -257,9 +291,31 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         o2_evol = self.oxygen_evolution(delta_g_oer_dict["g_ooh"], std_potential=4.92)
         # Eads_o2_star
         eads_o2_star = self.Eads_o2_star(
-            oer_intermediates_energy["o2_star"], oer_intermediates_energy["reference"]
+            oer_intermediates_energy["o2_star"],
+            oer_intermediates_energy["reference"],
+            thermo_correction=0.44,
+        )
+        # Eads_methanol
+        eads_methanol = self.Eads_methanol(
+            oer_intermediates_energy["CH3OH"], oer_intermediates_energy["reference"]
+        )
+        # Eads_methoxy
+        eads_methoxy = self.Eads_methoxy(
+            oer_intermediates_energy["CH3O"], oer_intermediates_energy["reference"]
+        )
+        # Eads_formaldehyde
+        eads_formaldehyde = self.Eads_formaldehyde(
+            oer_intermediates_energy["CH2O"], oer_intermediates_energy["reference"]
+        )
+        # Eads_CHO
+        eads_CHO = self.Eads_CHO(
+            oer_intermediates_energy["CHO"], oer_intermediates_energy["reference"]
         )
         delta_g_oer_dict["g_o2_star"] = eads_o2_star
+        delta_g_oer_dict["g_ch3oh"] = eads_methanol
+        delta_g_oer_dict["g_ch3o"] = eads_methoxy
+        delta_g_oer_dict["g_ch2o"] = eads_formaldehyde
+        delta_g_oer_dict["g_cho"] = eads_CHO
 
         delta_g_oer_dict["g_o2"] = o2_evol
 
@@ -306,13 +362,13 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                     ]
                 }
             )
-            launch_id = fw["launches"][0]
+            launch_id = fw["launches"][-1]
             name = mmdb.db["fireworks"].find_one({"spec.uuid": edl_uuid})["name"]
             # regex
             edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
                 "action"
             ]["stored_data"]
-            Us = np.linspace(0, 1, 100)
+            Us = np.linspace(-1 + 0.6114742854072305, 1 + 0.6114742854072305, 100)
             fit_params = edl_results["fit_params"]
             if re.match(".*-O_.*", name):
                 Gs_Ox_fxn_U = np.array(func(Us, *fit_params))
@@ -324,6 +380,12 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
                 Gs_OH_fxn_U = np.array(func(Us, *fit_params))
             elif re.match(".*o2_star.*", name):
                 Gs_o2_star_fxn_U = np.array(func(Us, *fit_params))
+                from matplotlib import pyplot as plt
+
+                fig = plt.figure(figsize=(10.0, 10.0))
+                ax = fig.add_subplot(111)
+                ax.plot(Us, Gs_o2_star_fxn_U)
+                fig.savefig("TEST.pdf")
 
         if (
             Gs_OH_fxn_U is None
@@ -346,7 +408,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
                 "action"
             ]["stored_data"]
-            Us = np.linspace(0, 1, 100)
+            Us = np.linspace(-1 + 0.6114742854072305, 1 + 0.6114742854072305, 100)
             fit_params = edl_results["fit_params"]
             Gs_OH_fxn_U = np.array(func(Us, *fit_params))
         elif Gs_Ox_fxn_U is None:
@@ -368,7 +430,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             edl_results = mmdb.db["launches"].find_one({"launch_id": launch_id})[
                 "action"
             ]["stored_data"]
-            Us = np.linspace(0, 1, 100)
+            Us = np.linspace(-1 + 0.6114742854072305, 1 + 0.6114742854072305, 100)
             fit_params = edl_results["fit_params"]
             Gs_Ox_fxn_U = np.array(func(Us, *fit_params))
 
@@ -395,6 +457,7 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             Gs_o2_star_fxn_U
             - Gs_reference_fxn_U
             - (2 * self.ref_energies["H2O"] - 2 * self.ref_energies["H2"])
+            + 0.3
         )
         Gs_Ox_OH = Eads_Ox_fxn_U - Eads_OH_fxn_U
         Gs_OOH_Ox = Eads_OOH_fxn_U - Eads_Ox_fxn_U
@@ -402,7 +465,9 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
         Gs_star_o2_star = 4.92 - Eads_o2_star_fxn_U
         GO2 = 4.92 - Eads_OOH_fxn_U
 
-        stacked_Gs = np.vstack((Eads_OH_fxn_U, Gs_Ox_OH, Gs_OOH_Ox, Gs_o2_star_OOH, Gs_star_o2_star))
+        stacked_Gs = np.vstack(
+            (Eads_OH_fxn_U, Gs_Ox_OH, Gs_OOH_Ox, Gs_o2_star_OOH, Gs_star_o2_star)
+        )
         eta_fxn_U = 1.23 - stacked_Gs.min(axis=0)
         breakpoint()
         from matplotlib import pyplot as plt
@@ -452,6 +517,40 @@ class OER_SingleSiteAnalyzer(FiretaskBase):
             return eads_o2_star
         else:
             return eads_o2_star
+
+    def Eads_methanol(self, energy_methanol, energy_ref, thermo_correction=None):
+        eads_methanol = energy_methanol - energy_ref - self.ref_energies["CH3OH"]
+        if thermo_correction:
+            eads_methanol = eads_methanol + thermo_correction
+            return eads_methanol
+        else:
+            return eads_methanol
+
+    def Eads_methoxy(self, energy_methoxy, energy_ref, thermo_correction=None):
+        eads_methoxy = energy_methoxy - energy_ref - self.ref_energies["CH3O"]
+        if thermo_correction:
+            eads_methoxy = eads_methoxy + thermo_correction
+            return eads_methoxy
+        else:
+            return eads_methoxy
+
+    def Eads_formaldehyde(
+        self, energy_formaldehyde, energy_ref, thermo_correction=None
+    ):
+        eads_formaldehyde = energy_formaldehyde - energy_ref - self.ref_energies["CH2O"]
+        if thermo_correction:
+            eads_formaldehyde = eads_formaldehyde + thermo_correction
+            return eads_formaldehyde
+        else:
+            return eads_formaldehyde
+
+    def Eads_CHO(self, energy_CHO, energy_ref, thermo_correction=None):
+        eads_CHO = energy_CHO - energy_ref - self.ref_energies["CHO"]
+        if thermo_correction:
+            eads_CHO = eads_CHO + thermo_correction
+            return eads_CHO
+        else:
+            return eads_CHO
 
     def Eads_OH(self, energy_oh, energy_clean, thermo_correction=None):
         """
